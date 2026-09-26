@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-26T19:55:00+00:00",
+ "generated_at": "2026-09-26T21:18:13+00:00",
  "counts": {
   "play_rows": 53994,
   "play_attached": 1395,
@@ -9100,7 +9100,7 @@
     "odin_m0"
    ],
    "device_tokens": [],
-   "release": "2022",
+   "release": "",
    "soc_raw": "Qualcomm SDM845 Snapdragon 845",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM845 Snapdragon 845",
@@ -9214,14 +9214,6 @@
     {
      "field_name": "marketing_name",
      "value": "Odin (M0)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/odin_m0.yml",
-     "retrieved_at": "2026-09-26T19:50:24+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2022",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/odin_m0.yml",
@@ -9525,7 +9517,7 @@
     "odin_m2"
    ],
    "device_tokens": [],
-   "release": "2022",
+   "release": "",
    "soc_raw": "Qualcomm SDM845 Snapdragon 845",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM845 Snapdragon 845",
@@ -9639,14 +9631,6 @@
     {
      "field_name": "marketing_name",
      "value": "Odin (M2)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/odin_m2.yml",
-     "retrieved_at": "2026-09-26T19:50:24+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2022",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/odin_m2.yml",
@@ -11354,7 +11338,7 @@
    "device_tokens": [
     "chaozu"
    ],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8937 Snapdragon 430",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8937 Snapdragon 430",
@@ -11471,14 +11455,6 @@
     {
      "field_name": "marketing_name",
      "value": "Aquaris U",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/chaozu.yml",
-     "retrieved_at": "2026-09-26T19:50:16+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/chaozu.yml",
@@ -11761,7 +11737,7 @@
    "marketing_name": "Aquaris X5 Plus",
    "model_numbers": [],
    "device_tokens": [],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8976 Snapdragon 652",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8976 Snapdragon 652",
@@ -11878,14 +11854,6 @@
     {
      "field_name": "marketing_name",
      "value": "Aquaris X5 Plus",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gohan.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gohan.yml",
@@ -12167,7 +12135,7 @@
    "marketing_name": "Aquaris X5",
    "model_numbers": [],
    "device_tokens": [],
-   "release": "2015",
+   "release": "",
    "soc_raw": "Qualcomm MSM8916T Snapdragon 412",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8916T Snapdragon 412",
@@ -12285,14 +12253,6 @@
     {
      "field_name": "marketing_name",
      "value": "Aquaris X5",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/paella.yml",
-     "retrieved_at": "2026-09-26T19:50:25+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2015",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/paella.yml",
@@ -12985,7 +12945,7 @@
    "device_tokens": [
     "tenshi"
    ],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8937 Snapdragon 430",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8937 Snapdragon 430",
@@ -13102,14 +13062,6 @@
     {
      "field_name": "marketing_name",
      "value": "Aquaris U Plus",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/tenshi.yml",
-     "retrieved_at": "2026-09-26T19:50:27+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/tenshi.yml",
@@ -13392,7 +13344,7 @@
    "marketing_name": "Aquaris E5 4G",
    "model_numbers": [],
    "device_tokens": [],
-   "release": "2014",
+   "release": "",
    "soc_raw": "Qualcomm MSM8916 Snapdragon 410",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8916 Snapdragon 410",
@@ -13516,14 +13468,6 @@
     {
      "field_name": "marketing_name",
      "value": "Aquaris E5 4G",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/vegetalte_variant1.yml",
-     "retrieved_at": "2026-09-26T19:50:28+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2014",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/vegetalte_variant1.yml",
@@ -13804,7 +13748,7 @@
    "marketing_name": "Aquaris E5s",
    "model_numbers": [],
    "device_tokens": [],
-   "release": "2015",
+   "release": "",
    "soc_raw": "Qualcomm MSM8916T Snapdragon 412",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8916T Snapdragon 412",
@@ -13928,14 +13872,6 @@
     {
      "field_name": "marketing_name",
      "value": "Aquaris E5s",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/vegetalte_variant2.yml",
-     "retrieved_at": "2026-09-26T19:50:28+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2015",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/vegetalte_variant2.yml",
@@ -60285,7 +60221,7 @@
    "device_tokens": [
     "caymanslm"
    ],
-   "release": "2020",
+   "release": "",
    "soc_raw": "Qualcomm SDM845 Snapdragon 845",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM845 Snapdragon 845",
@@ -60410,14 +60346,6 @@
     {
      "field_name": "marketing_name",
      "value": "Velvet",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/caymanslm.yml",
-     "retrieved_at": "2026-09-26T19:50:16+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2020",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/caymanslm.yml",
@@ -133771,7 +133699,7 @@
    "device_tokens": [
     "PL2"
    ],
-   "release": "2018",
+   "release": "",
    "soc_raw": "Qualcomm SDM630 Snapdragon 630",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM630 Snapdragon 630",
@@ -133893,14 +133821,6 @@
     {
      "field_name": "marketing_name",
      "value": "6.1 (2018)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/PL2.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2018",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/PL2.yml",
@@ -135257,7 +135177,7 @@
    "marketing_name": "Mini 5G",
    "model_numbers": [],
    "device_tokens": [],
-   "release": "2019",
+   "release": "",
    "soc_raw": "Qualcomm SM8150 Snapdragon 855",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM8150 Snapdragon 855",
@@ -135385,14 +135305,6 @@
     {
      "field_name": "marketing_name",
      "value": "Mini 5G",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/TP1803.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2019",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/TP1803.yml",
@@ -180995,7 +180907,7 @@
     "A21S",
     "a21s"
    ],
-   "release": "2020",
+   "release": "",
    "soc_raw": "Samsung Exynos 850",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 850",
@@ -181113,14 +181025,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy A21s",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a21s.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2020",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a21s.yml",
@@ -181891,7 +181795,7 @@
    "device_tokens": [
     "a52q"
    ],
-   "release": "2021",
+   "release": "",
    "soc_raw": "Qualcomm SM7125 Snapdragon 720G",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM7125 Snapdragon 720G",
@@ -182014,14 +181918,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy A52 4G",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a52q.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2021",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a52q.yml",
@@ -182359,7 +182255,7 @@
    "device_tokens": [
     "a52sxq"
    ],
-   "release": "2021",
+   "release": "",
    "soc_raw": "Qualcomm SM7325 Snapdragon 778G 5G",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM7325 Snapdragon 778G 5G",
@@ -182482,14 +182378,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy A52s 5G",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a52sxq.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2021",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a52sxq.yml",
@@ -184208,7 +184096,7 @@
    "device_tokens": [
     "a72q"
    ],
-   "release": "2021",
+   "release": "",
    "soc_raw": "Qualcomm SM7125 Snapdragon 720G",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM7125 Snapdragon 720G",
@@ -184331,14 +184219,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy A72",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a72q.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2021",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a72q.yml",
@@ -184675,7 +184555,7 @@
    "device_tokens": [
     "a73xq"
    ],
-   "release": "2022",
+   "release": "",
    "soc_raw": "Qualcomm SM7325 Snapdragon 778G 5G",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM7325 Snapdragon 778G 5G",
@@ -184797,14 +184677,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy A73 5G",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a73xq.yml",
-     "retrieved_at": "2026-09-26T19:50:14+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2022",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/a73xq.yml",
@@ -188868,7 +188740,7 @@
    "device_tokens": [
     "chagalllte"
    ],
-   "release": "2014",
+   "release": "",
    "soc_raw": "Samsung Exynos 5420",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 5420",
@@ -188977,14 +188849,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S 10.5 LTE",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/chagalllte.yml",
-     "retrieved_at": "2026-09-26T19:50:16+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2014",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/chagalllte.yml",
@@ -189275,7 +189139,7 @@
     "chagallwifi",
     "chagallwifikx"
    ],
-   "release": "2014",
+   "release": "",
    "soc_raw": "Samsung Exynos 5420",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 5420",
@@ -189380,14 +189244,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S 10.5 Wi-Fi",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/chagallwifi.yml",
-     "retrieved_at": "2026-09-26T19:50:16+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2014",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/chagallwifi.yml",
@@ -199880,7 +199736,7 @@
    "device_tokens": [
     "gtowifi"
    ],
-   "release": "2019",
+   "release": "",
    "soc_raw": "Qualcomm SDM429 Snapdragon 429",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM429 Snapdragon 429",
@@ -199990,14 +199846,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab A 8.0 (2019)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gtowifi.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2019",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gtowifi.yml",
@@ -200708,7 +200556,7 @@
     "gts210vewifi",
     "gts210vewifichn"
    ],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8976 Snapdragon 652",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8976 Snapdragon 652",
@@ -200817,14 +200665,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S2 9.7 Wi-Fi (2016)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts210vewifi.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts210vewifi.yml",
@@ -201497,7 +201337,7 @@
     "gts28vewifi",
     "gts28vewifichn"
    ],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8976 Snapdragon 652",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8976 Snapdragon 652",
@@ -201607,14 +201447,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S2 8.0 Wi-Fi (2016)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts28vewifi.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts28vewifi.yml",
@@ -201900,7 +201732,7 @@
    "device_tokens": [
     "gts4lv"
    ],
-   "release": "2019",
+   "release": "",
    "soc_raw": "Qualcomm SDM670 Snapdragon 670",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM670 Snapdragon 670",
@@ -202023,14 +201855,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S5e (LTE)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts4lv.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2019",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts4lv.yml",
@@ -202360,7 +202184,7 @@
     "gts4lvwifi",
     "gts4lvwifichn"
    ],
-   "release": "2019",
+   "release": "",
    "soc_raw": "Qualcomm SDM670 Snapdragon 670",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM670 Snapdragon 670",
@@ -202479,14 +202303,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S5e (Wi-Fi)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts4lvwifi.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2019",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts4lvwifi.yml",
@@ -202800,7 +202616,7 @@
    "device_tokens": [
     "gts7l"
    ],
-   "release": "2020",
+   "release": "",
    "soc_raw": "Qualcomm SM8250-AB Snapdragon 865+",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM8250-AB Snapdragon 865+",
@@ -202916,14 +202732,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S7 (LTE)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts7l.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2020",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts7l.yml",
@@ -203241,7 +203049,7 @@
    "device_tokens": [
     "gts7lwifi"
    ],
-   "release": "2020",
+   "release": "",
    "soc_raw": "Qualcomm SM8250-AB Snapdragon 865+",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM8250-AB Snapdragon 865+",
@@ -203353,14 +203161,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S7 (Wi-Fi)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts7lwifi.yml",
-     "retrieved_at": "2026-09-26T19:50:19+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2020",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/gts7lwifi.yml",
@@ -211901,7 +211701,7 @@
     "klimtwifi",
     "klimtwifikx"
    ],
-   "release": "2014",
+   "release": "",
    "soc_raw": "Samsung Exynos 5420",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 5420",
@@ -212006,14 +211806,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab S 8.4 Wi-Fi",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/klimtwifi.yml",
-     "retrieved_at": "2026-09-26T19:50:21+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2014",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/klimtwifi.yml",
@@ -213630,7 +213422,7 @@
     "SM-G9008V"
    ],
    "device_tokens": [],
-   "release": "[{'SM-G9006V': '2014-04'}, {'SM-G9008V': '2014-05'}]",
+   "release": "2014-04",
    "soc_raw": "Qualcomm MSM8974AC Snapdragon 801",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8974AC Snapdragon 801",
@@ -213761,7 +213553,7 @@
     },
     {
      "field_name": "release",
-     "value": "[{'SM-G9006V': '2014-04'}, {'SM-G9008V': '2014-05'}]",
+     "value": "2014-04",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/kltechn.yml",
@@ -214089,7 +213881,7 @@
    "device_tokens": [
     "klteduoszn"
    ],
-   "release": "[{'SM-G9006W': '2014-04'}, {'SM-G9008W': '2014-06'}, {'SM-G9009W': '2014-04'}]",
+   "release": "2014-04",
    "soc_raw": "Qualcomm MSM8974AC Snapdragon 801",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8974AC Snapdragon 801",
@@ -214220,7 +214012,7 @@
     },
     {
      "field_name": "release",
-     "value": "[{'SM-G9006W': '2014-04'}, {'SM-G9008W': '2014-06'}, {'SM-G9009W': '2014-04'}]",
+     "value": "2014-04",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/kltechnduo.yml",
@@ -214547,7 +214339,7 @@
     "SM-G900MD"
    ],
    "device_tokens": [],
-   "release": "[{'SM-G900FD': '2014-06'}, {'SM-G900MD': '2014-07'}]",
+   "release": "2014-06",
    "soc_raw": "Qualcomm MSM8974AC Snapdragon 801",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8974AC Snapdragon 801",
@@ -214678,7 +214470,7 @@
     },
     {
      "field_name": "release",
-     "value": "[{'SM-G900FD': '2014-06'}, {'SM-G900MD': '2014-07'}]",
+     "value": "2014-06",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/klteduos.yml",
@@ -218901,7 +218693,7 @@
    "device_tokens": [
     "m52xq"
    ],
-   "release": "2021",
+   "release": "",
    "soc_raw": "Qualcomm SM7325 Snapdragon 778G 5G",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SM7325 Snapdragon 778G 5G",
@@ -219022,14 +218814,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy M52 5G",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/m52xq.yml",
-     "retrieved_at": "2026-09-26T19:50:22+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2021",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/m52xq.yml",
@@ -220141,7 +219925,7 @@
     "lt03wifikx",
     "lt03wifiue"
    ],
-   "release": "2013",
+   "release": "",
    "soc_raw": "Samsung Exynos 5420",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 5420",
@@ -220245,14 +220029,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Note 10.1 Wi-Fi (2014)",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/n1awifi.yml",
-     "retrieved_at": "2026-09-26T19:50:23+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2013",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/n1awifi.yml",
@@ -220529,7 +220305,7 @@
    "device_tokens": [
     "picassowifi"
    ],
-   "release": "2014",
+   "release": "",
    "soc_raw": "Samsung Exynos 5420",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 5420",
@@ -220633,14 +220409,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Tab PRO 10.1",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/n2awifi.yml",
-     "retrieved_at": "2026-09-26T19:50:23+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2014",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/n2awifi.yml",
@@ -228775,7 +228543,7 @@
     "v1awifi",
     "v1awifikx"
    ],
-   "release": "2014",
+   "release": "",
    "soc_raw": "Samsung Exynos 5420",
    "soc_vendor": "exynos",
    "soc_model": "Samsung Exynos 5420",
@@ -228879,14 +228647,6 @@
     {
      "field_name": "marketing_name",
      "value": "Galaxy Note Pro 12.2 Wi-Fi",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/v1awifi.yml",
-     "retrieved_at": "2026-09-26T19:50:27+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2014",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/v1awifi.yml",
@@ -232924,7 +232684,7 @@
     "DE106"
    ],
    "device_tokens": [],
-   "release": "2018-5-15",
+   "release": "2018-05-15",
    "soc_raw": "Qualcomm SDM845 Snapdragon 845",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm SDM845 Snapdragon 845",
@@ -233058,7 +232818,7 @@
     },
     {
      "field_name": "release",
-     "value": "2018-5-15",
+     "value": "2018-05-15",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/trident.yml",
@@ -239526,7 +239286,7 @@
     "F5321",
     "SO-02J"
    ],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8956 Snapdragon 650",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8956 Snapdragon 650",
@@ -239648,14 +239408,6 @@
     {
      "field_name": "marketing_name",
      "value": "Xperia X Compact",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/kugo.yml",
-     "retrieved_at": "2026-09-26T19:50:21+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/kugo.yml",
@@ -249971,7 +249723,7 @@
     "F5122",
     "suzu"
    ],
-   "release": "2016",
+   "release": "",
    "soc_raw": "Qualcomm MSM8956 Snapdragon 650",
    "soc_vendor": "qualcomm",
    "soc_model": "Qualcomm MSM8956 Snapdragon 650",
@@ -250092,14 +249844,6 @@
     {
      "field_name": "marketing_name",
      "value": "Xperia X",
-     "source": "lineageos",
-     "confidence": "reported",
-     "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/suzu.yml",
-     "retrieved_at": "2026-09-26T19:50:27+00:00"
-    },
-    {
-     "field_name": "release",
-     "value": "2016",
      "source": "lineageos",
      "confidence": "reported",
      "url": "https://raw.githubusercontent.com/LineageOS/lineage_wiki/main/_data/devices/suzu.yml",

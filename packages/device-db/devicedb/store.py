@@ -244,8 +244,58 @@ def build_sqlite(path: Path, variants: list[Variant], play_rows: list[dict],
 
     con.commit()
     con.execute("VACUUM")
+
+    # ---------------------------------------------------------------------
+    # El artefacto que se reparte se entrega en journal_mode DELETE, aunque la
+    # construccion se haga en WAL.
+    #
+    # POR QUE NO SE PUEDE DEJAR EN WAL
+    # --------------------------------
+    # La app abre el catalogo con `readOnly: true`, y con razon: el usuario
+    # tecnico no debe poder modificar el catalogo por accidente. Pero el modo
+    # WAL no necesita permiso de escritura EN LA BASE, necesita permiso de
+    # escritura EN LA CARPETA: mantiene un indice de la escritura pendiente en
+    # un archivo aparte, el `-shm`, que crea al abrir si puede. En una carpeta
+    # de solo lectura, como `C:\Program Files\FixMyPhone\resources\catalog`, no
+    # puede, y la apertura falla.
+    #
+    # Ese es el caso real: el instalador deja la app bajo Program Files y el
+    # `.exe` pide `asInvoker`, sin privilegios. Con la base en WAL, el taller
+    # instala, abre por primera vez y la app no encuentra su catalogo. Se
+    #jusquo a construir el `.exe` para descubrirlo, y se descubre mirando la
+    # carpeta `catalog` despues de arrancar: dos archivos `-shm` y `-wal` que
+    # nadie habia pedido.
+    #
+    # WAL no compra nada aqui. La base se escribe una vez, se lee para siempre y
+    # nunca hay dos escritores. Es el caso de uso donde WAL shines menos.
+    #
+    # El orden importa: journal_mode primero, VACUUM despues. Al cambiar de
+    # modo se reescribe la cabecera y se reparten las paginas, y un VACUUM
+    # anterior dejaria el archivo con el layout viejo. Con el orden este, el
+    # VACUUM final ademas se lleva cualquier `-wal` o `-shm` que quedara.
+    con.execute("PRAGMA journal_mode=DELETE")
+    con.execute("VACUUM")
+    con.commit()
     con.close()
-    log(f"sqlite: {path} ({path.stat().st_size/1024:.0f} KB)")
+
+    # `journal_mode=DELETE` no borra los archivos acompanantes si ya existian de
+    # una corrida anterior. Se quitan a mano: un `-wal` de 0 bytes junto al
+    # catalogo instalado confunde a cualquiera que abra la carpeta, y el
+    # uninstaller de NSIS copiaria el arbol entero incluyendo basura.
+    for sufijo in ("-wal", "-shm", "-journal"):
+        acompanante = path.with_name(path.name + sufijo)
+        if acompanante.exists():
+            try:
+                acompanante.unlink()
+            except OSError as e:
+                # No es fatal: la base ya quedo en DELETE y es valida. Se avisa
+                # porque un archivo que no se pudo quitar significa que algo
+                # todavia tiene la base abierta.
+                log(f"aviso: no se pudo borrar {acompanante.name} "
+                    f"({e.strerror}); quien lo tenga abierto lo esta usando")
+
+    log(f"sqlite: {path} ({path.stat().st_size/1024:.0f} KB, "
+        f"journal_mode=DELETE)")
     return path
 
 

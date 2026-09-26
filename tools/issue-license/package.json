@@ -1,0 +1,13 @@
+{
+  "name": "@fixmyphone/issue-license",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Emisor de licencias. El taller genera su propia licencia premium en un comando.",
+  "bin": {
+    "fmp-license": "../licensing/src/cli.ts"
+  },
+  "dependencies": {
+    "@fixmyphone/licensing": "*"
+  }
+}

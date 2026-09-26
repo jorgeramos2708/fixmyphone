@@ -100,36 +100,108 @@ export interface Provenance {
 }
 
 /**
+ * Una comprobación que hay que hacer DESPUÉS de intervenir, para poder
+ * afirmar que el equipo quedó bien. Viene del catálogo: qué es obligatorio
+ * depends de lo que se hizo, no de una lista genérica.
+ */
+export interface VerificationGate {
+  id: string;
+  /** En español llano: "El equipo enciende y no reinicia en 3 min". */
+  name: string;
+  /**
+   * Qué clase de comprobación es. Los nueve valores salen de la base real, no
+   * de una lista inventada: se contaron 11,043 puertas y estos son todos los
+   * `kind` que aparecen. Un tipo cerrado aquí documenta qué significa cada
+   * palabra; ampliarlo obliga a decidir qué hacer con el valor nuevo.
+   */
+  kind:
+    | "hardware"
+    | "software"
+    | "radio"
+    | "bootchain"
+    | "storage"
+    | "display"
+    | "audio"
+    | "camera"
+    | "sensor"
+    | "network";
+  /** Si es bloqueante, el trabajo no se puede dar por terminado. */
+  blocking: boolean;
+}
+
+/**
  * Unidad atómica del catálogo: la VARIANTE, no el modelo.
  *
  * "Galaxy A54" existe como Exynos 1380 y como Snapdragon 6 Gen 1. Una base de
  * datos keyed por modelo manda a flashear la imagen de la placa que no lleva.
+ *
+ * 518 de 734 variantes del catálogo no tienen sufijo de variante; en ese caso
+ * la clave es el codename a secas. Ver `variantKey`.
  */
 export interface DeviceVariant {
-  /** `codename#variante`. Es la clave real. */
+  /** `codename#variante`, o el codename solo si no hay variante. */
   key: string;
   codename: string;
-  variant: string;
+  /** `null` cuando el codename no se desambigua por placa. */
+  variant: string | null;
 
   marketingName: string;
-  manufacturer: string;
-  brand?: string;
+  /** Columna `vendor` del catálogo: Samsung, Xiaomi, Motorola… */
+  vendor: string;
 
-  soc?: string;
-  socVendor?: string;
-  platform?: string;
+  /** Texto tal como viene de la fuente: "Samsung Exynos 1380". */
+  soc: string | null;
+  socVendor: string | null;
+  platform: string | null;
 
-  /** Números de modelo (SM-S918B, SM-S918U1...). Base para Restrictions. */
+  /** Números de modelo (SM-A546B, SM-A546U1…). Base para restricciones. */
   modelNumbers: string[];
 
-  androidVersion?: string;
-  isAbDevice?: boolean;
+  /** Nivel de API de Android de fábrica. `null` si la fuente no lo dio. */
+  androidVersion: number | null;
+  /**
+   * Fecha de lanzamiento del equipo, tal como la da la fuente: `"2016-04"` o
+   * `"2018-04-30"`. Es texto y a veces le falta el día, y por eso es `string`:
+   * convertirlo a número obligaría a inventar un día que nadie registró.
+   */
+  release: string | null;
 
-  capabilities: Record<string, boolean>;
+  /**
+   * Capacidades como lista, no como mapa. El catálogo las guarda como
+   * array JSON; convertir a Record{boolean} en el borde mentiría sobre lo
+   * que el dato afirma. Para preguntar por una: `has()`.
+   */
+  capabilities: string[];
+
   riskFlags: string[];
-  verificationGates: string[];
+  verificationGates: VerificationGate[];
 
-  provenance: Record<string, Provenance>;
+  /** Columns `sources`: qué fuente aportó cada bloque de datos. */
+  sources: string[];
+}
+
+const CAP_SETS = new WeakMap<DeviceVariant, Set<string>>();
+
+/** ¿El catálogo afirma que esta variante puede hacer X? */
+export function has(v: DeviceVariant, capability: string): boolean {
+  let s = CAP_SETS.get(v);
+  if (!s) {
+    s = new Set(v.capabilities);
+    CAP_SETS.set(v, s);
+  }
+  return s.has(capability);
+}
+
+/** A/B o solo A, según las capacidades del catálogo. `null` si no se sabe. */
+export function partitionScheme(v: DeviceVariant): "a_b" | "a_only" | null {
+  if (has(v, "a_b_slots")) return "a_b";
+  if (has(v, "a_only")) return "a_only";
+  return null;
+}
+
+/** Construye la clave canónica de una variante. */
+export function variantKey(codename: string, variant: string | null): string {
+  return variant ? `${codename}#${variant}` : codename;
 }
 
 /** Resultado de resolver un equipo real contra el catálogo. */
@@ -179,6 +251,25 @@ export interface LicenseState {
   /** Diagnósticos consumidos hoy. El plan gratis tiene tope. */
   usedToday?: number;
   dailyLimit?: number;
+  /**
+   * Identificador de ESTE equipo, y de qué está hecho.
+   *
+   * Va aquí para que el técnico pueda leerlo en voz alta a quien le vende la
+   * licencia. Es el número que hay que teclear para que una licencia atada
+   * funcione, y pedirlo en una llamada de teléfono dictando 32 caracteres en
+   * hexadecimal sin verlo antes es pedir que se tecleen mal.
+   */
+  machine?: MachineIdInfo;
+}
+
+/** De qué se compone el identificador de equipo. Se muestra, no se esconde. */
+export interface MachineIdInfo {
+  /** El id, 32 hex en mayúscula. */
+  id: string;
+  /** Cuenta de Windows. */
+  user: string;
+  /** Serial del volumen del sistema. */
+  volume: string;
 }
 
 export interface LicenseEnvelope {

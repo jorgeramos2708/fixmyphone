@@ -179,6 +179,42 @@ class Variant:
 
 # ------------------------------------------------------------------ lineageos -> Variant
 
+_ESPACIOS = re.compile(r"^\s*|\s*$")
+
+
+def _normaliza_release(bruto) -> str:
+    """Lleva `release` del wiki a `AAAA-MM` o `AAAA-MM-DD`, o a "" si no se puede.
+
+    Acepta tres formas, que son las que aparecen en la fuente:
+      - "2016-04"          fecha directa
+      - "2018-5-15"        con el mes sin cero a la izquierda
+      - {"SM-G9006V": "2014-04", ...}   un mapa por numero de modelo
+    """
+    if isinstance(bruto, dict):
+        fechas = [_normaliza_release(v) for v in bruto.values()]
+        fechas = [f for f in fechas if f]
+        # La mas antigua: cuando salio el equipo, no cuando se actualizo.
+        return min(fechas) if fechas else ""
+    if isinstance(bruto, (list, tuple)):
+        fechas = [_normaliza_release(v) for v in bruto]
+        fechas = [f for f in fechas if f]
+        return min(fechas) if fechas else ""
+    if not isinstance(bruto, (str, int)):
+        return ""
+
+    m = re.match(r"^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$", _ESPACIOS.sub("", str(bruto)))
+    if not m:
+        return ""
+    anio, mes, dia = m.group(1), int(m.group(2)), m.group(3)
+    if not 1 <= mes <= 12:
+        return ""
+    if dia is not None:
+        if not 1 <= int(dia) <= 31:
+            return ""
+        return f"{anio}-{mes:02d}-{int(dia):02d}"
+    return f"{anio}-{mes:02d}"
+
+
 def from_lineageos(doc: dict) -> Variant | None:
     codename = (doc.get("codename") or "").strip()
     if not codename:
@@ -199,8 +235,24 @@ def from_lineageos(doc: dict) -> Variant | None:
         v.add("variant", v.variant, src, "verified", url, ts)
     v.add("marketing_name", v.marketing_name, src, rep, url, ts)
     if doc.get("release"):
-        v.release = str(doc["release"])
-        v.add("release", v.release, src, rep, url, ts)
+        # La fecha de lanzamiento se normaliza a `AAAA-MM` o `AAAA-MM-DD`.
+        #
+        # Sin esto, cuatro variantes guardaban basura. El wiki de LineageOS usa
+        # para `release` un mapa de numero de modelo a fecha cuando un equipo
+        # salio en varios meses segun el pais: al serializarlo con `str()` se
+        # guardaba el repr del diccionario entero
+        # (`"[{'SM-G9006V': '2014-04'}]"`) en lugar de una fecha. Ese texto no
+        # es una fecha, no se puede parsear, y un `Number()` en el lector de la
+        # app daria NaN en pantalla.
+        #
+        # Cuando el mapa trae una sola entrada, esa es la fecha. Con varias se
+        # toma la mas antigua, que es cuando salio el equipo, y no la ultima
+        # version: la app muestra cuando se lanzo, no cuando se actualizo por
+        # ultima vez. Si las fechas no son parseables, se deja vacio y el
+        # pipeline lo reporta, en vez de inventar una.
+        v.release = _normaliza_release(doc["release"])
+        if v.release:
+            v.add("release", v.release, src, rep, url, ts)
 
     models = _as_list(doc.get("models"))
     v.model_numbers = [str(m).strip() for m in models if str(m).strip()]

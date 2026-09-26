@@ -1,6 +1,6 @@
 # FixMyPhone - device-db run report
 
-Generado: 2026-09-26T19:55:01+00:00
+Generado: 2026-09-26T21:18:13+00:00
 
 ## Resumen
 
@@ -25,10 +25,10 @@ Generado: 2026-09-26T19:55:01+00:00
 
 | artefacto | ruta |
 |---|---|
-| sqlite | C:\Users\Administrador\Documents\Proyectos\fixmyphone\device-db\data\out\fixmyphone_device_db.sqlite |
-| csv | C:\Users\Administrador\Documents\Proyectos\fixmyphone\device-db\data\out\devices.csv |
-| json | C:\Users\Administrador\Documents\Proyectos\fixmyphone\device-db\data\out\devices.json |
-| report | C:\Users\Administrador\Documents\Proyectos\fixmyphone\device-db\data\out\run_report.md |
+| sqlite | C:\Users\Administrador\Documents\Proyectos\fixmyphone\packages\device-db\data\out\fixmyphone_device_db.sqlite |
+| csv | C:\Users\Administrador\Documents\Proyectos\fixmyphone\packages\device-db\data\out\devices.csv |
+| json | C:\Users\Administrador\Documents\Proyectos\fixmyphone\packages\device-db\data\out\devices.json |
+| report | C:\Users\Administrador\Documents\Proyectos\fixmyphone\packages\device-db\data\out\run_report.md |
 
 
 ## Fuentes

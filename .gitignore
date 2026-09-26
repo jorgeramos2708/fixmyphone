@@ -7,6 +7,9 @@ node_modules/
 apps/desktop/out/
 apps/desktop/dist/
 
+# Build de la demo web. Es salida de Vite; la fuente esta en apps/web-demo/src.
+apps/web-demo/dist/
+
 # Depuración
 *.log
 npm-debug.log*

@@ -1,0 +1,91 @@
+# electron-builder
+# ===========================================================================
+#
+# Dos salidas, y las dos se generan:
+#
+#   1. Instalador NSIS. Es lo que se instala un taller. Deja acceso en el menú
+#      de Inicio y desinstalador, que es lo que espera un equipo de escritorio
+#      con varios técnicos.
+#
+#   2. Portable .exe. Es lo que se lleva el técnico a un cliente, o lo que se
+#      prueba sin instalar nada. Un `.exe` de 100 MB que corre desde una USB
+#      vale más que cualquier instalador cuando el cliente te está mirando.
+#
+# Lo que NO se hace aquí, y conviene dejarlo escrito: el instalador NO está
+# firmado con certificado de código. Windows SmartScreen va a mostrar "editor
+# desconocido" la primera vez, y hay que hacer clic en "Más información" y luego
+# "Ejecutar". Es un costo conocido y aceptado para esta etapa; la alternativa
+# (Azure Trusted Signing, ~USD 99 al año) se paga con la primera venta, no antes.
+
+appId: mx.fixmyphone.desktop
+productName: FixMyPhone
+copyright: FixMyPhone
+
+directories:
+  output: dist
+  buildResources: build
+
+# El catálogo va como recurso externo, no empaquetado dentro del asar. Razón:
+# node:sqlite abre el archivo por ruta del sistema de archivos, y un archivo
+# dentro de un asar no se puede abrir con la API normal sin extraerlo antes.
+# Copiarlo a `resources/catalog/` es lo que hace posible leerlo en caliente y
+# reemplazarlo sin recompilar la app.
+extraResources:
+  - from: ../../packages/device-db/data/out/fixmyphone_device_db.sqlite
+    to: catalog/fixmyphone_device_db.sqlite
+
+asar: true
+# El asar se desempaqueta al ejecutar. El código es legible para quien tenga el
+# `.exe`, y eso es correcto: esta herramienta la va a abrir gente que necesita
+# saber qué hace. La seguridad aquí no viene de ocultar el código, viene de que
+# el renderer no tiene acceso al sistema (sandbox + contextIsolation).
+asarUnpack:
+  - "**/node_modules/node:sqlite/**"
+
+files:
+  - out/**/*
+  - package.json
+  - "!**/*.map"
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  # Sin `requestedExecutionLevel: requireAdministrator`. La app no necesita ser
+  # administradora para hablar con ADB, y pedir elevación en cada arranque
+  # entrena al usuario a hacer clic en "Sí" sin leer, que es exactamente cómo
+  # se cuela el malware.
+  requestedExecutionLevel: asInvoker
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: FixMyPhone
+  deleteAppDataOnUninstall: false
+  # La licencia vive en userData. Desinstalar no debe borrarla: el taller
+  # reinstala sin querer y perder el premium sería una razón para no volver.
+  # NSIS se queda en ingles a proposito.
+  #
+  # El instalador en español (language 1034) compila, pero NSIS avisa
+  # `MUI_UNTEXT_WELCOME_INFO_TITLE is not set in language table of 2058` y
+  # electron-builder convierte ese warning en error, asi que el build muere.
+  # Son dos opciones y las dos tienen costo:
+  #
+  #   1. Dejarlo en ingles (lo que hay ahora). Funciona ya. El técnico ve cuatro
+  #      pantallas de instalacion en ingles, que son cuatro lineas de "Next".
+  #   2. Parchear el MUI de NSIS a mano. Se puede, pero es frágil: depende de
+  #      la versión de la caché de NSIS, y un update de electron-builder lo
+  #      rompe sin avisar.
+  #
+  # Se elige la 1. Cuando haya que traducirlo de verdad, se hace con un
+  # `include` propio con los LangString que faltan, no tocando la caché.
+  language: "1033"
+
+portable:
+  artifactName: "${productName}-${version}-portable.${ext}"

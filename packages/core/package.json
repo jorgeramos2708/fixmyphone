@@ -1,0 +1,12 @@
+{
+  "name": "@fixmyphone/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dominio y contrato de plataforma. Sin dependencias de UI.",
+  "main": "./src/bridge.ts",
+  "types": "./src/bridge.ts",
+  "exports": {
+    ".": "./src/bridge.ts"
+  }
+}

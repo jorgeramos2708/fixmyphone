@@ -1,0 +1,12 @@
+{
+  "name": "@fixmyphone/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tokens de diseno y primitivas visuales. Unico lugar con color, radio y espaciado.",
+  "main": "./src/tokens.css",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
+  }
+}

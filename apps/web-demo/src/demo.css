@@ -1,0 +1,20 @@
+/* Ajustes que solo aplican a la demo web.
+   La app de escritorio no carga este archivo. Todo lo que sea de la DEMO va
+   aquí, para que el producto no se contamine con necesidades de la demo. */
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+/* La demo no es un escritorio: sin esto, el fondo del body asoma en los
+   bordes y delata que es una página web dentro de una ventana. */
+body {
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+/* Fuentes. Se usan las del sistema porque la demo tiene que cargar sin red;
+   la app de escritorio empaqueta Inter y JetBrains Mono como archivos. */
