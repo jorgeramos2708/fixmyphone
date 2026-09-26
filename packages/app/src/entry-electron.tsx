@@ -29,7 +29,14 @@ if (!bridge) {
     "<p style='color:#94a3b8;margin:0'>El puente con el proceso principal no está disponible.<br>" +
     "Reinstala la aplicación y vuelve a abrirla.</p></div></div>";
 } else {
-  createRoot(document.getElementById("root")!).render(
+  // La raiz se guarda en `globalThis` para que una recarga en caliente no
+  // vuelva a llamar a `createRoot` sobre el mismo contenedor. Sin esto, en
+  // `npm run dev` cualquier guardado de un `.css` reinicia la app y se pierde
+  // el informe que estabas viendo.
+  const raizGlobal = globalThis as { __fmpRaiz?: ReturnType<typeof createRoot> };
+  const raiz = (raizGlobal.__fmpRaiz ??= createRoot(document.getElementById("root")!));
+
+  raiz.render(
     <StrictMode>
       <App bridge={bridge} />
     </StrictMode>,

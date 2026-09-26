@@ -55,7 +55,24 @@ function SimPicker() {
   );
 }
 
-createRoot(document.getElementById("root")!).render(
+/**
+ * Monta la raiz, reutilizandola si el modulo ya se ejecutó.
+ *
+ * Sin esto, cada recarga en caliente por HMR vuelve a llamar a `createRoot`
+ * sobre el mismo contenedor, React protesta ("createRoot() on a container that
+ * has already been passed to createRoot") y la pagina se recarga entera. Se
+ * pierde el estado, que en una app donde se está viendo un informe es justo lo
+ * que no quieres perder mientras ajustas un estilo.
+ *
+ * Guardar la raiz en `globalThis` es el patron que recomienda React para este
+ * caso, y ademas permite montar en dos modos distintos en el mismo documento
+ * sin pelearse.
+ */
+const contenedor = document.getElementById("root")!;
+const raizGlobal = globalThis as { __fmpRaiz?: ReturnType<typeof createRoot> };
+const raiz = (raizGlobal.__fmpRaiz ??= createRoot(contenedor));
+
+raiz.render(
   <StrictMode>
     <App bridge={bridge} />
     <SimPicker />

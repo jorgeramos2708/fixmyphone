@@ -241,22 +241,30 @@ export function LicenciaScreen({
             copied={copied === "issue"}
           />
 
-          <CodeBlock
-            title="Atarla a un equipo (opcional)"
-            // El id es el de ESTA maquina, el mismo que esta unas lineas mas
-            // arriba. Poner uno de ejemplo fijo hacia que el tecnico lo copiara
-            // tal cual, y la licencia emitida no serviria en su equipo: el
-            // error mas caro del mundo y con un mensaje de rechazo que parece
-            // de la app.
-            lines={[
-              "fmp-license machine-id",
-              "fmp-license issue --tier premium \\",
-              '  --subject "Taller Perez" --days 365 \\',
-              `  --machine ${license.machine?.id ?? "<el-id-de-arriba>"}`,
-            ]}
-            onCopy={() => setCopied("machine-cmd")}
-            copied={copied === "machine-cmd"}
-          />
+          {/* El bloque de atadura SOLO aparece donde hay un id que atar.
+              En la demo web no lo hay: la huella sale de la cuenta de Windows y
+              del serial del volumen, y el navegador no puede ver ninguno de los
+              dos. Inventar un id para rellenar el hueco habria sido peor que
+              callarse, y dejar el comando con un `<el-id-de-arriba>` que no
+              apunta a nada es exactamente esa forma de inventar. */}
+          {license.machine ? (
+            <CodeBlock
+              title="Atarla a un equipo (opcional)"
+              // El id es el de ESTA maquina, el mismo que esta unas lineas mas
+              // arriba. Poner uno de ejemplo fijo hacia que el tecnico lo copiara
+              // tal cual, y la licencia emitida no serviria en su equipo: el
+              // error mas caro del mundo y con un mensaje de rechazo que parece
+              // de la app.
+              lines={[
+                "fmp-license machine-id",
+                "fmp-license issue --tier premium \\",
+                '  --subject "Taller Perez" --days 365 \\',
+                `  --machine ${license.machine.id}`,
+              ]}
+              onCopy={() => setCopied("machine-cmd")}
+              copied={copied === "machine-cmd"}
+            />
+          ) : null}
 
           <CodeBlock
             title="Verificar una licencia a mano"
