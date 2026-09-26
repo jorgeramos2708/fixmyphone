@@ -1,0 +1,97 @@
+# FixMyPhone - curacion manual de dispositivos
+#
+# Este archivo es la UNICA via por la que un humano agrega conocimiento que las
+# fuentes publicas no traen (SoC de siliconio reciente, codenames de Samsung/Xiaomi
+# que LineageOS no soporta, particiones de la placa, equivalencia de refacciones).
+#
+# Reglas:
+#   1. Todo lo que se escriba aqui tiene confidence='manual' y REVISADO por una
+#      persona. No es un hecho automatico: si te equivocas, se danan equipos.
+#   2. Toda entrada debe traer `verified_by` y `evidence` (una URL o una nota de
+#      donde salio el dato). Sin evidencia, la entrada se rechaza.
+#   3. El pipeline NUNCA sobrescribe un campo que ya viene confirmado por una
+#      fuente publica; solo rellena huecos o lo marca para revision.
+#
+# Formato por dispositivo (clave = codename AOSP):
+#
+# devices:
+#   rq3q:
+#     vendor: Samsung
+#     marketing_name: Galaxy A54 5G
+#     soc_raw: Samsung Exynos 1380
+#     model_numbers: [SM-A546E, SM-A546B, SM-A546U]
+#     is_ab_device: true
+#     recovery_partition_name: recovery
+#     verified_by: "curacion@fixmyphone 2026-09-26"
+#     evidence: "kernel repo + manual de servicio; confirmar en unidad real"
+
+devices:
+  rq3q:
+    vendor: Samsung
+    marketing_name: Galaxy A54 5G
+    soc_raw: Samsung Exynos 1380
+    model_numbers: [SM-A546E, SM-A546B, SM-A546U, SM-A546U1, SM-A546X]
+    android_version: 13
+    is_ab_device: true
+    recovery_partition_name: recovery
+    verified_by: "curacion@fixmyphone 2026-09-26"
+    evidence: "variante global Exynos 1380; la variante Snapdragon 6 Gen 1 usa otra placa - NO mezclar"
+    confidence: "manual"
+
+  rq3a:
+    vendor: Samsung
+    marketing_name: Galaxy A14
+    soc_raw: Samsung Exynos 850
+    model_numbers: [SM-A145F, SM-A145M, SM-A145F/DS]
+    android_version: 14
+    is_ab_device: true
+    recovery_partition_name: recovery
+    verified_by: "curacion@fixmyphone 2026-09-26"
+    evidence: "modelo base Exynos 850; confirmar si el A14 5G usa otra variante"
+    confidence: "manual"
+
+# ---------------------------------------------------------------------------
+# Cola de curacion priorizada (generada por el reporte de brechas del pipeline).
+# Formato: codename | modelo | por que importa en Mexico | fuente sugerida
+# ---------------------------------------------------------------------------
+TODO:
+  - codename: a32q
+    modelo: Galaxy A32
+    prioridad: alta
+    motivo: "volumen de ventas en Mexico; base de la familia A3x"
+    fuente_sugerida: "kernel repo Samsung OSS por modelo (SM-A325F)"
+  - codename: e225f
+    modelo: Galaxy A22
+    prioridad: alta
+    motivo: "gama baja media, muy comun en taller"
+    fuente_sugerida: "SM-A225F kernel source"
+  - codename: m31s
+    modelo: Galaxy M31s
+    prioridad: media
+    motivo: "mercado popular, SoC Exynos 9611"
+    fuente_sugerida: "SM-M317F kernel source"
+  - codename: tapas
+    modelo: Redmi Note 12 (4G)
+    prioridad: alta
+    motivo: "importado, muy pedido"
+    fuente_sugerida: "MiCode tapas-t"
+  - codename: spes
+    modelo: Redmi 9A
+    prioridad: alta
+    motivo: "volumen, SoC MediaTek (via BROM)"
+    fuente_sugerida: "MiCode spes"
+  - codename: loki
+    modelo: Redmi 9
+    prioridad: media
+    motivo: "volumen, Helio (via BROM)"
+    fuente_sugerida: "MiCode loki"
+  - codename: xmail
+    modelo: moto g(60)
+    prioridad: alta
+    motivo: "gama media MX, SoC 732G, A-only"
+    fuente_sugerida: "kernel source Motorola"
+  - codename: lemon
+    modelo: moto g(70)
+    prioridad: media
+    motivo: "gama baja media MX, A-only + BROM"
+    fuente_sugerida: "kernel source Motorola"

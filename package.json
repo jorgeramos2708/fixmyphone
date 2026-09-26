@@ -1,0 +1,26 @@
+{
+  "name": "fixmyphone",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma de diagnóstico y reparación de dispositivos móviles para México",
+  "license": "UNLICENSED",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @fixmyphone/desktop",
+    "dev:web": "npm run dev --workspace @fixmyphone/web-demo",
+    "build": "npm run build --workspaces --if-present",
+    "dist": "npm run dist --workspace @fixmyphone/desktop",
+    "typecheck": "tsc --build",
+    "db:build": "python packages/device-db/pipeline.py run",
+    "db:stats": "python packages/device-db/pipeline.py stats",
+    "db:verify": "python packages/device-db/pipeline.py verify"
+  }
+}

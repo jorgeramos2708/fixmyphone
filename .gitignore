@@ -1,0 +1,45 @@
+# Node
+node_modules/
+*.tsbuildinfo
+.vite/
+
+# Electron
+apps/desktop/out/
+apps/desktop/dist/
+
+# Depuración
+*.log
+npm-debug.log*
+.pnpm-debug.log*
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Claves privadas de licencia: NUNCA se versionan.
+# La clave pública sí, en packages/licensing/src/public-key.ts
+*.pem
+*.key
+!packages/licensing/**/*.pub.pem
+
+# Licencias emitidas por el usuario
+*.fmp
+!docs/ejemplo-licencia.fmp.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Caché de descargas del pipeline device-db.
+# Son ~8 MB de archivos fuente re-descargables. No van a git.
+packages/device-db/data/raw/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+.vs/
+.idea/

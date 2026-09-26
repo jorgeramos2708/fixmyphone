@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   FIXMYPHONE — Tokens de diseño
+   ----------------------------------------------------------------------------
+   Este archivo es la única fuente de verdad. La app de escritorio y la demo
+   web consumen exactamente estos tokens; si un valor cambia aquí, cambia en
+   ambos lados. No se permiten colores, radios ni espaciados sueltos en los
+   componentes.
+
+   DOCTRINA "humano, no IA" — reglas que este archivo existe para imponer:
+
+   1. UN acento por pantalla. `--color-brand` solo se usa en la acción
+      principal. Dos elementos naranjas en la misma vista = error de diseño.
+   2. ESPACIADO LÓGICO, no uniforme. La escala es 4/8/12/16/24/32. El 12 va
+      entre elementos relacionados; el 32 entre grupos que no se pertenecen.
+      El padding "16 en todas partes" es la señal más común de UI generada.
+   3. RADIOS CONTENIDOS. Una herramienta de trabajo no tiene esquinas
+      redondas de 16px. Radios de 4-6px: se lee como instrumento, no como
+      aplicación de consumo.
+   4. CERO animaciones de entrada al cargar. Ver `--motion-*` más abajo: el
+      movimiento existe para confirmar cambios de estado, progreso y éxito.
+      Nada decorativo.
+   5. TODO DATO TÉCNICO en monoespaciada con cifras tabulares. IMEI, serie,
+      hash, nombre de partición, offset de bytes. Esto solo ya sube la
+      percepción de profesionalismo más que cualquier adorno visual.
+   ========================================================================= */
+
+@theme {
+  /* --- Marca y estados -------------------------------------------------- */
+  --color-brand: #f97316;          /* naranja herramienta */
+  --color-brand-hover: #ea580c;
+  --color-brand-subtle: #431407;   /* fondos de acento al 12% */
+  --color-brand-ink: #ffedd5;      /* texto sobre acento */
+
+  --color-success: #16a34a;
+  --color-success-subtle: #052e16;
+  --color-warning: #f59e0b;
+  --color-warning-subtle: #451a03;
+  --color-danger: #dc2626;
+  --color-danger-subtle: #450a0a;
+  --color-info: #2563eb;
+  --color-info-subtle: #172554;
+
+  /* --- Superficies (tema oscuro por defecto: es una herramienta de
+         taller, se usa 8 horas al día junto a un microscope) ------------ */
+  --color-bg: #0b1120;
+  --color-surface: #131c31;
+  --color-surface-2: #1b2740;
+  --color-surface-3: #243049;
+  --color-border: #243049;
+  --color-border-strong: #33415e;
+
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-text-faint: #64748b;
+
+  /* --- Tipografía ------------------------------------------------------ */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* Escala fija. Sin tamaños ad hoc en componentes. */
+  --text-display: 1.75rem;    /* 28px / 36  — título de página */
+  --text-display--line-height: 2.25rem;
+  --text-h1: 1.25rem;         /* 20px / 28  — sección */
+  --text-h1--line-height: 1.75rem;
+  --text-body: 0.875rem;      /* 14px / 20  — por defecto */
+  --text-body--line-height: 1.25rem;
+  --text-small: 0.8125rem;    /* 13px / 18  — secundario */
+  --text-small--line-height: 1.125rem;
+  --text-caption: 0.75rem;    /* 12px / 16  — terciario, timestamps */
+  --text-caption--line-height: 1rem;
+
+  /* --- Espaciado: escala lógica, no uniforme --------------------------- */
+  --spacing: 0.25rem;          /* base 4px; usar los múltiplos de abajo */
+  --space-1: 0.25rem;   /*  4px — entre elemento e icono */
+  --space-2: 0.5rem;    /*  8px — dentro de un control */
+  --space-3: 0.75rem;   /* 12px — elementos relacionados        */
+  --space-4: 1rem;      /* 16px — dentro de una tarjeta         */
+  --space-6: 1.5rem;    /* 24px — entre secciones              */
+  --space-8: 2rem;      /* 32px — entre grupos no relacionados  */
+
+  /* --- Radios contenidos ---------------------------------------------- */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;     /* máximo absoluto. Nada de 16px. */
+
+  /* --- Movimiento: solo cambio de estado, progreso y éxito ------------ */
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Prohibido: animación de entrada al montar, Parallax, shimmer en
+     elementos que no estén cargando. */
+
+  /* --- Foco: visible, grueso, consistente ----------------------------- */
+  --ring-focus: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-brand);
+}
+
+/* ============================================================================
+   Composición tipográfica
+   ----------------------------------------------------------------------------
+   REGLA 5: cifras tabulares en TODO valor técnico. Los números deben alinearse
+   en columna cuando el técnico los compara (IMEI vs IMEI, offset vs offset).
+   Sin esto, dos hashes de la misma longitud parecen de distinta longitud.
+   ========================================================================= */
+.tech {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  letter-spacing: -0.01em;
+}
+
+/* Etiqueta técnica: el formato de dato, no el dato.
+   "IMEI" sobre "356938035643809" lee mejor que un objeto plano. */
+.tech-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   Alineación óptica
+   ----------------------------------------------------------------------------
+   REGLA: el centro óptico de un icono NO coincide con su centro geométrico.
+   Un icono de 20px junto a una etiqueta de 14px debe bajar 1-2px para que
+   ambos parezcan centrados. Es un detalle de 2px que la UI generada nunca
+   aplica y que el ojo sí percibe como "bien hecho".
+   ========================================================================= */
+.optical-center {
+  display: inline-flex;
+  align-items: center;
+  /* baja el icono respecto a la línea de texto */
+  transform: translateY(1.5px);
+}
+.optical-center > svg {
+  flex: none;
+}
+
+/* ============================================================================
+   Superficie de herramienta: densidad y ritmo
+   ========================================================================= */
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+/* Fila de dato técnico. Altura fija para que la columna no "bailen"
+   los renglones al actualizarse en vivo. */
+.data-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  min-height: 32px;
+}
+.data-row + .data-row {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+}
+
+/* Registro de log: una línea por evento, nunca envuelta. El técnico
+   lee esto con el scroll; que la línea no se parta es requisito funcional. */
+.log-line {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+  padding: 1px var(--space-4);
+}
+
+/* Foco visible y consistente. Nunca `outline: none` sin reemplazo. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
