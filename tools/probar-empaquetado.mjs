@@ -40,6 +40,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve, dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
+import { DatabaseSync } from "node:sqlite";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const DESKTOP = join(RAIZ, "apps", "desktop");
@@ -223,6 +224,31 @@ if (!existsSync(UNPACKED)) {
     `aparecieron: ${acompanantes.join(", ")}. ` +
       "Salen de abrir la base en WAL; el artefacto tiene que ir en DELETE.",
   );
+
+  // La comprobacion de arriba mira la CARPETA. Esta abre el ARCHIVO, que es lo
+  // que importa: una base en WAL no necesita tener un `-shm` SENTADO al lado
+  // para fallar en Program Files, lo crea en el momento de abrirla. La carpeta
+  // limpia con la base en WAL es un estado que parece bien y no lo esta.
+  if (existsSync(db)) {
+    const abierto = new DatabaseSync(db, { readOnly: true });
+    const modo = abierto.prepare("PRAGMA journal_mode").get();
+    const variantes = abierto
+      .prepare("SELECT COUNT(*) AS n FROM variant")
+      .get();
+    abierto.close();
+
+    check(
+      "El catalogo del paquete se entrega en journal_mode DELETE",
+      String(modo.journal_mode).toLowerCase() === "delete",
+      `journal_mode = ${modo.journal_mode}. ` +
+        "En WAL, abrirlo en una carpeta de solo lectura falla.",
+    );
+    check(
+      "El catalogo del paquete abre y trae las variantes",
+      Number(variantes.n) > 700,
+      `trajo ${variantes.n} variantes`,
+    );
+  }
 
   // El punto 3.
   const pkg = JSON.parse(
