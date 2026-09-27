@@ -46,6 +46,18 @@ interface Simulated {
   note: string;
   props: RawDeviceProps;
   battery: { levelPct: number; charging: boolean };
+  /**
+   * Este equipo NO está en el catálogo, a propósito, para que se vea cómo
+   * responde la app cuando no sabe. Es la parte honesta de la demo.
+   *
+   * Todo lo demás tiene que resolver. La regla existe porque se apuntaron dos
+   * fixtures a codenames que el recorte de 48 no traía, y la demo contestaba
+   * "sin coincidencia en el catálogo" en dos de cinco casos: medio catálogo de
+   * mentira, y sin ningún error que lo dijera. Marcarlo aquí hace que la
+   * excepción sea visible en el codigo y que `tools/probar-if.py` pueda exigir
+   * que todo lo demás sí resuelva.
+   */
+  fueraDelCatalogo?: true;
 }
 
 const SIMULADOS: Simulated[] = [
@@ -81,17 +93,24 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 87, charging: true },
   },
   {
-    id: "a14",
-    label: "Galaxy A14 (Exynos 850)",
-    note: "Gama de entrada, muy voluminoso. Viene con bootloader bloqueado de fábrica.",
+    // Apuntaba a un Galaxy A14 (codename `rq3a`) que no esta en el recorte de
+    // 48, asi que la demo le contestaba "sin coincidencia en el catalogo" y
+    // esta pantalla no demostraba nada. Se cambio por un Galaxy A21s, que si esta
+    // y que mantiene lo que el equipo queria mostrar: un Samsung de gama de
+    // entrada con Exynos 850 y el bootloader bloqueado de fabrica. El nombre del
+    // equipo tambien cambio, porque el catalogo no tiene un A14 y el fixture
+    // tiene que decir el nombre del equipo que de verdad esta simulando.
+    id: "a21s",
+    label: "Galaxy A21s (Exynos 850)",
+    note: "Gama de entrada, muy voluminoso. Viene con el bootloader bloqueado de fabrica.",
     props: {
-      "ro.product.device": "rq3a",
-      "ro.product.model": "SM-A145F",
+      "ro.product.device": "a21s",
+      "ro.product.model": "SM-A217F",
       "ro.product.manufacturer": "samsung",
-      "ro.build.version.release": "14",
-      "ro.build.version.security_patch": "2024-05-01",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-02-01",
       "ro.build.fingerprint":
-        "samsung/rq3a/rq3a:14/UP1A.231005.007/A145FXXU6AWG1:user/release-keys",
+        "samsung/a21s/a21s:13/TP1A.220624.014/A217FXXU5AWF1:user/release-keys",
       "ro.boot.hardware": "exynos850",
       "ro.boot.flash.locked": "1",
       "ro.boot.verifiedbootstate": "green",
@@ -102,17 +121,28 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 42, charging: false },
   },
   {
-    id: "moto-g84",
-    label: "moto g84 5G",
-    note: "Motorola con SoC MediaTek. El riesgo de BROM sustituye al de Knox.",
+    // Motorola con el estado `sin_verificar`: se busco en la tabla de la marca
+    // y este modelo no aparece. Es el caso que mas se confunde con "no se
+    // busco", asi que conviene verlo junto al A54, que si esta sin buscar.
+    //
+    // Antes apuntaba a un moto g84 (codename `kunlun`) que tampoco esta en el
+    // recorte, y decia "MediaTek" y "riesgo de BROM". Ninguna de las dos cosas
+    // era cierta: `kunlun` no existe en la base, y en este catalogo el riesgo
+    // de programador firmado se llama `edl_requires_signed_programmer`, no
+    // `brom`. Un fixture que describe riesgos que el catalogo no tiene
+    // desorienta a quien lo lee sobre lo que la herramienta afirma.
+    id: "moto-g34",
+    label: "moto g34 5G",
+    note: "Motorola que si se busco en la tabla del IFT y no aparecio. Contrasta con el A54, que no se ha buscado.",
     props: {
-      "ro.product.device": "kunlun",
-      "ro.product.model": "XT2111-3",
+      "ro.product.device": "fogos",
+      "ro.product.model": "XT2363-1",
       "ro.product.manufacturer": "motorola",
       "ro.build.version.release": "14",
-      "ro.build.version.security_patch": "2024-06-01",
-      "ro.build.fingerprint": "motorola/kunlun/kunlun:14/UKQ1.231003.001/HKUMIT1.55-32:user/release-keys",
-      "ro.boot.hardware": "mt6893",
+      "ro.build.version.security_patch": "2024-02-01",
+      "ro.build.fingerprint":
+        "motorola/fogos/fogos:14/U1TQS34.20-46-10/f9e1a2b3c4d5:user/release-keys",
+      "ro.boot.hardware": "sm6375",
       "ro.boot.flash.locked": "0",
       "ro.boot.verifiedbootstate": "orange",
       "ro.serialno": "8d9c1f2e3a4b5c6d",
@@ -121,9 +151,39 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 15, charging: true },
   },
   {
+    // El unico equipo simulado con FOLIO del IFT. Existe por una razon concreta:
+    // el catalogo de la demo garantiza un caso `homologado` (ver
+    // ESTADOS_A_MOSTRAR en tools/generar-demo-catalog.mjs) y sin un equipo que
+    // apunte a el, esa fila no se puede ver en la demo. Un dato que no aparece
+    // en ninguna pantalla es indistinguible de un dato inventado.
+    //
+    // Los props son los REALES de un moto g32: XT2235-1 esta en la lista de
+    // numeros de modelo de la variante `devon`, que es la que el generador dejo
+    // con el folio RTIMOXT22-3427. No se inventaron props para que cuadraran.
+    id: "moto-g32-ift",
+    label: "moto g32 (con folio del IFT)",
+    note: "La homologacion del IFT ya verificada contra la tabla de la marca: aqui se ve el folio.",
+    props: {
+      "ro.product.device": "devon",
+      "ro.product.model": "XT2235-1",
+      "ro.product.manufacturer": "motorola",
+      "ro.build.version.release": "12",
+      "ro.build.version.security_patch": "2023-08-01",
+      "ro.build.fingerprint":
+        "motorola/devon/devon:12/S3RQS32.20-42-10/f9e1a2b3c4d5:user/release-keys",
+      "ro.boot.hardware": "sm6225",
+      "ro.boot.flash.locked": "0",
+      "ro.boot.verifiedbootstate": "orange",
+      "ro.serialno": "z1y2x3w4v5u6t7s8",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 62, charging: false },
+  },
+  {
     id: "desconocido",
     label: "Equipo fuera del catálogo (SM-S931B)",
     note: "Galaxy S24 Ultra. A propósito: el catálogo no lo tiene. La app debe decirlo, no adivinar.",
+    fueraDelCatalogo: true,
     props: {
       "ro.product.device": "e1s",
       "ro.product.model": "SM-S931B",

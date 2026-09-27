@@ -142,7 +142,16 @@ export function LicenciaScreen({
                       setTimeout(() => setCopied(null), 1500);
                     }}
                     className="text-text-faint transition-colors hover:text-text"
-                    aria-label="Copiar el id de equipo"
+                    // Mismo criterio que los botones de copiar de abajo: la
+                    // etiqueta cambia al copiar para que el lector de pantalla
+                    // anuncie el resultado. El id de este equipo es lo que se
+                    // lee en voz alta al activar una licencia, así que el
+                    // técnico necesita saber si lo copió.
+                    aria-label={
+                      copied === "machine"
+                        ? "Id de equipo copiado"
+                        : "Copiar el id de equipo"
+                    }
                   >
                     {copied === "machine" ? (
                       <Check size={12} strokeWidth={2.5} className="text-success" />
@@ -310,7 +319,13 @@ function CodeBlock({
         <button
           onClick={onCopy}
           className="text-text-faint transition-colors hover:text-text"
-          aria-label="Copiar"
+          // El texto accesible cambia con el estado a propósito. Con un
+          // `aria-label` fijo, quien usa lector de pantalla aprieta "Copiar" y
+          // no se entera de que funcionó: el icono cambia a un palomita, y el
+          // icono no se anuncia. Estos comandos se copian para pegarlos en
+          // otro lado, así que no saber si se copiaron es no saber si puede
+          // seguir.
+          aria-label={copied ? `${title}: copiado` : `Copiar ${title.toLowerCase()}`}
         >
           {copied ? (
             <Check size={12} strokeWidth={2.5} className="text-success" />

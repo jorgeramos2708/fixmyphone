@@ -475,6 +475,138 @@ prueba("y se cuenta como no_soportado, no como homologado",
        conteo[ift.NO_SOPORTADO] == 1 and conteo[ift.HOMOLOGADO] == 0, str(conteo))
 
 
+# ============================================ la demo sigue teniendo equipos que
+# ============================================== se pueden ver de verdad
+#
+# La demo web depende de dos mitades que se pueden desalinear sin que nada avise:
+#
+#   - `tools/generar-demo-catalog.mjs` elige un recorte de 48 variantes, y la
+#     eleccion cambia cuando cambia el puntaje o la base.
+#   - `apps/web-demo/src/browser-bridge.ts` tiene los equipos simulados, cada uno
+#     apuntando a un codename o a un numero de modelo concreto.
+#
+# Si el generador deja de meter la variante a la que apunta un fixture, ese
+# fixture contesta "sin coincidencia en el catalogo". No hay excepcion ni error:
+# la demo sigue arrancando, la pantalla sigue viéndose bien, y simplemente
+# demuestra que la herramienta no reconoce la mitad de los equipos que ella misma
+# ofrece. Ya pasó: dos de cinco fixtures apuntaban a `rq3a` y `kunlun`, que no
+# estan ni en el recorte ni en la base completa.
+#
+# Por eso la regla es al reves de lo habitual: no se lista que fixture puede
+# fallar, se exige que TODOS resuelvan y el unico que se salva es el que declara
+# `fueraDelCatalogo` en su propio bloque. Una excepcion que se declara en el
+# codigo, al lado de su motivo, se puede revisar; una excepcion en una lista de
+# esta prueba se documenta sola y nadie la revisa.
+#
+# Ademas se comprueba que la demo muestre los cuatro estados. El estado
+# `homologado` es el que prueba el cruce, y un folio que no se ve en ninguna
+# pantalla es indistinguible de un folio inventado.
+seccion("La demo web se puede ver de verdad")
+
+_DEMO_CAT = RAIZ / "packages/app/src/data/demo-catalog.ts"
+_DEMO_BRIDGE = RAIZ / "apps/web-demo/src/browser-bridge.ts"
+
+if not _DEMO_CAT.exists() or not _DEMO_BRIDGE.exists():
+    prueba("estan los dos archivos de la demo", False,
+           f"falta {_DEMO_CAT.name} o {_DEMO_BRIDGE.name}; "
+           "se regenera con `npm run db:demo`")
+else:
+    _cat = _DEMO_CAT.read_text(encoding="utf-8")
+    _bridge = _DEMO_BRIDGE.read_text(encoding="utf-8")
+
+    def _campo(bloque: str, nombre: str) -> str:
+        mm = re.search(r'"%s":\s*"([^"]*)"' % nombre, bloque)
+        return mm.group(1) if mm else ""
+
+    def _modelos(bloque: str) -> set[str]:
+        mm = re.search(r'"modelNumbers":\s*\[(.*?)\]', bloque, re.S)
+        return set(re.findall(r'"([^"]+)"', mm.group(1))) if mm else set()
+
+    # Indice del recorte: codename -> (estado, folio, url, numeros de modelo).
+    # Se construye una vez porque las pruebas siguientes lo consultan muchas.
+    _recorte: dict[str, dict[str, object]] = {}
+    for _b in _cat.split("\n  {\n")[1:]:
+        _cn = _campo(_b, "codename")
+        if not _cn:
+            continue
+        _recorte.setdefault(_cn, {
+            "ift": _campo(_b, "homologadoIft"),
+            "folio": _campo(_b, "iftCertificado"),
+            "url": _campo(_b, "iftUrl"),
+            "modelos": _modelos(_b),
+        })
+
+    _todos_los_modelos: set[str] = set()
+    for _v in _recorte.values():
+        _todos_los_modelos |= _v["modelos"]  # type: ignore[operator]
+
+    # Los bloques de SIMULADOS. Se parten por `id:`, que es lo unico del bloque
+    # que no se repite, y se leen las dos props con las que resuelve la app.
+    _sims = []
+    for _b in _bridge.split("const SIMULADOS")[1].split("\n  {\n")[1:]:
+        _mid = re.search(r'id:\s*"([^"]+)"', _b)
+        if not _mid:
+            continue
+        _mdev = re.search(r'"ro\.product\.device":\s*"([^"]+)"', _b)
+        _mmod = re.search(r'"ro\.product\.model":\s*"([^"]+)"', _b)
+        _sims.append({
+            "id": _mid.group(1),
+            "device": _mdev.group(1) if _mdev else "",
+            "modelo": _mmod.group(1) if _mmod else "",
+            "fuera": "fueraDelCatalogo: true" in _b,
+        })
+
+    prueba("se leen los equipos simulados de la demo", len(_sims) >= 4,
+           f"solo se hallaron {len(_sims)}; cambio el formato del array?")
+
+    for _s in _sims:
+        _encontro = _s["device"] in _recorte or _s["modelo"] in _todos_los_modelos
+        if _s["fuera"]:
+            # El unico que existe para que se vea el "no se que es esto".
+            prueba(f"el equipo fuera de catalogo SI esta fuera ({_s['id']})",
+                   not _encontro,
+                   f"'{_s['device']}' ya esta en el recorte, asi que ya no "
+                   "demuestra lo que dice demostrar")
+        else:
+            prueba(f"el equipo '{_s['id']}' resuelve en la demo", _encontro,
+                   f"ni '{_s['device']}' ni '{_s['modelo']}' estan en el recorte; "
+                   "apuntalo a una variante que si este, o marcalo fueraDelCatalogo")
+
+    # Que la demo muestre un caso con folio, que es lo que prueba el cruce.
+    _con_folio = [c for c, v in _recorte.items() if v["ift"] == ift.HOMOLOGADO]
+    prueba("el recorte tiene al menos un caso homologado", bool(_con_folio),
+           "el generador deberia garantizarlo con ESTADOS_A_MOSTRAR")
+    if _con_folio:
+        _v = _recorte[_con_folio[0]]
+        prueba("y ese caso trae folio, no solo el estado", bool(_v["folio"]),
+               "mostrarlo homologado y sin folio es peor que no mostrarlo")
+        prueba("con una pagina real de la marca de donde salio",
+               str(_v["url"]).startswith("https://"), f"url='{_v['url']}'")
+
+        # Y que un equipo simulado lo alcance. Si el generador cambia cual es la
+        # variante homologada, el fixture puede quedarse apuntando a la anterior.
+        _alcanzable = {*_con_folio} | set(_v["modelos"])  # type: ignore[arg-type]
+        _apunta = [s["id"] for s in _sims
+                   if not s["fuera"]
+                   and (s["device"] in _alcanzable or s["modelo"] in _alcanzable)]
+        prueba("y hay un equipo simulado que abra ese caso", bool(_apunta),
+               f"el recorte tiene el caso con folio pero ningun equipo lo abre; "
+               f"apunta alguno a {_con_folio[0]}")
+
+    # Los tres estados que el cruce produce tienen que estar en la demo. El
+    # cuarto, `no_soportado`, no se exige: solo lo produce una confirmacion
+    # humana y hoy no hay ninguna, asi que pedirlo seria prometer un caso que el
+    # producto no tiene.
+    _estados = {str(v["ift"]) for v in _recorte.values()}
+    for _e in (ift.HOMOLOGADO, ift.SIN_VERIFICAR, ift.DESCONOCIDO):
+        prueba(f"la demo tiene al menos un caso '{_e}'", _e in _estados,
+               f"lo que hay: {sorted(x for x in _estados if x)}")
+
+    # Y que la marca se vea como se escribe, no como la clave del catalogo.
+    prueba("el recorte trae el nombre de la marca para pantalla",
+           '"vendorNombre": "Motorola"' in _cat and '"vendorNombre": "Samsung"' in _cat)
+
+
 # ================================================================== resumen
 print()
 print("=" * 72)
