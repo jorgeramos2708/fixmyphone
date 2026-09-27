@@ -12,6 +12,77 @@
  */
 
 import type { ReactNode, ButtonHTMLAttributes } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// ---------------------------------------------------------------------------
+// useCopiar
+// ---------------------------------------------------------------------------
+
+/** Lo que se está mostrando del último intento de copiar. */
+export type EstadoCopia = "idle" | "ok" | "error";
+
+/** El último intento de copiar, con la clave de lo que se copió. */
+export type Copia = { clave: string; estado: "ok" | "error" };
+
+/**
+ * Copia al portapapeles y avisa durante un rato y medio.
+ *
+ * Vive aquí y no dentro de una pantalla porque hay tres sitios que copian: el
+ * id del equipo, los bloques de comando de la licencia y las claves de variante
+ * de la pantalla de equipo. Cuando eran tres y cada una por su cuenta, dos de
+ * ellas mentían: ponían la palomita al instante, sin esperar a que la escritura
+ * terminara, y sin mirar si había funcionado.
+ *
+ * Mentir aquí es peor que no tener botón. El técnico copia, ve la palomita,
+ * pega en la terminal y ejecuta lo que ya había en el portapapeles de antes,
+ * que puede ser otro comando completo. El error aflora en la terminal, no en la
+ * app, y con un mensaje que parece de la herramienta.
+ *
+ * Por eso hay tres cosas que este hook no perdona:
+ *
+ *   1. La palomita solo sale cuando la escritura se resolvió. Antes se ponía
+ *      antes de pedirse, así que un portapapeles bloqueado igualmente se
+ *      sellaba como copiado.
+ *   2. El fallo se dice, con el estado `error`. El silencio se lee como
+ *      "todavía no lo intenté", y quien cree que copió un comando va a pegarlo.
+ *   3. El aviso se apaga solo y el temporizador se cancela al desmontar. Con
+ *      cuatro bloques en la misma pantalla, una palomita pegada deja al técnico
+ *      sin saber cuál de los cuatro copió hace un rato.
+ *
+ * La `clave` es para las listas. Copiar la clave de una variante y que la
+ * palomita aparezca en todas deja al técnico sin saber cuál de las N está
+ * ahora en el portapapeles, que es justo lo que necesita saber para pegarla.
+ * Quien no la necesite la deja vacía y compara solo el `estado`.
+ */
+export function useCopiar(): [Copia | null, (texto: string, clave?: string) => void] {
+  const [copia, setCopia] = useState<Copia | null>(null);
+  const aviso = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (aviso.current) clearTimeout(aviso.current);
+    };
+  }, []);
+
+  const copiar = (texto: string, clave = "") => {
+    const anotar = (estado: "ok" | "error") => {
+      setCopia({ clave, estado });
+      if (aviso.current) clearTimeout(aviso.current);
+      aviso.current = setTimeout(() => setCopia(null), 1500);
+    };
+
+    // Si `navigator.clipboard` no existe, la cadena opcional devuelve `undefined`
+    // sin lanzar. Sin este guardia se anotaría "ok" sin haber escrito nada.
+    const escritura = navigator.clipboard?.writeText(texto);
+    if (!escritura) {
+      anotar("error");
+      return;
+    }
+    escritura.then(() => anotar("ok")).catch(() => anotar("error"));
+  };
+
+  return [copia, copiar];
+}
 
 // ---------------------------------------------------------------------------
 // Button

@@ -151,6 +151,35 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 15, charging: true },
   },
   {
+    // El equipo de una tercera marca. Xiaomi es de las tres grandes del país y
+    // la demo solo tenía Samsung y Motorola, así que el que seialize esto en un
+    // taller ve dos marcas y cree que la herramienta solo conoce dos.
+    //
+    // Se eligió este codename porque `Mi439` sí tiene dos variantes reales en el
+    // catálogo: `Mi439#1` es el Redmi 7A y `Mi439#2` el Redmi 8, con listas de
+    // números de modelo distintas (M1903... y M1908...). No es un caso elegido
+    // por adornar la pantalla; es el que hay.
+    id: "redmi-7a",
+    label: "Redmi 8 (Xiaomi)",
+    note: "Gama de entrada muy voluminosa. El codename Mi439 cubre dos placas distintas en el catálogo.",
+    props: {
+      "ro.product.device": "Mi439",
+      "ro.product.model": "M1908C3IC",
+      "ro.product.manufacturer": "xiaomi",
+      "ro.product.brand": "redmi",
+      "ro.build.version.release": "9",
+      "ro.build.version.security_patch": "2020-04-01",
+      "ro.build.fingerprint":
+        "xiaomi/Mi439/Mi439:9/PKQ1.190319.001/M1908C3IC:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "9f8e7d6c5b4a",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 71, charging: false },
+  },
+  {
     // El unico equipo simulado con FOLIO del IFT. Existe por una razon concreta:
     // el catalogo de la demo garantiza un caso `homologado` (ver
     // ESTADOS_A_MOSTRAR en tools/generar-demo-catalog.mjs) y sin un equipo que

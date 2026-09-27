@@ -21,60 +21,10 @@
  * compró.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { KeyRound, Check, X, Copy, Terminal, AlertTriangle } from "lucide-react";
 import type { LicenseState } from "@fixmyphone/core";
-import { Button, Badge, Panel, DataRow } from "../components/primitives";
-
-/** Lo que se está mostrando del último intento de copiar. */
-type EstadoCopia = "idle" | "ok" | "error";
-
-/**
- * Copia al portapapeles y avisa durante un rato y medio.
- *
- * Vive en un hook y no suelto porque hay dos sitios que copian: el id de este
- * equipo y los bloques de comando. Cuando eran dos, solo uno de los dos
- * escribía de verdad: el otro cambiaba un estado y ponía la palomita, así que el
- * técnico copiaba el comando, veía la palomita, lo pegaba en la terminal y
- * ejecutaba lo que ya había en el portapapeles de antes. El error aflora en la
- * terminal, no en la app, y con un mensaje que parece de la herramienta.
- *
- * El fallo se dice, y por eso existe el estado `error`. Si `navigator.clipboard`
- * no está o el permiso se niega, sale "no se pudo" en vez de dejar el botón
- * como estaba: el silencio se lee como "todavía no lo intenté", y un técnico que
- * cree que copió un comando va a pegarlo.
- *
- * El aviso se apaga solo y el temporizador se cancela al desmontar. Con cuatro
- * bloques en la misma pantalla, una palomita pegada deja al técnico sin saber
- * cuál de los cuatro copió hace un rato y cuál acaba de copiar.
- */
-function useCopiar(): [EstadoCopia, (texto: string) => void] {
-  const [estado, setEstado] = useState<EstadoCopia>("idle");
-  const aviso = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (aviso.current) clearTimeout(aviso.current);
-    };
-  }, []);
-
-  const copiar = (texto: string) => {
-    const anotar = (nuevo: EstadoCopia) => {
-      setEstado(nuevo);
-      if (aviso.current) clearTimeout(aviso.current);
-      aviso.current = setTimeout(() => setEstado("idle"), 1500);
-    };
-
-    const escritura = navigator.clipboard?.writeText(texto);
-    if (!escritura) {
-      anotar("error");
-      return;
-    }
-    escritura.then(() => anotar("ok")).catch(() => anotar("error"));
-  };
-
-  return [estado, copiar];
-}
+import { Button, Badge, Panel, DataRow, useCopiar } from "../components/primitives";
 
 export function LicenciaScreen({
   license,
@@ -89,7 +39,7 @@ export function LicenciaScreen({
 }) {
   const [raw, setRaw] = useState("");
   const [busy, setBusy] = useState(false);
-  const [copiado, copiar] = useCopiar();
+  const [copia, copiar] = useCopiar();
 
   const premium = license.tier === "premium" && license.valid;
 
@@ -192,16 +142,16 @@ export function LicenciaScreen({
                     // lee en voz alta al activar una licencia, así que el
                     // técnico necesita saber si lo copió.
                     aria-label={
-                      copiado === "ok"
+                      copia?.estado === "ok"
                         ? "Id de equipo copiado"
-                        : copiado === "error"
+                        : copia?.estado === "error"
                           ? "Id de equipo: no se pudo copiar"
                           : "Copiar el id de equipo"
                     }
                   >
-                    {copiado === "ok" ? (
+                    {copia?.estado === "ok" ? (
                       <Check size={12} strokeWidth={2.5} className="text-success" />
-                    ) : copiado === "error" ? (
+                    ) : copia?.estado === "error" ? (
                       <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
                     ) : (
                       <Copy size={12} strokeWidth={1.75} />
@@ -350,12 +300,12 @@ export function LicenciaScreen({
  * nada en el portapapeles. El botón ponía la palomita y mentía.
  */
 function CodeBlock({ title, lines }: { title: string; lines: string[] }) {
-  const [estado, copiar] = useCopiar();
+  const [copia, copiar] = useCopiar();
 
   const etiqueta =
-    estado === "ok"
+    copia?.estado === "ok"
       ? `${title}: copiado`
-      : estado === "error"
+      : copia?.estado === "error"
         ? `${title}: no se pudo copiar`
         : `Copiar ${title.toLowerCase()}`;
 
@@ -373,9 +323,9 @@ function CodeBlock({ title, lines }: { title: string; lines: string[] }) {
           // así que no saber si se copiaron es no saber si puede seguir.
           aria-label={etiqueta}
         >
-          {estado === "ok" ? (
+          {copia?.estado === "ok" ? (
             <Check size={12} strokeWidth={2.5} className="text-success" />
-          ) : estado === "error" ? (
+          ) : copia?.estado === "error" ? (
             <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
           ) : (
             <Copy size={12} strokeWidth={1.75} />

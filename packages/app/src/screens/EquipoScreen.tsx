@@ -21,6 +21,7 @@ import {
   Usb,
   Check,
   Copy,
+  AlertTriangle,
   CircleHelp,
   ShieldAlert,
   ShieldCheck,
@@ -28,7 +29,7 @@ import {
 } from "lucide-react";
 import { partitionScheme, has, TOOLTIP_HOMOLOGACION } from "@fixmyphone/core";
 import type { ConnectedDevice, DeviceVariant, HomologadoIft, Resolution } from "@fixmyphone/core";
-import { Button, Badge, Panel, DataRow, EmptyState } from "../components/primitives";
+import { Button, Badge, Panel, DataRow, EmptyState, useCopiar } from "../components/primitives";
 
 /**
  * Cómo se ve cada estado de homologación en pantalla.
@@ -196,7 +197,11 @@ function IdentityColumn({
   resolution: Resolution | null;
   scanning: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
+  // Un solo hook para toda la lista, y la clave de variante le dice cuál de las
+  // copias es la última. Antes era un booleano, y con un solo booleano la
+  // palomita no dice qué variante quedó en el portapapeles, que es justo lo que
+  // el técnico necesita saber antes de pegar el texto en la terminal.
+  const [copia, copiar] = useCopiar();
 
   if (scanning) {
     return (
@@ -295,17 +300,26 @@ function IdentityColumn({
               {/* La variante SIEMPRE se muestra completa. "A54" no basta:
                   hay dos placas distintas detrás de ese nombre. */}
               <button
-                onClick={() => {
-                  void navigator.clipboard?.writeText(v.key);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1200);
-                }}
+                onClick={() => copiar(v.key, v.key)}
                 className="tech group mt-1.5 inline-flex items-center gap-1.5 text-body text-brand hover:underline"
-                title="Copiar variante"
+                // El texto accesible cambia con el estado. El botón contiene la
+                // clave de variante como texto, así que su nombre accesible es
+                // la clave y nada más: quien usa lector de pantalla oye
+                // "rq3q, botón" y no tiene forma de saber que al apretarlo se
+                // copia. La clave va primero porque es lo que se usa después.
+                aria-label={
+                  copia?.clave === v.key
+                    ? copia.estado === "ok"
+                      ? `Clave de variante ${v.key}: copiada`
+                      : `Clave de variante ${v.key}: no se pudo copiar`
+                    : `Copiar la clave de variante ${v.key}`
+                }
               >
                 {v.key}
-                {copied ? (
-                  <Check size={12} strokeWidth={2.5} />
+                {copia?.clave === v.key && copia.estado === "ok" ? (
+                  <Check size={12} strokeWidth={2.5} className="text-success" />
+                ) : copia?.clave === v.key && copia.estado === "error" ? (
+                  <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
                 ) : (
                   <Copy size={12} strokeWidth={1.75} className="opacity-0 group-hover:opacity-100" />
                 )}
