@@ -269,7 +269,13 @@ export function LicenciaScreen({
           <CodeBlock
             title="Verificar una licencia a mano"
             lines={[
+              "# --app es la que importa: dice si la app la acepta, no si la firma cuadra",
+              "fmp-license verify licencia.fmp --app",
+              "",
+              "# Sin banderas, contra la clave local. No prueba nada sobre la app:",
               "fmp-license verify licencia.fmp",
+              "",
+              "# Y contra el equipo del cliente, para responder si funciona allá:",
               "fmp-license verify licencia.fmp --machine <id-del-cliente>",
             ]}
             onCopy={() => setCopied("verify")}

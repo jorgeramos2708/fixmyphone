@@ -38,6 +38,30 @@ El `.exe` **no está firmado**. Windows SmartScreen va a mostrar "editor
 desconocido". Es esperado en esta etapa; firmarlo con Azure Trusted Signing
 cuesta ~$99 USD al año y está pendiente de decidir.
 
+### Cómo se revisa lo que se entrega de verdad
+
+Un `.exe` que arranca no significa que la pantalla funcione. En esta etapa no
+hay un servidor donde Watchtower pueda mirar, así que la revisión es directa
+sobre el binario, y hay una herramienta para eso:
+
+```powershell
+# 1. lanzar el binario con el árbol de accesibilidad prendido
+apps\desktop\dist\win-unpacked\FixMyPhone.exe --force-renderer-accessibility
+
+# 2. desde otra consola, recorrer las pantallas y volcar lo que ve la gente
+powershell -File tools\volcar-ventana.ps1 -Salida Pantallas.txt
+```
+
+Sale cada pantalla con sus textos y sus botones, marcando los que están
+inhabilitados. Es la única vía para comprobar una app de Electron sin poder
+ver capturas. Los comentarios del principio del script explican las tres cosas
+que hacen que falle en silencio.
+
+Lo que encontró así, y no se veía de ninguna otra manera: el catálogo entregado
+en modo `journal_mode=WAL` (que bajo `Program Files` falla al escribir), el
+preload que no cargaba (ventana con el título correcto y `window.fmp`
+inexistente), y la etiqueta "Pro" en el menú donde el nivel se llama Premium.
+
 ---
 
 ## La idea de fondo: el renderer no sabe qué es Electron
