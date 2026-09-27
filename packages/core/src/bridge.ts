@@ -138,6 +138,27 @@ export interface VerificationGate {
  * 518 de 734 variantes del catálogo no tienen sufijo de variante; en ese caso
  * la clave es el codename a secas. Ver `variantKey`.
  */
+export type HomologadoIft =
+  | "homologado"
+  | "sin_verificar"
+  | "desconocido"
+  | "no_soportado";
+
+/**
+ * Texto que explica cada estado de homologación. Vive acá y no en la pantalla
+ * para que el significado no dependa de quién construyó la vista, y para que
+ * los cuatro textos se puedan revisar juntos.
+ */
+export const TOOLTIP_HOMOLOGACION: Record<HomologadoIft, string> = {
+  homologado: "Homologado por el IFT. Folio encontrado en la tabla de certificados de la marca.",
+  sin_verificar:
+    "No encontrado en el padrón IFT. Se buscó en la tabla de certificados de la marca y el modelo no aparece; eso no significa que no esté homologado, que la marca no publica ese equipo.",
+  desconocido:
+    "Sin verificar. No hay una tabla de certificados del IFT accesible para esta marca, así que no se ha buscado.",
+  no_soportado:
+    "Marcado como no soportado por confirmación manual. Este equipo está fuera del alcance de la herramienta.",
+};
+
 export interface DeviceVariant {
   /** `codename#variante`, o el codename solo si no hay variante. */
   key: string;
@@ -146,8 +167,25 @@ export interface DeviceVariant {
   variant: string | null;
 
   marketingName: string;
-  /** Columna `vendor` del catálogo: Samsung, Xiaomi, Motorola… */
+  /**
+   * Columna `vendor` del catálogo, ya normalizada a clave canónica: `samsung`,
+   * `xiaomi`, `motorola`, `alcatel`. Minúscula y sin acentos, porque la fuente
+   * escribe la marca de seis maneras distintas (`Samsung`, `LGE`, `OPPO`,
+   * `TCT (Alcatel)`…) y sin normalizar no hay forma de cruzar.
+   *
+   * **No se muestra en pantalla.** Para eso está `vendorNombre`.
+   */
   vendor: string;
+  /**
+   * La marca como la escribe la persona: "Motorola", "F(x)Tec", "10.or".
+   *
+   * Viaja en el catálogo y no está escrito aquí a propósito. La tabla canónica
+   * vive en `device-db/devicedb/brands.py`, en Python; Copiar los nombres a
+   * TypeScript es garantizar que las dos copias se desincronicen sin que nada
+   * avise, y la primera señal de que ya paso fue tener que agregar la mitad de
+   * las marcas del catálogo a mano en dos archivos distintos.
+   */
+  vendorNombre: string;
 
   /** Texto tal como viene de la fuente: "Samsung Exynos 1380". */
   soc: string | null;
@@ -156,6 +194,33 @@ export interface DeviceVariant {
 
   /** Números de modelo (SM-A546B, SM-A546U1…). Base para restricciones. */
   modelNumbers: string[];
+
+  /**
+   * Estado de homologación ante el IFT. Son cuatro valores y sólo uno afirma
+   * que el equipo **sí** está homologado, porque los otros tres dicen cosas
+   * distintas:
+   *
+   * - `"homologado"`     se encontró el modelo en la tabla de certificados de
+   *                      la marca. `iftCertificado` trae el folio.
+   * - `"sin_verificar"`  **se buscó** en esa tabla y el modelo no aparece. No
+   *                      significa "no homologado": significa que la marca no
+   *                      publica ese equipo.
+   * - `"desconocido"`    no hay tabla de certificados accesible para la marca,
+   *                      así que **no se buscó**. Es el valor por omisión y
+   *                      cubre la mayoría de las variantes.
+   * - `"no_soportado"`   alguien lo confirmó a mano en el override del
+   *                      catálogo. El cruce automático nunca lo produce.
+   *
+   * Tratar `sin_verificar` y `desconocido` como "sí" sería afirmar una
+   * homologación que nadie comprobó, y un taller que abre un equipo porque la
+   * herramienta dijo que está homologado y no lo está, es un equipo que se
+   * pierde.
+   */
+  homologadoIft: HomologadoIft;
+  /** Folio del IFT, p.ej. `"JUOPCP26-00023609"`. Vacío si no se encontró. */
+  iftCertificado: string;
+  /** De dónde se leyó el folio, para poder auditarlo. */
+  iftUrl: string;
 
   /** Nivel de API de Android de fábrica. `null` si la fuente no lo dio. */
   androidVersion: number | null;

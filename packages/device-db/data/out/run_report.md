@@ -1,6 +1,6 @@
 # FixMyPhone - device-db run report
 
-Generado: 2026-09-26T21:18:13+00:00
+Generado: 2026-09-27T02:44:47+00:00
 
 ## Resumen
 
@@ -18,7 +18,7 @@ Generado: 2026-09-26T21:18:13+00:00
 
 - **Brechas abiertas**: 870
 
-- **Conflictos**: 0
+- **Conflictos**: 2
 
 
 ## Artefactos
@@ -38,6 +38,8 @@ Generado: 2026-09-26T21:18:13+00:00
 | lineageos | LineageOS wiki (_data/devices/*.yml) | https://github.com/LineageOS/lineage_wiki | CC BY-SA 3.0 | 732 |
 | play | Google Play certified devices (supported_devices.csv) | https://storage.googleapis.com/play_public/supported_devices.csv | Google public dataset | 53994 |
 | seed | FixMyPhone curated repair knowledge | internal | Proprietary (FixMyPhone) | 605 |
+| ift_oppo | Certificados IFT publicados por oppo (Mexico) | https://www.oppo.com/mx/ift/ | Fuente secundaria de la marca | 51 |
+| ift_motorola | Certificados IFT publicados por motorola (Mexico) | https://www.motorola.com.mx/ift/ | Fuente secundaria de la marca | 28 |
 
 
 ## SoC mas frecuentes
@@ -83,48 +85,77 @@ Generado: 2026-09-26T21:18:13+00:00
 
 ## Cobertura por marca (top 25 del catalogo Play)
 
-| marca | en_lineageos | en_play |
+| marca | en_lineageos | en_play | como_la_escribia_play |
+|---|---|---|---|
+| Samsung | 117 | 3426 | - |
+| ZTE | 4 | 1805 | - |
+| Huawei | 9 | 1550 | - |
+| Alcatel | 0 | 1395 | TCT (Alcatel) |
+| LG | 60 | 1366 | LGE, LG_Electronics |
+| Vivo | 0 | 917 | Vivo, vivo |
+| Motorola | 95 | 898 | - |
+| Lenovo | 13 | 852 | - |
+| OPPO | 8 | 822 | - |
+| Hisense | 0 | 807 | Hisense |
+| HTC | 10 | 762 | - |
+| TCL | 0 | 609 | KTCtv, PTCL SHOQ TV, SEMP TCL |
+| Sharp | 0 | 547 | - |
+| Sony | 44 | 534 | - |
+| Tecno | 0 | 485 | Tecno Mobile |
+| BLU | 0 | 452 | - |
+| realme | 7 | 424 | - |
+| ASUS | 17 | 406 | - |
+| Redmi | 0 | 367 | - |
+| Acer | 0 | 366 | Acer |
+| Xiaomi | 138 | 358 | - |
+| Archos | 0 | 352 | Archos |
+| Doogee | 0 | 351 | Doogee |
+| Oukitel | 0 | 348 | Oukitel |
+| itel | 0 | 344 | - |
+| Infinix | 0 | 341 | - |
+| Teclast | 0 | 326 | Teclast |
+| Blackview | 0 | 318 | Blackview |
+| Panasonic | 0 | 312 | Panasonic |
+| Coolpad | 0 | 288 | Coolpad |
+| Prestigio | 0 | 279 | Prestigio |
+| Micromax | 0 | 271 | Micromax |
+| Sky Devices | 0 | 255 | Sky Devices |
+| Wiko | 0 | 244 | Wiko |
+| Hyundai | 0 | 228 | Hyundai |
+| Umidigi | 0 | 226 | Umidigi |
+| Lava | 0 | 225 | Lava |
+| Honor | 0 | 220 | - |
+| BMobile | 0 | 215 | BMobile |
+| Haier | 0 | 215 | Haier |
+
+
+## Padron de homologacion IFT
+
+Se leyeron 79 certificados de 2 marcas. Las demas no tienen una tabla de certificados accesible, asi que sus variantes quedan en `desconocido`: no se buscaron.
+
+| estado | variantes | que significa |
 |---|---|---|
-| Samsung | 117 | 3426 |
-| ZTE | 4 | 1805 |
-| Huawei | 9 | 1550 |
-| TCT (Alcatel) | 0 | 1395 |
-| LGE | 0 | 1361 |
-| Motorola | 95 | 898 |
-| Lenovo | 13 | 852 |
-| Oppo | 0 | 822 |
-| Hisense | 0 | 807 |
-| HTC | 10 | 762 |
-| Vivo | 0 | 740 |
-| Sharp | 0 | 547 |
-| Sony | 44 | 534 |
-| Tecno | 0 | 470 |
-| Blu | 0 | 452 |
-| Asus | 0 | 406 |
-| TCL | 0 | 405 |
-| Redmi | 0 | 367 |
-| Acer | 0 | 366 |
-| Xiaomi | 138 | 358 |
-| Archos | 0 | 352 |
-| Doogee | 0 | 351 |
-| Oukitel | 0 | 348 |
-| Itel | 0 | 344 |
-| Infinix | 0 | 341 |
-| Teclast | 0 | 326 |
-| realme | 0 | 323 |
-| Blackview | 0 | 318 |
-| Panasonic | 0 | 312 |
-| Coolpad | 0 | 288 |
-| Prestigio | 0 | 279 |
-| Micromax | 0 | 271 |
-| Sky Devices | 0 | 255 |
-| Wiko | 0 | 244 |
-| Hyundai | 0 | 228 |
-| Umidigi | 0 | 226 |
-| Lava | 0 | 225 |
-| Honor | 0 | 220 |
-| BMobile | 0 | 215 |
-| Haier | 0 | 215 |
+| homologado | 11 | Homologado por el IFT. Folio encontrado en la tabla de certificados de la marca. |
+| sin_verificar | 92 | No encontrado en el padron IFT. Se busco en la tabla de certificados de la marca y el modelo no aparece; eso no signific |
+| desconocido | 631 | Sin verificar. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se ha buscado. |
+| no_soportado | 0 | Marcado como no soportado por confirmacion manual. Este equipo esta fuera del alcance de la herramienta. |
+
+
+Variantes con folio encontrado:
+
+| codename | modelo | folio |
+|---|---|---|
+| berlin | edge 20 | RTIMOXT21-2088 |
+| devon | moto g32 | RTIMOXT22-3427 |
+| dubai | edge 30 | RTIMOXT22-1595 |
+| eqs | edge 30 ultra | MOMOXT22-13132 |
+| hawao | moto g42 | RCPMOXT22-2870 |
+| miami | edge 30 neo | MOMOXT22-15983 |
+| pstar | edge 20 pro | RTIMOXT21-2087 |
+| rhode | moto g52 | RTIMOXT22-2121 |
+| rhodep | moto g82 5G | RTIMOXT22-2655 |
+| tundra | edge 30 fusion | MOMOXT22-13111 |
+| xpeng | moto g200 5G | RTIMOXT22-0205 |
 
 
 ## Foco Mexico (modelos prioritarios)
@@ -137,7 +168,7 @@ Generado: 2026-09-26T21:18:13+00:00
 | cheetah | Pixel 4 | OK | 1 | Google Tensor GS201 | A/B | True | vendor_boot | importado de USA |
 | rq3q | Galaxy A54 5G | OK | 1 | Samsung Exynos 1380 | A/B | True | recovery | top de ventas MX |
 | rq3a | Galaxy A14 | OK | 1 | Samsung Exynos 850 | A/B | True | recovery | top de ventas MX, muy barato de refaccionar |
-| a52q | Galaxy A52 | OK | 1 | Qualcomm SM7125 Snapdragon 720G | ? | True | recovery | muy comun en elUsed market |
+| a52q | Galaxy A52 | OK | 1 | Qualcomm SM7125 Snapdragon 720G | ? | True | recovery | muy comun en el mercado de reventa |
 | a32q | Galaxy A32 | FALTA | 0 | - | ? | - | - | volumen |
 | e225f | Galaxy A22 | FALTA | 0 | - | ? | - | - | gama baja media |
 | m31s | Galaxy M31s | FALTA | 0 | - | ? | - | - | mercado popular |

@@ -16,7 +16,7 @@
 import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import type { DeviceVariant, VerificationGate } from "@fixmyphone/core";
+import type { DeviceVariant, HomologadoIft, VerificationGate } from "@fixmyphone/core";
 
 const require = createRequire(import.meta.url);
 
@@ -80,6 +80,11 @@ function toVariant(row: Record<string, unknown>): DeviceVariant {
     key: variant ? `${codename}#${variant}` : codename,
     marketingName: String(row.marketing_name ?? codename),
     vendor: String(row.vendor ?? ""),
+    // Si la base no trae el nombre, se usa la clave. Un técnico vería
+    // "motorola" en vez de "Motorola", que es un detalle, pero vería algo: lo
+    // que no puede pasar es que se muestre la clave vacía como si la marca
+    // fuera desconocida, porque eso no se distingue de un equipo sin datos.
+    vendorNombre: String(row.vendor_nombre ?? "") || String(row.vendor ?? ""),
     soc: row.soc_raw == null ? null : String(row.soc_raw),
     socVendor: row.soc_vendor == null ? null : String(row.soc_vendor),
     platform: row.platform == null ? null : String(row.platform),
@@ -93,16 +98,33 @@ function toVariant(row: Record<string, unknown>): DeviceVariant {
     riskFlags: parseJsonArray<string>(row.risk_flags),
     verificationGates: parseJsonArray<VerificationGate>(row.verification_gates),
     sources: parseJsonArray<string>(row.sources),
+    homologadoIft: comoHomologadoIft(row.homologado_ift),
+    iftCertificado: String(row.ift_certificado ?? ""),
+    iftUrl: String(row.ift_url ?? ""),
   };
+}
+
+/**
+ * Un estado que no sea uno de los cuatro conocidos se degrada a `desconocido`,
+ * nunca a `homologado`. La base puede quedar desactualizada respecto del
+ * código, y un valor raro que se cuela en pantalla tiene que ser el
+ * conservador: no afirmar una homologación que nadie comprobó.
+ */
+function comoHomologadoIft(bruto: unknown): HomologadoIft {
+  const s = String(bruto ?? "");
+  return s === "homologado" || s === "sin_verificar" || s === "no_soportado"
+    ? s
+    : "desconocido";
 }
 
 // ---------------------------------------------------------------------------
 // Catálogo
 // ---------------------------------------------------------------------------
 
-const COLS = `codename, variant, marketing_name, vendor, soc_raw, soc_vendor,
+const COLS = `codename, variant, marketing_name, vendor, vendor_nombre, soc_raw, soc_vendor,
   platform, model_numbers, android_version, release, capabilities,
-  risk_flags, verification_gates, sources`;
+  risk_flags, verification_gates, sources,
+  homologado_ift, ift_certificado, ift_url`;
 
 export class Catalog {
   private db: InstanceType<SqliteModule["DatabaseSync"]> | null = null;

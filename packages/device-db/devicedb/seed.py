@@ -182,7 +182,7 @@ MX_PRIORITY_DEVICES = [
     ("cheetah", "Google", "Pixel 4", "importado de USA"),
     ("rq3q", "Samsung", "Galaxy A54 5G", "top de ventas MX"),
     ("rq3a", "Samsung", "Galaxy A14", "top de ventas MX, muy barato de refaccionar"),
-    ("a52q", "Samsung", "Galaxy A52", "muy comun en elUsed market"),
+    ("a52q", "Samsung", "Galaxy A52", "muy comun en el mercado de reventa"),
     ("a32q", "Samsung", "Galaxy A32", "volumen"),
     ("e225f", "Samsung", "Galaxy A22", "gama baja media"),
     ("m31s", "Samsung", "Galaxy M31s", "mercado popular"),

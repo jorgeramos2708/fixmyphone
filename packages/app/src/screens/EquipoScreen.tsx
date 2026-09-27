@@ -23,11 +23,37 @@ import {
   Copy,
   CircleHelp,
   ShieldAlert,
+  ShieldCheck,
   Cpu,
 } from "lucide-react";
-import { partitionScheme, has } from "@fixmyphone/core";
-import type { ConnectedDevice, DeviceVariant, Resolution } from "@fixmyphone/core";
+import { partitionScheme, has, TOOLTIP_HOMOLOGACION } from "@fixmyphone/core";
+import type { ConnectedDevice, DeviceVariant, HomologadoIft, Resolution } from "@fixmyphone/core";
 import { Button, Badge, Panel, DataRow, EmptyState } from "../components/primitives";
+
+/**
+ * Cómo se ve cada estado de homologación en pantalla.
+ *
+ * Solo `homologado` lleva el tono de confirmación. Los otros tres se ven
+ * distintos entre sí a propósito: `sin_verificar` significa que se buscó y no
+ * salió, `desconocido` que no se buscó, y confundirlos en pantalla haría que un
+ * Samsung (nunca buscado) se viera igual que un Motorola que sí se buscó y no
+ * apareció en la tabla. No es un matiz: es la diferencia entre "no hay dato" y
+ * "hay un dato negativo".
+ *
+ * `sin_verificar` NO usa el tono de peligro. El equipo no está en la tabla de la
+ * marca, y eso no es una falla del equipo ni una señal de que abrirlo sea riesgoso
+ * por el IFT: es que la marca no lo publica. Ponerlo en rojo enseñaría al técnico
+ * a desconfiar de un equipo reparable, que es el error que cuesta clientes.
+ */
+const tonoHomologacion: Record<
+  HomologadoIft,
+  { texto: string; tono: "success" | "warning" | "neutral" | "danger" }
+> = {
+  homologado: { texto: "Homologado", tono: "success" },
+  sin_verificar: { texto: "No encontrado en el padrón IFT", tono: "warning" },
+  desconocido: { texto: "Sin verificar", tono: "neutral" },
+  no_soportado: { texto: "No soportado", tono: "danger" },
+};
 
 /**
  * Lo que el catálogo afirma que esta variante puede hacer.
@@ -230,6 +256,13 @@ function IdentityColumn({
               <h1 className="text-display font-semibold leading-tight tracking-tight">
                 {v.marketingName}
               </h1>
+              {/* La marca va sobre el nombre comercial porque "moto g05" sin
+                  marca no dice nada: hay equipos de tres fabricantes con el
+                  mismo nombre de venta. Sale de `vendorNombre` y no de `vendor`,
+                  que es la clave con la que se cruza y va en minúscula. */}
+              {v.vendorNombre ? (
+                <p className="mt-0.5 text-body text-text-muted">{v.vendorNombre}</p>
+              ) : null}
               {/* La variante SIEMPRE se muestra completa. "A54" no basta:
                   hay dos placas distintas detrás de ese nombre. */}
               <button
@@ -286,6 +319,24 @@ function IdentityColumn({
             {v.modelNumbers.length > 0 ? (
               <span className="text-caption text-text-faint">
                 {v.modelNumbers.length} números de modelo
+              </span>
+            ) : null}
+          </div>
+
+          {/* Homologación IFT. Va con su texto de estado y no solo con una
+              marca de color, porque "sin verificar" y "no se buscó" son
+              cosas distintas y el técnico tiene que poder leer cuál es cuál
+              sin interpretar un tono. El tooltip explica el estado entero. */}
+          <div className="mt-3 flex items-center gap-2 border-t border-border pt-4">
+            <ShieldCheck size={15} strokeWidth={1.75} className="shrink-0 text-text-faint" />
+            <span className="tech-label mr-1">IFT</span>
+            <Badge tone={tonoHomologacion[v.homologadoIft].tono}
+                    title={TOOLTIP_HOMOLOGACION[v.homologadoIft]}>
+              {tonoHomologacion[v.homologadoIft].texto}
+            </Badge>
+            {v.iftCertificado ? (
+              <span className="tech text-caption text-text-faint">
+                {v.iftCertificado}
               </span>
             ) : null}
           </div>

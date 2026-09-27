@@ -40,9 +40,10 @@ const LIMITE = 48;
 
 const db = new DatabaseSync(DB, { readOnly: true });
 
-const COLS = `codename, variant, marketing_name, vendor, soc_raw, soc_vendor,
+const COLS = `codename, variant, marketing_name, vendor, vendor_nombre, soc_raw, soc_vendor,
   platform, model_numbers, android_version, release, capabilities,
-  risk_flags, verification_gates, sources`;
+  risk_flags, verification_gates, sources,
+  homologado_ift, ift_certificado, ift_url`;
 
 const todas = db.prepare(`SELECT ${COLS} FROM variant`).all();
 
@@ -81,13 +82,13 @@ function json(col) {
 }
 
 /**
- * Que tanComplete esta una variante como ejemplo de la demo.
+ * Qué tan completa está una variante como ejemplo de la demo.
  *
- * SOLO ordena dentro de un estrato. La ambiguedad NO puntua ahi, a proposito:
- * cuando era un bonus de +25, las 48 filas salidas-au las 48 ambiguas y el
- * demo se quedaba sin un solo caso de identificacion directa, que es el
- * camino que mas se usa. Ahora la ambiguedad decide el ESTRATO, y el puntaje
- * solo decide el orden dentro de el.
+ * SOLO ordena dentro de un estrato. La ambigüedad NO puntúa ahí, a propósito:
+ * cuando era un bono de +25, las 48 filas salidas fueron las 48 ambiguas y la
+ * demo se quedaba sin un solo caso de identificación directa, que es el camino
+ * que más se usa. Ahora la ambigüedad decide el ESTRATO, y el puntaje solo
+ * decide el orden dentro de él.
  */
 function puntua(r) {
   let p = 0;
@@ -124,6 +125,10 @@ function aVariante(r) {
     key: variant ? `${codename}#${variant}` : codename,
     marketingName: String(r.marketing_name ?? codename),
     vendor: String(r.vendor ?? ""),
+    // Sin el nombre, se cae a la clave. Una demo que muestra "motorola" en vez
+    // de "Motorola" no se nota; una que muestra la cadena vacía parece un
+    // equipo al que no leyeron los datos.
+    vendorNombre: String(r.vendor_nombre ?? "") || String(r.vendor ?? ""),
     soc: texto(r.soc_raw),
     socVendor: texto(r.soc_vendor),
     platform: texto(r.platform),
@@ -134,8 +139,26 @@ function aVariante(r) {
     riskFlags: json(r.risk_flags),
     verificationGates: json(r.verification_gates),
     sources: json(r.sources),
+    homologadoIft: comoHomologadoIft(r.homologado_ift),
+    iftCertificado: String(r.ift_certificado ?? ""),
+    iftUrl: String(r.ift_url ?? ""),
   };
 }
+
+/**
+ * Un estado de homologación que no sea uno de los cuatro conocidos se degrada a
+ * `desconocido`, nunca a `homologado`.
+ *
+ * Se repite aquí y no se importa del proceso principal porque este archivo corre
+ * en Node sin el paquete de escritorio, y porque la degradación al conservador
+ * tiene que estar en los dos lados: si uno de los dos se equivoca, el que falla
+ * es el que muestra "Homologado" sin folio.
+ */
+const ESTADOS_IFT = new Set(["homologado", "sin_verificar", "no_soportado"]);
+const comoHomologadoIft = (bruto) => {
+  const s = String(bruto ?? "");
+  return ESTADOS_IFT.has(s) ? s : "desconocido";
+};
 
 /**
  * Elige las ${LIMITE} variantes, por estratos.
@@ -143,8 +166,8 @@ function aVariante(r) {
  * Tres estratos con cupos fijos. El reparto es explicito y no "los 48 mejores",
  * porque los 48 mejores de un puntaje global salen casi siempre del mismo
  * estrato: con la ambiguedad como bonus, salian las 48 ambiguas; con la marca
- * grande como bonus, salian las 48 de Samsung. Ninguna de las dos demo sirve
- * para teaching cuando solo enseña un caso.
+ * grande como bonus, salian las 48 de Samsung. Ninguna de las dos demos sirve
+ * para explicar el producto cuando solo enseña un caso.
  *
  *   A. AMBIGUAS  (codename con mas de una variante de placa). 12 cupos.
  *      Son las que demuestran que la herramienta NO elige por el tecnico, que
@@ -165,6 +188,10 @@ const orden = (a, b) =>
   puntua(b) - puntua(a) || String(a.codename).localeCompare(String(b.codename));
 
 const esAmbigua = (r) => (porCodename.get(r.codename) ?? 0) > 1;
+// `vendor` ya viene como clave canónica en minúsculas desde la normalización de
+// marcas, así que el `toLowerCase()` es solo una red por si la base se regenera
+// con una versión anterior del pipeline. Sin eso, un base vieja con "Samsung"
+// y "OPPO" se quedaría fuera del estrato de marcas grandes sin avisar.
 const esDeMarcaGrande = (r) => MARCAS_GRANDES.has(String(r.vendor ?? "").toLowerCase());
 
 const elegidas = [];
@@ -188,6 +215,46 @@ for (const r of [...todas].filter((r) => !esAmbigua(r) && !esDeMarcaGrande(r)).s
   agrega(r, true);
 }
 
+// --- Cada estado de homologacion que exista tiene que verse en la demo -------
+//
+// Sin esta regla la demo sale con 31 `desconocido`, 17 `sin_verificar` y CERO
+// `homologado`, porque los 11 equipos con folio son todos Motorola y el puntaje
+// los deja fuera. O sea: la demo del cruce con el padron del IFT no mostraba el
+// cruce. Un folio que no se ve no se puede evaluar, y quien mira la landing no
+// tiene forma de saber si el dato es real o inventado.
+//
+// Se hace por INTERCAMBIO y no sumando, porque LIMITE es fijo: una demo de 49 no
+// es una demo de 48. Sale la de menor puntaje que no sea la unica representante de
+// su estado, para que ningún estado se quede sin mostrar por arreglar otro.
+//
+// La lista es de los tres estados que el cruce produce. `no_soportado` no entra
+// porque solo lo produce una confirmacion humana y hoy no hay ninguna: ponerlo
+// como cupo vacio seria prometer un caso que el producto no tiene.
+const ESTADOS_A_MOSTRAR = ["homologado", "sin_verificar", "desconocido"];
+const faltantes = [];
+for (const estado of ESTADOS_A_MOSTRAR) {
+  if (elegidas.some((r) => String(r.homologado_ift) === estado)) continue;
+  const candidatas = [...todas].filter((r) => String(r.homologado_ift) === estado).sort(orden);
+  if (candidatas.length) faltantes.push(candidatas[0]);
+}
+for (const entra of faltantes) {
+  const fuera = elegidas
+    .map((r, i) => ({ r, i }))
+    .filter(({ r }) => {
+      const estado = String(r.homologado_ift);
+      return elegidas.filter((o) => String(o.homologado_ift) === estado).length > 1;
+    })
+    .sort((a, b) => puntua(a.r) - puntua(b.r))[0];
+  if (!fuera) break;
+  elegidas[fuera.i] = entra;
+}
+elegidas.sort(orden);
+
+// El `,` del join va seguido de los dos espacios de la otra mitad: sin ellos la
+// llave que abre cada objeto sale en la columna 0 y la que cierra en la 2. Es
+// un detalle de formato en un archivo generado, pero el archivo se lee cuando
+// alguien va a ver de donde sale la demo, y un archivo que se ve generado a
+// medias se lee como generado.
 const cuerpo = elegidas
   .map((r) => {
     const texto = JSON.stringify(aVariante(r), null, 2);
@@ -196,7 +263,7 @@ const cuerpo = elegidas
       .map((l, i) => (i === 0 ? l : "  " + l))
       .join("\n");
   })
-  .join(",\n");
+  .join(",\n  ");
 
 const CABECERA = `/**
  * Subconjunto del catalogo para la demostracion web.
@@ -268,6 +335,27 @@ console.log(
   `  ${marcas.size} marcas: ` +
     [...marcas.entries()].sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m} ${n}`).join(", "),
 );
+
+// Los estados de homologacion que se ven en la demo. Se imprime para que la
+// regla de arriba sea auditable sin abrir el archivo: si un dia el script deja
+// de garantizar un estado, se nota aqui y no en una queja de que la demo no lo
+// muestra.
+const estadosDemo = new Map();
+for (const r of elegidas) {
+  const e = String(r.homologado_ift || "desconocido");
+  estadosDemo.set(e, (estadosDemo.get(e) ?? 0) + 1);
+}
+console.log(
+  `  homologacion IFT: ` +
+    [...estadosDemo.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([e, n]) => `${e} ${n}`)
+      .join(", "),
+);
+const ausentes = ESTADOS_A_MOSTRAR.filter((e) => !estadosDemo.has(e));
+if (ausentes.length) {
+  console.log(`  aviso: sin casos en la demo -> ${ausentes.join(", ")}`);
+}
 
 // Aviso si un estrato se quedo corto. Es informacion, no un fallo: el tope de
 // dos por marca puede dejar el tercero sin llenar si la marca chica esta mal

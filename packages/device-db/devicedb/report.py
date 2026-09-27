@@ -60,7 +60,37 @@ def write_report(path: Path, variants: list[Variant], play_rows: list[dict],
     doc.append(_md_table(soc, ["soc_vendor", "soc", "variantes"]))
 
     doc.append("\n## Cobertura por marca (top 25 del catalogo Play)\n")
-    doc.append(_md_table(vendors, ["marca", "en_lineageos", "en_play"]))
+    doc.append(_md_table(vendors, ["marca", "en_lineageos", "en_play",
+                                   "como_la_escribia_play"]))
+
+    # La seccion del padron va aparte y antes que las brechas, porque sin ella
+    # "desconocido" parece una conclusion cuando en realidad es que no se busco.
+    ift = coverage.get("ift") or {}
+    conteo = ift.get("conteo") or {}
+    if conteo:
+        doc.append("\n## Padron de homologacion IFT\n")
+        doc.append(
+            f"Se leyeron {ift.get('certificados', 0)} certificados de "
+            f"{len(ift.get('marcas_leidas', []))} marcas. Las demas no tienen "
+            f"una tabla de certificados accesible, asi que sus variantes quedan "
+            f"en `desconocido`: no se buscaron.\n")
+        doc.append(_md_table(
+            [{"estado": k, "variantes": n,
+              "que significa": (ift.get("tooltip") or {}).get(k, "")}
+             for k, n in conteo.items()], ["estado", "variantes", "que significa"]))
+        if ift.get("marcas_sin_padron"):
+            doc.append(f"\nMarcas sin tabla accesible: "
+                       f"{', '.join(ift['marcas_sin_padron'])}\n")
+        homologados = [{"codename": v.codename, "modelo": v.marketing_name,
+                        "folio": v.ift_certificado}
+                       for v in variants if v.homologado_ift == "homologado"]
+        if homologados:
+            doc.append("\nVariantes con folio encontrado:\n")
+            doc.append(_md_table(homologados, ["codename", "modelo", "folio"]))
+        if ift.get("avisos"):
+            doc.append("\nAvisos de la lectura:\n")
+            for a in ift["avisos"]:
+                doc.append(f"- {a}")
 
     doc.append("\n## Foco Mexico (modelos prioritarios)\n")
     doc.append(_md_table(coverage["mx"], ["codename", "modelo", "estado", "variantes",
@@ -109,3 +139,14 @@ def console_summary(variants: list[Variant], play_rows: list[dict],
 
     print("\n-- Cobertura por marca (top 15) --")
     table(coverage["vendors"], ["marca", "en_lineageos", "en_play"], limit=15)
+
+    ift = coverage.get("ift") or {}
+    conteo = ift.get("conteo") or {}
+    if conteo:
+        print(f"\n-- Padron IFT: {ift.get('certificados', 0)} certificados de "
+              f"{len(ift.get('marcas_leidas', []))} marcas --")
+        for estado, n in conteo.items():
+            print(f"   {estado:<16} {n:>5}")
+        print(f"   (buscado: {', '.join(ift.get('marcas_leidas', [])) or 'ninguna'})")
+        for aviso in ift.get("avisos", []):
+            print(f"   ! {aviso}")

@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from devicedb import build, report, sources, store  # noqa: E402
+from devicedb import build, ift, report, sources, store  # noqa: E402
 from devicedb.util import OUT, RAW, ensure_dirs, log, now_iso  # noqa: E402
 
 DB = OUT / "fixmyphone_device_db.sqlite"
@@ -42,6 +42,17 @@ SOURCES_META = [
     {"id": "seed", "name": "FixMyPhone curated repair knowledge",
      "url": "internal", "license": "Proprietary (FixMyPhone)",
      "retrieved_at": None, "records": 0},
+]
+
+# El padron del IFT no entra como una fuente mas: es una fuente secundaria por
+# marca, y la mayoria de las marcas no tienen una. Se declara aparte para que
+# el informe diga explicitamente cuales se leyeron y cuales no, en vez de
+# dejar que el lector suponga que faltaron.
+FUENTES_PADRON = [
+    {"id": f"ift_{marca}", "name": f"Certificados IFT publicados por {marca} (Mexico)",
+     "url": cfg["url"], "license": "Fuente secundaria de la marca",
+     "retrieved_at": None, "records": 0}
+    for marca, cfg in ift.FUENTES.items()
 ]
 
 
@@ -69,19 +80,38 @@ def cmd_run(refresh: bool) -> int:
         stats["manual_codenames"] = len(manual)
         stats["manual_created"] = len(created)
 
+    with build.Stage("padron IFT"):
+        padron = ift.descarga_padron(refresh=refresh)
+        conteo_ift = ift.aplica_padron(variants, padron)
+        log(f"padron: {len(padron.equipos)} certificados leidos de "
+            f"{len(padron.marcas)} marcas")
+        for aviso in padron.avisos:
+            log(f"  ! {aviso}")
+        log(f"padron: {conteo_ift}")
+
     with build.Stage("validar"):
         validation = build.validate(variants, play_rows, stats)
         coverage = {
             "soc": build.coverage_by_soc(variants),
             "vendors": build.coverage_by_vendor(variants, play_rows),
             "mx": build.mx_focus(variants),
+            "ift": {
+                "conteo": conteo_ift,
+                "marcas_leidas": sorted(padron.marcas),
+                "marcas_sin_padron": sorted(padron.marcas_sin_padron),
+                "certificados": len(padron.equipos),
+                "avisos": padron.avisos,
+                "tooltip": ift.TOOLTIP,
+            },
         }
 
     with build.Stage("exportar"):
         meta = []
         counts = {"lineageos": len(lineage_docs), "play": len(play_rows),
                   "seed": len({v.codename for v in variants})}
-        for s in SOURCES_META:
+        for marca in padron.marcas:
+            counts[f"ift_{marca}"] = len(padron.certificados_de(marca))
+        for s in SOURCES_META + FUENTES_PADRON:
             s = dict(s)
             s["records"] = counts.get(s["id"], 0)
             s["retrieved_at"] = now_iso()

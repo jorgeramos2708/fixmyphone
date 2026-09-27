@@ -13,6 +13,7 @@ import json
 import sqlite3
 from pathlib import Path
 
+from .brands import resuelve
 from .derive import risk_flags, verification_gates
 from .model import Variant
 from .seed import CONFIDENCE, MX_OPERATORS, SOC_VENDOR_CAPABILITIES
@@ -51,6 +52,7 @@ CREATE TABLE IF NOT EXISTS variant (
     codename               TEXT NOT NULL,
     variant                INTEGER,
     vendor                 TEXT,
+    vendor_nombre          TEXT,
     vendor_short           TEXT,
     marketing_name         TEXT,
     model_numbers          TEXT,
@@ -93,6 +95,8 @@ CREATE TABLE IF NOT EXISTS variant (
     usb_ids                TEXT,
     signed_material_required INTEGER,
     homologado_ift         TEXT,
+    ift_certificado        TEXT,
+    ift_url                TEXT,
     capabilities           TEXT,
     risk_flags             TEXT,
     verification_gates     TEXT,
@@ -117,7 +121,8 @@ CREATE INDEX IF NOT EXISTS ix_prov_variant ON provenance(variant_id);
 
 CREATE TABLE IF NOT EXISTS alias (
     device_token TEXT,
-    brand        TEXT,
+    brand        TEXT,     -- tal como la escribio la fuente, p.ej. "TCT (Alcatel)"
+    vendor       TEXT,     -- clave canonica, p.ej. "alcatel"; es por esta que se cruza
     marketing    TEXT,
     model        TEXT,
     variant_id   TEXT,
@@ -125,6 +130,7 @@ CREATE TABLE IF NOT EXISTS alias (
     source       TEXT,
     PRIMARY KEY (device_token, model)
 );
+CREATE INDEX IF NOT EXISTS ix_alias_vendor ON alias(vendor);
 
 CREATE TABLE IF NOT EXISTS mx_operator (
     id           TEXT PRIMARY KEY,
@@ -158,6 +164,66 @@ def _j(v) -> str:
     if isinstance(v, bool):
         return "1" if v else "0"
     return str(v)
+
+
+# El orden de COLUMNAS_VARIANT y el de variant_values() son el mismo contrato.
+# El INSERT los nombra uno por uno en vez de usar `VALUES(?,?,...)` a pelo: con
+# los nombres a la vista, agregar una columna es agregar su nombre y su valor en
+# el mismo lugar, y el desajuste se ve en el codigo. Con el `VALUES(?,?,...)` de
+# antes, cualquier columna nueva se colaba en el esquema sin(recordarlo) en la
+# tupla y SQLite rechazaba el INSERT, o peor: lo aceptaba corrido a partir del
+# punto de desajuste y las 700 variantes salian con los campos corrida una fila.
+COLUMNAS_VARIANT = (
+    "id", "codename", "variant", "vendor", "vendor_nombre", "vendor_short",
+    "marketing_name", "model_numbers", "device_tokens", "release",
+    "soc_raw", "soc_vendor", "soc_model", "platform", "architecture",
+    "cpu", "gpu", "ram", "storage", "kernel_repo", "kernel_version",
+    "battery_mah", "battery_removable", "battery_tech", "screen_size",
+    "screen_resolution", "screen_technology", "screen_refresh",
+    "cameras", "peripherals", "network_generations",
+    "android_version", "lineage_versions", "is_ab_device", "dynamic_partitions",
+    "verified_boot", "install_method", "custom_unlock_cmd",
+    "recovery_partition_name", "recovery_boot", "download_boot",
+    "pre_install_instructions", "pre_install_version", "download_mode",
+    "usb_ids", "signed_material_required",
+    "homologado_ift", "ift_certificado", "ift_url",
+    "capabilities", "risk_flags", "verification_gates", "sources", "updated_at",
+)
+
+INSERT_VARIANT = (
+    "INSERT OR REPLACE INTO variant("
+    + ",".join(COLUMNAS_VARIANT)
+    + ") VALUES("
+    + ",".join(["?"] * len(COLUMNAS_VARIANT))
+    + ")"
+)
+
+
+def _b(v: bool | None) -> int | None:
+    """Bool de SQLite. `None` se queda `None`; no se convierte en 0."""
+    return None if v is None else (1 if v else 0)
+
+
+def variant_values(v: Variant) -> tuple:
+    """Los valores de una variante, en el orden de COLUMNAS_VARIANT."""
+    return (
+        v.key, v.codename, v.variant, v.vendor, v.vendor_nombre, v.vendor_short,
+        v.marketing_name, _j(v.model_numbers), _j(v.device_tokens), v.release,
+        v.soc_raw, v.soc_vendor, v.soc_model, v.platform, v.architecture,
+        v.cpu, v.gpu, v.ram, v.storage, v.kernel_repo, v.kernel_version,
+        v.battery_mah, v.battery_removable, v.battery_tech, v.screen_size,
+        v.screen_resolution, v.screen_technology, v.screen_refresh,
+        _j(v.cameras), _j(v.peripherals), _j(v.network_generations),
+        v.android_version, _j(v.lineage_versions),
+        _b(v.is_ab_device), _b(v.dynamic_partitions),
+        v.verified_boot, v.install_method, v.custom_unlock_cmd,
+        v.recovery_partition_name, v.recovery_boot, v.download_boot,
+        v.pre_install_instructions, v.pre_install_version, v.download_mode,
+        _j(v.usb_ids), _b(v.signed_material_required),
+        v.homologado_ift, v.ift_certificado, v.ift_url,
+        _j(v.capabilities), _j(risk_flags(v)),
+        _j(verification_gates(v)), _j(v.sources), now_iso(),
+    )
 
 
 def build_sqlite(path: Path, variants: list[Variant], play_rows: list[dict],
@@ -196,27 +262,19 @@ def build_sqlite(path: Path, variants: list[Variant], play_rows: list[dict],
                      _j(op["bands_lte"]), _j(op["bands_5g"]), op["notes"]))
 
     for v in variants:
-        flags = risk_flags(v)
-        cur.execute(
-            "INSERT OR REPLACE INTO variant VALUES(" + ",".join(["?"] * 51) + ")",
-            (v.key, v.codename, v.variant, v.vendor, v.vendor_short,
-             v.marketing_name, _j(v.model_numbers), _j(v.device_tokens), v.release,
-             v.soc_raw, v.soc_vendor, v.soc_model, v.platform, v.architecture,
-             v.cpu, v.gpu, v.ram, v.storage, v.kernel_repo, v.kernel_version,
-             v.battery_mah, v.battery_removable, v.battery_tech, v.screen_size,
-             v.screen_resolution, v.screen_technology, v.screen_refresh,
-             _j(v.cameras), _j(v.peripherals), _j(v.network_generations),
-             v.android_version, _j(v.lineage_versions),
-             None if v.is_ab_device is None else (1 if v.is_ab_device else 0),
-             None if v.dynamic_partitions is None else (1 if v.dynamic_partitions else 0),
-             v.verified_boot, v.install_method, v.custom_unlock_cmd,
-             v.recovery_partition_name, v.recovery_boot, v.download_boot,
-             v.pre_install_instructions, v.pre_install_version, v.download_mode,
-             _j(v.usb_ids),
-             None if v.signed_material_required is None else (1 if v.signed_material_required else 0),
-             v.homologado_ift, _j(v.capabilities), _j(flags),
-             _j(verification_gates(v)), _j(v.sources), now_iso()),
-        )
+        values = variant_values(v)
+        if len(values) != len(COLUMNAS_VARIANT):
+            # Se comprueba aqui y no se deja que SQLite lo note al insertar. Con
+            # la lista de columnas explicita, un campo nuevo en la tupla se
+            # detecta como "sobran valores", que es un error legible; con el
+            # `VALUES(?,?,...)` de antes SQLite se comia el desajuste en
+            # silencio o rechazaba el INSERT a la mitad de la base.
+            raise ValueError(
+                f"{v.key}: {len(values)} valores para {len(COLUMNAS_VARIANT)} "
+                f"columnas. Si agregaste un campo, agregalo en COLUMNAS_VARIANT "
+                f"y en variant_values()."
+            )
+        cur.execute(INSERT_VARIANT, values)
         for p in v.provenance:
             cur.execute(
                 "INSERT INTO provenance(variant_id,field_name,value,source,confidence,"
@@ -232,10 +290,10 @@ def build_sqlite(path: Path, variants: list[Variant], play_rows: list[dict],
             continue
         cand = lower.get(tok.lower())
         cur.execute(
-            "INSERT OR REPLACE INTO alias VALUES(?,?,?,?,?,?,?)",
-            (tok, row["brand"], row["marketing"], row["model"],
-             cand.key if cand else None, "reported" if cand else "unresolved",
-             "play"))
+            "INSERT OR REPLACE INTO alias VALUES(?,?,?,?,?,?,?,?)",
+            (tok, row["brand"], resuelve(row["brand"]).clave, row["marketing"],
+             row["model"], cand.key if cand else None,
+             "reported" if cand else "unresolved", "play"))
 
     cur.executemany("INSERT INTO gap VALUES(?,?,?)",
                     [(g["kind"], g["codename"], g["detail"]) for g in validation["gaps"]])
@@ -305,6 +363,14 @@ COLUMNS = [
     "android_version", "is_ab_device", "dynamic_partitions", "verified_boot",
     "recovery_partition_name", "install_method", "download_mode",
     "signed_material_required", "capabilities", "risk_flags", "sources",
+    # El estado de homologacion y el folio van al CSV porque es el dato que se
+    # consulta en el mostrador del taller. Un folio sin el estado al lado no
+    # dice nada, y un estado sin el folio no se puede auditar.
+    "homologado_ift", "ift_certificado", "ift_url",
+    # `vendor` es la clave con la que se cruza; `vendor_nombre` es como se
+    # escribe. Los dos van porque quien lee el CSV en una hoja de calculo
+    # quiere "Motorola", y quien cruza dos archivos quiere "motorola".
+    "vendor_nombre",
 ]
 
 

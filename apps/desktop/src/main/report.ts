@@ -35,7 +35,7 @@ import type {
   RawDeviceProps,
   Resolution,
 } from "@fixmyphone/core";
-import { has, partitionScheme } from "@fixmyphone/core";
+import { has, partitionScheme, TOOLTIP_HOMOLOGACION } from "@fixmyphone/core";
 import { licenseId } from "@fixmyphone/licensing";
 
 export interface ReportInput {
@@ -128,7 +128,7 @@ export function buildReport(input: ReportInput): string {
   // --- Identidad ----------------------------------------------------------
   partes.push(regla("IDENTIFICACION"));
   if (v) {
-    partes.push(linea("Equipo", `${v.marketingName} (${v.vendor})`));
+    partes.push(linea("Equipo", `${v.marketingName} (${v.vendorNombre})`));
     partes.push(linea("Clave de variante", v.key));
     partes.push(linea("Codename", v.codename));
     partes.push(linea("Variante de placa", v.variant ?? "no aplica"));
@@ -141,6 +141,22 @@ export function buildReport(input: ReportInput): string {
       partes.push(linea("Numeros de modelo", v.modelNumbers.join(", ")));
     }
     partes.push(linea("Esquema de particiones", partitionScheme(v) ?? "sin dato"));
+
+    // Homologación IFT, con su explicación debajo.
+    //
+    // Va con el texto entero y no solo con la palabra del estado porque este
+    // archivo se archiva como evidencia y dentro de dos años nadie va a
+    // acordarse de que "sin verificar" significaba "se buscó y no salió" y no
+    // "no homologado". Un informe que dice "sin verificar" sin explicar de qué
+    // se trata se lee como "no está homologado", que es una conclusión que la
+    // herramienta nunca saca.
+    partes.push(linea("Homologacion IFT", v.homologadoIft));
+    if (v.iftCertificado) {
+      partes.push(linea("Folio del IFT", v.iftCertificado));
+      partes.push(linea("Fuente del folio", v.iftUrl || "sin URL"));
+    }
+    partes.push("");
+    partes.push(`  ${TOOLTIP_HOMOLOGACION[v.homologadoIft]}`);
   } else {
     partes.push(linea("Resultado", "NO RESUELTO"));
     if (resolution.unresolvedReason) {

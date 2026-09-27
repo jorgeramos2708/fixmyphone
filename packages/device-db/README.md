@@ -37,6 +37,90 @@ riesgos.
 | `play` | `storage.googleapis.com/play_public/supported_devices.csv` (53,994 filas, 37,109 tokens unicos) | **Amplitud**: mapea `ro.product.device` -> marca + nombre comercial | Google, dataset publico |
 | `seed` | Conocimiento de reparacion curado en `devicedb/seed.py` | Modo de descarga por familia de SoC, material firmado requerido, particiones de interes, notas de riesgo, operadores de Mexico | Proprietario |
 | `manual` | `manual/devices.override.yml` | Lo que ninguna fuente publica trae. Exige `verified_by` + `evidence` o se rechaza | Interno, revisado |
+| `ift_oppo` | `oppo.com/mx/ift/` (51 certificados) | Homologacion: modelo CPH -> folio del IFT | Fuente secundaria de la marca |
+| `ift_motorola` | `motorola.com.mx/ift/` (28 certificados con modelo) | Homologacion: modelo XT -> folio del IFT | Fuente secundaria de la marca |
+
+### Normalizacion de marca (`devicedb/brands.py`)
+
+El campo `vendor` no es el texto que dio la fuente: es una clave canonica. Sin
+eso, Play escribia `TCT (Alcatel)`, `Vivo` y `vivo` y `LGE` mientras LineageOS
+escribia `OPPO`, `LG` y `ASUS`, y el cruce con el padron no encontraba nada sin
+avisar de nada: parece un padron vacio y no lo es.
+
+Tres reglas que estan a proposito y que `probar-if.py` verifica:
+
+- **TCT y TCL son empresas distintas.** TCT fabrica los telefonos Alcatel; TCL
+  los televisores. Play trae las dos. Unirias por parecido de nombre fusiona
+  dos fabricantes. TCT -> `alcatel`; TCL -> `tcl`.
+- **Play lista la marca con mayusculas distintas.** `Vivo`/`vivo`,
+  `Realme`/`realme`, `Oppo`/`OPPO`, `LGE`/`LG`. Se comparan sin acentos y sin
+  puntuacion.
+- **Sub-marcas no se fusionan.** `Redmi` y `POCO` son de Xiaomi, `OnePlus` es
+  de OPPO, y son la misma empresa (`FAMILIAS`), pero un Redmi y un Xiaomi no
+  comparten particiones ni procedimiento. Cruzar por familia daria "este Redmi
+  es homologado porque su hermano si lo esta", que es justo la Conclusion
+  inventada que hace que un taller rechace un equipo reparable.
+
+Cuando una marca no esta en la tabla no se descarta ni se inventa: se queda tal
+cual y el pipeline la reporta como `marca_no_registrada` en `conflict` (69 al
+correr de hoy: Fairphone, Retroid, Nothing, Buffalo... marcas que no se venden
+en un taller mexicano). Todo renombrado queda escrito en `provenance` como
+`vendor_original` + `vendor_renombrado`, con el motivo.
+
+La normalizacion se aplica en los tres puntos de entrada: LineageOS, Play y la
+curacion manual. Escribir `vendor: Samsung` en `override.yml` produce `samsung`,
+sin que haya que acordarse.
+
+### Homologacion IFT (`devicedb/ift.py`)
+
+El padron oficial **no se puede leer**. La pagina "Lista de Equipos Homologados"
+del IFT sigue en linea, pero lo tiene dentro de un iframe que apunta a
+`sicet.cft.gob.mx`, una aplicacion JSF en el dominio de la CFT, que fue
+disuelta en 2014 y ya no resuelve. El IFT completo es un archivo historico; la
+autoridad vigente es la CRT (`gob.mx/crt`), que no publica el padron en HTML.
+
+Lo que si se lee son las tablas que publica cada marca. Es fuente secundaria, no
+oficial: cubren solo los equipos que la marca vende hoy en Mexico, y lo que no
+aparece ahi no es prueba de que no este homologado. Por eso el estado por
+omision no es "no homologado".
+
+| estado | quien lo pone | que significa |
+|---|---|---|
+| `homologado` | cruce automatico | Se encontro el modelo, con su folio. Unico estado que afirma que si esta homologado. |
+| `sin_verificar` | cruce automatico | **Se busco** en la tabla de la marca y el modelo no aparece. |
+| `desconocido` | valor por omision | No hay tabla accesible para esa marca, **no se busco**. |
+| `no_soportado` | **solo una persona**, en `override.yml` | El equipo esta fuera del alcance. El cruce nunca lo pone. |
+
+`sin_verificar` y `desconocido` estan separados a proposito y la prueba lo
+verifica: si fueran el mismo estado, el tooltip "no encontrado en el padron
+IFT" seria falso para 631 variantes a las que nadie busco.
+
+Un detalle del formato: **el numero de certificado es distinto en cada marca**
+(`JUOPCP26-00023609` en OPPO, `MOMOXT22-16676` en Motorola), el prefijo `IFT `
+aparece en unas celdas y en otras no, y **un mismo folio puede cubrir varios
+modelos** (OPPO publica `JUOPCP26-007492` para el A6t y el A6k). Por eso el
+indice es por modelo y no por folio, y por eso dos modelos con el mismo folio
+no generan aviso.
+
+### Estado medido del cruce (2026-09-26)
+
+| estado | variantes | |
+|---|---|---|
+| `homologado` | 11 | las 11 son Motorola, con folio verificado contra la pagina |
+| `sin_verificar` | 92 | 84 Motorola + 8 OPPO: se buscaron, no aparecen |
+| `desconocido` | 631 | marcas sin tabla de certificados accesible |
+
+**OPPO da 0 de 8 y no es un bug.** LineageOS documenta el OPPO "International"
+con codigos internos (`f1f`, `R8106`, `R7Plus`, `X9077`), no con numeros CPH, y
+Play tampoco trae el CPH de esos equipos: son los `Find N3` y los `Reno` de
+mercado internacional, que no son los que se venden en Mexico. No hay cruce
+posible con los datos disponibles.
+
+**Este cruce no cierra la brecha de catalogo, y no va a cerrarla.** El padron
+dice si un modelo esta homologado; no dice nada del SoC, las particiones ni el
+procedimiento de reparacion. Oppo, Vivo, Tecno, Alcatel y TCT siguen con 0
+variantes porque LineageOS no las soporta, no por falta de padron.
+
 
 ### El contrato de procedencia (lo mas importante del diseno)
 
@@ -121,6 +205,8 @@ Brechas abiertoas (con linea base, para que la regresion sea visible):
   confirmacion.
 - Las bandas de radio no se pueden leer de forma fiable en runtime: vienen del
   catalogo, no del equipo. La app debe medir, no afirmar.
-- `homologado_ift` arranca en `desconocido` para todo: requiere la fuente del
-  IFT, que no es abierta. Hasta entonces, la app debe treatarlo como
-  "no verificado" y nunca como "si".
+- `homologado_ift` solo se resuelve para las marcas con tabla de certificados
+  accesible (hoy Motorola y OPPO). Para las demas sigue en `desconocido`, que
+  significa **no se busco**, no "no homologado". La app debe tratar
+  `desconocido` y `sin_verificar` como "no verificado" y nunca como "si"; solo
+  `homologado` afirma que el equipo si esta homologado.

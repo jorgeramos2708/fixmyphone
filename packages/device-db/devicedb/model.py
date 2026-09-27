@@ -14,6 +14,7 @@ import re
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
+from .brands import resuelve
 from .seed import (LINEAGE_TO_ANDROID, SEED_SOC_BY_CODENAME, SOC_VENDOR_CAPABILITIES,
                    SOC_VENDOR_RULES)
 
@@ -151,7 +152,23 @@ class Variant:
     usb_ids: list[str] = field(default_factory=list)
     signed_material_required: bool | None = None
     risk_notes: list[str] = field(default_factory=list)
+
+    # Homologacion IFT. Los cuatro valores posibles y quien los pone estan en
+    # `ift.py`; en corto:
+    #   homologado     se encontro el folio en la tabla de la marca
+    #   sin_verificar  se busco en la tabla de la marca y no aparece
+    #   desconocido     no hay tabla accesible para esa marca; no se busco
+    #   no_soportado   solo por confirmacion humana, nunca automatico
     homologado_ift: str = "desconocido"
+    ift_certificado: str = ""     # folio, p.ej. "JUOPCP26-00023609"
+    ift_url: str = ""             # de donde se leyo el folio
+
+    # Como se escribe la marca en pantalla. Vive en la base y no en el codigo de
+    # la app a proposito: la tabla canonica esta en Python, y escribirla otra
+    # vez en TypeScript es garantizar que las dos se desincronicen sin que nada
+    # avise. `f x tec` -> "F(x)Tec" es el caso que lo demuestra: nadie que lea
+    # el nombre en pantalla sabe que en la base esta sin parentesis.
+    vendor_nombre: str = ""
 
     # provenance
     provenance: list[Provenance] = field(default_factory=list)
@@ -223,13 +240,27 @@ def from_lineageos(doc: dict) -> Variant | None:
     ts = doc.get("_retrieved_at", "")
     src, rep = "lineageos", "reported"
 
-    v = Variant(codename=codename, vendor=str(doc.get("vendor") or "").strip(),
+    # La marca se normaliza aqui y no despues. Si se deja la cadena tal cual
+    # queda "OPPO", "Vivo" y "LGE" conviviendo con "oppo", "vivo" y "LG", y
+    # el cruce con el padron del IFT deja de encontrar nada sin que se note
+    # donde esta el fallo: parece un padron vacio, y no lo es.
+    marca_cruda = str(doc.get("vendor") or "").strip()
+    marca = resuelve(marca_cruda)
+
+    v = Variant(codename=codename, vendor=marca.clave,
+                vendor_nombre=marca.nombre or marca_cruda,
                 vendor_short=str(doc.get("vendor_short") or "").strip(),
                 marketing_name=str(doc.get("name") or "").strip())
     v.sources.append(src)
 
     v.add("codename", codename, src, "verified", url, ts)
     v.add("vendor", v.vendor, src, rep, url, ts)
+    if marca.cambiada:
+        # Queda escrito de donde salio la marca, porque "por que esta esto
+        # como LG y no como LGE" es la primera pregunta que hace quien audita.
+        v.add("vendor_original", marca.original, src, "reported", url, ts)
+        v.add("vendor_renombrado", f"{marca.original} -> {marca.clave}: {marca.motivo}",
+              "brands", "inferred", url, ts)
     if doc.get("variant") is not None:
         v.variant = int(doc["variant"])
         v.add("variant", v.variant, src, "verified", url, ts)

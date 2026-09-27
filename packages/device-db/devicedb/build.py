@@ -9,7 +9,9 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from .brands import CANONICAS, resuelve
 from .derive import enrich, risk_flags, verification_gates
+from .ift import ESTADOS
 from .model import Variant, apply_soc_family, detect_soc_vendor, from_lineageos, from_play
 from . import miniyaml
 from .seed import MX_PRIORITY_DEVICES, SEED_OVERRIDES
@@ -77,6 +79,19 @@ def apply_manual(variants: dict[str, Variant], manual: dict) -> tuple[int, list[
                 if not hasattr(v, k):
                     errors.append(f"{codename}: campo desconocido '{k}'")
                     continue
+                if k == "vendor" and isinstance(val, str) and val.strip():
+                    # La marca se normaliza tambien cuando viene de la curacion
+                    # manual. Si no, escribir 'Samsung' en el override producia
+                    # una variante con marca 'Samsung' al lado de 115 con 'samsung',
+                    # y el cruce con el padron del IFT las contaba como dos
+                    # marcas. Que se escriba como se escriba en el archivo: esto
+                    # no se le tiene que recordar a quien edite el YAML.
+                    m = resuelve(val)
+                    v.add("vendor_original", val, "manual", "manual",
+                          "manual/devices.override.yml", f"{patch.get('verified_by', '')}")
+                    val = m.clave
+                    if m.nombre and not v.vendor_nombre:
+                        v.vendor_nombre = m.nombre
                 setattr(v, k, val)
                 v.add(k, val, "manual", "manual", f"manual/devices.override.yml",
                       f"{patch.get('verified_by', '')} / {patch.get('evidence', '')}")
@@ -147,7 +162,18 @@ def merge_variants(lineage_docs: list[dict], play_rows: list[dict],
             if alias["device_token"] and alias["device_token"] not in cand.device_tokens:
                 cand.device_tokens.append(alias["device_token"])
             if alias["brand"] and not cand.vendor:
-                cand.vendor = alias["brand"]
+                # Play escribe "TCT (Alcatel)" donde LineageOS no escribe nada.
+                # Sin normalizar, esa fila deja la variante con la marca del
+                # fabricante legal y el padron del IFT no la reconoce.
+                m = resuelve(alias["brand"])
+                cand.vendor = m.clave
+                cand.vendor_nombre = m.nombre or alias["brand"]
+                if m.cambiada:
+                    cand.add("vendor_original", m.original, "play", "reported",
+                             alias["url"], alias["retrieved_at"])
+                    cand.add("vendor_renombrado",
+                             f"{m.original} -> {m.clave}: {m.motivo}",
+                             "brands", "inferred", alias["url"], alias["retrieved_at"])
             if not cand.marketing_name and alias["marketing"]:
                 cand.marketing_name = alias["marketing"]
                 cand.add("marketing_name", alias["marketing"], "play", "reported",
@@ -236,6 +262,16 @@ def validate(variants: list[Variant], play_rows: list[dict], stats: dict) -> dic
                          "detail": "asume 'recovery' - verificar antes de flashear"})
         if not v.vendor:
             gaps.append({"kind": "sin_fabricante", "codename": v.codename, "detail": ""})
+        if v.vendor and v.vendor not in CANONICAS:
+            # Una marca que no esta en la tabla de alias no se descarta ni se
+            # inventa: se queda tal cual y se reporta. Lo que no puede pasar es
+            # que una marca inventada se vea en pantalla como si alguien la
+            # hubiera revisado.
+            conflicts.append({"kind": "marca_no_registrada", "codename": v.codename,
+                              "detail": f"{v.vendor} (de '{v.marketing_name or v.codename}')"})
+        if v.homologado_ift not in ESTADOS:
+            conflicts.append({"kind": "estado_ift_invalido", "codename": v.codename,
+                              "detail": f"'{v.homologado_ift}' no es uno de {list(ESTADOS)}"})
 
     # play tokens with no lineage counterpart
     tokens = {r["device_token"] for r in play_rows if r["device_token"]}
@@ -259,12 +295,30 @@ def validate(variants: list[Variant], play_rows: list[dict], stats: dict) -> dic
 
 
 def coverage_by_vendor(variants: list[Variant], play_rows: list[dict]) -> list[dict]:
+    """Cuantas variantes hay por marca, y cuantas filas de Play las respaldan.
+
+    El cruce va por clave canonica en los dos lados. Antes comparaba la marca
+    guardada contra la cadena de la fuente, y con "LG" de un lado y "LGE" del
+    otro la columna de cobertura salia en cero para marcas que si estaban.
+    """
     lo = Counter(v.vendor for v in variants if v.vendor)
-    play = Counter(r["brand"] for r in play_rows if r["brand"])
+    crudas = Counter(r["brand"] for r in play_rows if r["brand"])
+    play: Counter = Counter()
+    nombres: dict[str, str] = {}
+    aliases: dict[str, set] = {}
+    for brand, n in crudas.items():
+        m = resuelve(brand)
+        play[m.clave] += n
+        nombres.setdefault(m.clave, m.nombre)
+        if m.cambiada:
+            aliases.setdefault(m.clave, set()).add(brand)
     rows = []
-    for brand, n in play.most_common(40):
-        rows.append({"marca": brand, "en_lineageos": lo.get(brand, 0),
-                     "en_play": n})
+    for clave, n in play.most_common(40):
+        rows.append({"marca": nombres.get(clave, clave),
+                     "clave": clave,
+                     "en_lineageos": lo.get(clave, 0),
+                     "en_play": n,
+                     "como_la_escribia_play": ", ".join(sorted(aliases.get(clave, ())))})
     return rows
 
 
