@@ -279,12 +279,29 @@ export function variantKey(codename: string, variant: string | null): string {
 
 /** Resultado de resolver un equipo real contra el catálogo. */
 export interface Resolution {
-  /** VarianteGanadora. `null` si el catálogo no conoce el equipo. */
+  /**
+   * La variante que se identificó. `null` cuando no se pudo llegar a una sola.
+   */
   match: DeviceVariant | null;
   ladder: IdentityLadder[];
-  /** Apple's ex Servidores, alias u otros candidatos cuando hubo que adivinar. */
+  /**
+   * Las candidatas que quedaron sobre la mesa cuando no se pudo decidir.
+   *
+   * Este campo es la respuesta, no un adorno: cuando hay varias, la escalera
+   * bajó hasta el fondo y los datos no alcanzan para separar las placas. La
+   * herramienta no elige ninguna —elegir sería inventar, y la diferencia entre
+   * las candidatas es justo lo que decide qué imagen se puede flashear— y en
+   * cambio las entrega para que la persona las compare. Elegir queda como acto
+   * humano explícito, en la confirmación manual.
+   *
+   * `[]` significa que no se encontró nada, no que se encontró todo.
+   */
   alternatives: DeviceVariant[];
-  /** Por qué NO se resolvió. Aparece en pantalla, no se esconde. */
+  /**
+   * Por qué NO se resolvió, en palabras que la persona pueda leer. Aparece en
+   * pantalla tal cual, sin recortarse: si el motivo fuera raro o incómodo no
+   * habría que callarlo.
+   */
   unresolvedReason?: string;
 }
 

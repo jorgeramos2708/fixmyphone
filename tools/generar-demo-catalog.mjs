@@ -29,12 +29,13 @@
  */
 
 import { DatabaseSync } from "node:sqlite";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const DB = join(RAIZ, "packages", "device-db", "data", "out", "fixmyphone_device_db.sqlite");
 const SALIDA = join(RAIZ, "packages", "app", "src", "data", "demo-catalog.ts");
+const MAQUETA = join(RAIZ, "apps", "web-demo", "src", "browser-bridge.ts");
 
 const LIMITE = 48;
 
@@ -208,9 +209,73 @@ function agrega(r, conTopeMarca) {
   return true;
 }
 
-for (const r of [...todas].filter(esAmbigua).sort(orden).slice(0, CUPOS.ambigua)) agrega(r, false);
-for (const r of [...todas].filter((r) => !esAmbigua(r) && esDeMarcaGrande(r)).sort(orden).slice(0, CUPOS.directa)) agrega(r, false);
-for (const r of [...todas].filter((r) => !esAmbigua(r) && !esDeMarcaGrande(r)).sort(orden)) {
+// --- A. AMBIGUAS -----------------------------------------------------------
+//
+// OJO, aqui se eligen codenames COMPLETOS, no filas sueltas, y no es un detalle
+// de como se corta la lista: es la diferencia entre que la demo muestre la
+// ambiguedad o no la muestre.
+//
+// La version anterior hacia `[...todas].filter(esAmbigua).sort(orden).slice(0, 12)`,
+// o sea se llevaba las doce FILAS ambiguas que mejor puntuan. El problema es que
+// la ambiguedad no es una propiedad de la fila sino del grupo: un codename con
+// tres placas es ambiguo porque hay tres filas, y si la maqueta se lleva una sola
+// de esas tres, para el resolutor ese codename deja de ser ambiguo y pasa a ser
+// un acierto directo. O sea, la fila se llevaba el crédito de "ambigua" y la
+// maqueta entregaba un caso único.
+//
+// Medido: de las 12 filas que el generador reportaba como ambiguas, 10 venian de
+// codenames que quedaron con una sola fila en la maqueta. La demo anunciaba 12
+// casos de ambiguedad y.tenia 2. Peor: el resolutor de la maqueta tomaba la
+// primera variante con `.find()` y resolvia las 10, asi que la pantalla mostraba
+// "equipo identificado" justo donde la promesa central del producto es no
+// elegir por el tecnico.
+//
+// Ahora se recorre por codename y se mete el grupo entero. Un codename cuyo
+// grupo no cabe entero en el cupo se salta: meterlo a medias fabricaría una
+// ambigüedad que el producto no tiene, que es el error al revés.
+const porCodenameFilas = new Map();
+for (const r of todas) {
+  if (!esAmbigua(r)) continue;
+  const g = porCodenameFilas.get(r.codename) ?? [];
+  g.push(r);
+  porCodenameFilas.set(r.codename, g);
+}
+
+// Cada grupo se ordena por la MEJOR de sus filas, que es como se comparan
+// codenames: el grupo entra segun su mejor representante, no segun el promedio.
+const codenamesAmbiguos = [...porCodenameFilas.entries()]
+  .map(([codename, filas]) => ({ codename, filas, mejor: Math.max(...filas.map(puntua)) }))
+  .sort((a, b) => b.mejor - a.mejor || a.codename.localeCompare(b.codename));
+
+for (const g of codenamesAmbiguos) {
+  if (elegidas.length + g.filas.length > CUPOS.ambigua) continue;
+  for (const r of g.filas) agrega(r, false);
+}
+
+const elegidasPorCodename = new Set(elegidas.map((r) => r.codename));
+// Los estratos B y C se quedan con codenames NO ambiguos. Entrar aqui con una
+// sola fila de un codename que en la base tiene varias deja la maqueta con un
+// acierto directo donde el producto se negaria, que es la fabricacion mas
+// grave de las tres: la pantalla muestra una seguridad que la base no
+// respalda. Un codename ambiguo entra por el estrato A, con su grupo entero, o
+// no entra.
+//
+// Consecuencia aceptada: una marca cuyos codenames son todos ambiguos puede
+// quedar fuera de la demo (pasó con OnePlus, cuyos codenames repetidos se
+// llevaron el cupo completo del estrato A). Es preferible ausente a presente con
+// una certeza que el producto no tiene.
+for (const r of [...todas]
+  .filter((r) => !esAmbigua(r) && !elegidasPorCodename.has(r.codename) && esDeMarcaGrande(r))
+  .sort(orden)
+  .slice(0, CUPOS.directa)) agrega(r, false);
+for (const r of [...todas]
+  .filter(
+    (r) =>
+      !esAmbigua(r) &&
+      !elegidasPorCodename.has(r.codename) &&
+      !esDeMarcaGrande(r),
+  )
+  .sort(orden)) {
   if (elegidas.length >= CUPOS.ambigua + CUPOS.directa + CUPOS.diversa) break;
   agrega(r, true);
 }
@@ -232,22 +297,127 @@ for (const r of [...todas].filter((r) => !esAmbigua(r) && !esDeMarcaGrande(r)).s
 // como cupo vacio seria prometer un caso que el producto no tiene.
 const ESTADOS_A_MOSTRAR = ["homologado", "sin_verificar", "desconocido"];
 const faltantes = [];
+const sinReservar = [];
 for (const estado of ESTADOS_A_MOSTRAR) {
   if (elegidas.some((r) => String(r.homologado_ift) === estado)) continue;
-  const candidatas = [...todas].filter((r) => String(r.homologado_ift) === estado).sort(orden);
-  if (candidatas.length) faltantes.push(candidatas[0]);
+  // La fila que entra tiene que ser de un codename SIN ambiguedad en la base. Si
+  // se mete una sola fila de un codename que tiene tres placas, la maqueta
+  // presenta un acierto directo donde la base dice que hay tres. Es la
+  // fabricacion de un acierto que no existe, y es el error mas grave de los
+  // tres porque la pantalla muestra seguridad donde no la hay.
+  const candidatas = [...todas]
+    .filter((r) => String(r.homologado_ift) === estado && !esAmbigua(r))
+    .sort(orden);
+  if (candidatas.length) faltantes.push({ estado, fila: candidatas[0] });
+  else sinReservar.push(estado);
 }
-for (const entra of faltantes) {
+
+for (const { fila: entra } of faltantes) {
+  // La victima no puede ser una fila de un codename que aporta mas de una fila a
+  // la maqueta. Si lo fuera, el grupo se queda incompleto y la demo anunciaria
+  // menos placas de las que hay: "2 candidatas" donde la base tiene 4. Es el
+  // mismo error del estrato de ambiguedas al reves, y tampoco se ve: la pantalla
+  // sigue diciendo la verdad sobre lo que trae, pero trae menos de lo que hay.
+  //
+  // El conteo se rehace en cada vuelta porque cada intercambio cambia el grupo.
   const fuera = elegidas
     .map((r, i) => ({ r, i }))
     .filter(({ r }) => {
       const estado = String(r.homologado_ift);
+      if (elegidas.filter((o) => o.codename === r.codename).length > 1) return false;
       return elegidas.filter((o) => String(o.homologado_ift) === estado).length > 1;
     })
     .sort((a, b) => puntua(a.r) - puntua(b.r))[0];
   if (!fuera) break;
   elegidas[fuera.i] = entra;
 }
+// --- Los codenames que usa la maqueta no son negociables -------------------
+//
+// La maqueta web tiene equipos simulados con codename fijo, y son los ejemplos
+// que alguien va a mirar para decidir si el producto sirve. Si el recorte los
+// deja fuera, la demo contesta "no reconocimos este equipo" en el caso que
+// queria demostrar, y no hay forma de saber si el fallo es del ejemplo o del
+// producto.
+//
+// Antes no se tenia en cuenta, y pasaba cada vez que se regeneraba la base o se
+// tocaba un puntaje: el recorte se reacomoda, los codenames de los equipos
+// simulados se caen y hay que perseguirlos a mano. Pasa mas facil desde que los
+// codenames ambiguos entran por el estrato A: ahi el cupo se lo pelean, y un
+// codename ambiguo puede entrar completo o no entrar, segun como caiga el orden.
+// Este paso los mete antes del intercambio de estados.
+//
+// Se leen del archivo de la maqueta y no de una lista escrita aqui. Una lista en
+// este script se desactualiza en silencio la primera vez que alguien agrega un
+// equipo simulado, que es justo el caso para el que existe el paso.
+const codenamesDeLaMaqueta = (() => {
+  if (!existsSync(MAQUETA)) return [];
+  // Los saltos de linea se normalizan porque `readFileSync` no lo hace y el
+  // archivo puede venir con CRLF: sin esto el corte por bloques no encuentra
+  // nada y el paso de abajo se cree, en silencio, que la maqueta no simula
+  // ningun equipo. Un reserved que reserve cero es peor que no tener el paso.
+  const texto = readFileSync(MAQUETA, "utf8").replace(/\r\n/g, "\n");
+  const cuerpo = texto.split("const SIMULADOS")[1] ?? "";
+  const vistos = [];
+  for (const bloque of cuerpo.split("\n  {\n").slice(1)) {
+    // Un equipo que declara `fueraDelCatalogo` NO se reserva: su proposito es
+    // justamente quedar fuera. Reservarlo seria meter en el recorte el equipo
+    // que la maqueta usa para demostrar que el catalogo no lo tiene.
+    if (/fueraDelCatalogo:\s*true/.test(bloque)) continue;
+    const m = bloque.match(/"ro\.product\.device":\s*"([^"]+)"/);
+    if (m && !vistos.includes(m[1])) vistos.push(m[1]);
+  }
+  return vistos;
+})();
+
+const metidosPorFuerza = [];
+for (const cn of codenamesDeLaMaqueta) {
+  const grupo = todas.filter((r) => r.codename === cn);
+  if (!grupo.length) {
+    console.log(`  aviso: la maqueta simula "${cn}" y ese codename no esta en la base`);
+    continue;
+  }
+  if (grupo.every((f) => elegidas.includes(f))) continue;
+
+  // Entra el grupo entero. Si el codename es ambiguo entra completo o no entra:
+  // media fila de un grupo es justo lo que hay que evitar.
+  const faltan = grupo.length - grupo.filter((f) => elegidas.includes(f)).length;
+
+  // Se sacan las filas mas flojas que NO sean de la maqueta, NO pertenezcan a un
+  // grupo ambiguo y no sean del mismo codename que lo que entra, para no romper
+  // con la mano lo que el estrato A agrupo.
+  const sobran = elegidas
+    .map((r, i) => ({ r, i }))
+    .filter(
+      ({ r }) =>
+        !codenamesDeLaMaqueta.includes(r.codename) &&
+        !esAmbigua(r) &&
+        !grupo.some((g) => g.codename === r.codename),
+    )
+    .sort((a, b) => puntua(a.r) - puntua(b.r));
+
+  if (sobran.length < faltan) {
+    console.log(
+      `  aviso: "${cn}" no cabe en el recorte sin romper un grupo ambiguo; queda ` +
+        `fuera y el equipo simulado no va a resolver`,
+    );
+    continue;
+  }
+  for (const { i } of sobran.slice(0, faltan)) elegidas[i] = null;
+  for (const f of grupo) elegidas.push(f);
+  // Se limpian los huecos ya, y no al final del bucle: si dos codenames hay que
+  // meterlos a la fuerza, el segundo leeria los null que dejo el primero y se
+  // caeria. Con uno solo nunca se nota, y por eso estaba.
+  for (let i = elegidas.length - 1; i >= 0; i--) if (elegidas[i] === null) elegidas.splice(i, 1);
+  metidosPorFuerza.push(cn);
+}
+
+if (metidosPorFuerza.length) {
+  console.log(
+    `  nota: ${metidosPorFuerza.length} codename(s) de la maqueta entraron a la ` +
+      `fuerza -> ${metidosPorFuerza.join(", ")}`,
+  );
+}
+
 elegidas.sort(orden);
 
 // El `,` del join va seguido de los dos espacios de la otra mitad: sin ellos la
@@ -286,8 +456,11 @@ const CABECERA = `/**
  * Un puntaje global produce casi siempre un solo estrato, y una demo que solo
  * muestra un caso no muestra nada:
  *
- *   12 ambiguas  codename con varias variantes de placa: la herramienta NO
- *                elige por el tecnico, que es la promesa central.
+ *   hasta 12     codename con varias variantes de placa, y se mete el grupo
+ *   ambiguas     COMPLETO: la herramienta NO elige por el tecnico, que es la
+ *                promesa central. Se cuenta por codename y no por filas,
+ *                porque la ambiguedad es del grupo: una fila sola de un
+ *                codename de cuatro placas no es ambigua, es un acierto.
  *   26 directas  codename unico de marca grande: llega, resuelve, entrega.
  *   hasta 10     marca chica, maximo 2 por marca, para que la pantalla de
  *   distintas    marca no muestre cuatro logos.
@@ -312,7 +485,20 @@ writeFileSync(SALIDA, texto, "utf8");
 // --- Informe ---------------------------------------------------------------
 const conRiesgo = elegidas.filter((r) => json(r.risk_flags).length > 0).length;
 const conSoC = elegidas.filter((r) => r.soc_raw).length;
-const ambiguas = elegidas.filter(esAmbigua).length;
+
+// La ambiguedad se cuenta por CODENAME, que es como la ve el resolutor. Contar
+// filas daba un numero que no correspondia a nada que se pudiera ver en
+// pantalla: un codename con cuatro placas del que la maqueta solo trae dos filas
+// sigue siendo ambiguo, y uno del que trae una sola ya no lo es aunque en la base
+// completa tenga cuatro.
+const filasPorCodename = new Map();
+for (const r of elegidas) filasPorCodename.set(r.codename, (filasPorCodename.get(r.codename) ?? 0) + 1);
+const codenamesAmbiguosEnDemo = [...filasPorCodename.values()].filter((n) => n > 1).length;
+// Filas que de verdad son ambiguas PARA EL RESOLUTOR: las que viven en un
+// codename con mas de una fila en la maqueta. Contar con `esAmbigua` daria un
+// numero mayor, porque incluye filas de codenames que en la base son ambiguos y
+// aqui llegaron solas, y esas para el resolutor son aciertos directos.
+const filasAmbiguas = elegidas.filter((r) => (filasPorCodename.get(r.codename) ?? 0) > 1).length;
 const marcas = new Map();
 for (const r of elegidas) {
   const m = String(r.vendor ?? "").toLowerCase() || "sin marca";
@@ -327,13 +513,29 @@ const bytes = Buffer.byteLength(texto, "utf8");
 console.log("demo-catalog.ts generado");
 console.log(`  ${SALIDA}`);
 console.log(`  ${(bytes / 1024).toFixed(0)} KB, ${elegidas.length} variantes`);
+if (elegidas.length > LIMITE) {
+  console.log(
+    `  aviso: el recorte tiene ${elegidas.length} variantes y el tope es ${LIMITE}. ` +
+      `Pasa cuando hay que meter a la fuerza varios codenames de la maqueta y los ` +
+      `grupos no caben. No rompe nada, pero el archivo ya no es del tamaño que dice ` +
+      `la cabecera; o se sube el tope a proposito o se reservan cupos antes.`,
+  );
+}
 console.log(`  ${conRiesgo} con riesgos, ${conSoC} con SoC`);
 console.log(
-  `  estratos: ${ambiguas} ambiguas, ${elegidas.length - ambiguas} directas`,
+  `  estratos: ${codenamesAmbiguosEnDemo} codenames ambiguos ` +
+    `(${filasAmbiguas} filas, ${elegidas.length - filasAmbiguas} directas)`,
 );
+// Las marcas van entrecomilladas porque hay una que se llama "10 or": suelta se
+// lee "10 or 1", que parece un conteo ("diez o una") en vez de una marca con una
+// variante. Un renglon de salida que se puede leer de dos maneras no informa de
+// nada.
 console.log(
   `  ${marcas.size} marcas: ` +
-    [...marcas.entries()].sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m} ${n}`).join(", "),
+    [...marcas.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([m, n]) => `"${m}" ${n}`)
+      .join(", "),
 );
 
 // Los estados de homologacion que se ven en la demo. Se imprime para que la
@@ -355,6 +557,18 @@ console.log(
 const ausentes = ESTADOS_A_MOSTRAR.filter((e) => !estadosDemo.has(e));
 if (ausentes.length) {
   console.log(`  aviso: sin casos en la demo -> ${ausentes.join(", ")}`);
+}
+
+// Un estado que no se pudo mostrar porque las unicas filas disponibles son de
+// codenames ambiguos. Se dice con nombre y todo, porque es una decision que
+// alguien tiene que poder revertir a proposito: si el dia que hay que mostrarlo
+// se rompe un grupo de ambiguedad para meterlo, que quede escrito que se hizo.
+if (sinReservar.length) {
+  console.log(
+    `  aviso: ${sinReservar.join(", ")} no entra; las unicas filas de esos ` +
+      `estados son de codenames con varias placas y meter una sola fabricaria ` +
+      `un acierto que la base no tiene`,
+  );
 }
 
 // Aviso si un estrato se quedo corto. Es informacion, no un fallo: el tope de

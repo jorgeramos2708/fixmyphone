@@ -171,7 +171,38 @@ export function InformeScreen({
               <DataRow label="Identificado" tone={variant ? "success" : "danger"}>
                 {variant ? "sí" : "no"}
               </DataRow>
-              <DataRow label="Variantes candidatas">{resolution.alternatives.length}</DataRow>
+              {/* La fila de candidatas solo aparece cuando significa algo. Con el
+                  equipo identificado la lista viene vacía por contrato y el 0 no
+                  informa de nada; cuando el equipo NO se identificó, el 0 sí es
+                  un dato y hay que distinguirlo del caso en que hubo candidatas
+                  y ninguna se eligió. Un "0" a secas no dice cuál de los dos es,
+                  y esa es justo la diferencia que el técnico necesita ver.
+
+                  OJO, esta fila NO se puede ver en la maqueta web. Ahí el
+                  transporte es simulado y no tiene sondas, así que nunca se arma un
+                  informe y esta pantalla nunca se abre. Es alcanzable en el `.exe`,
+                  donde `runAllProbes` corre sobre el transporte sin necesitar la
+                  variante: por eso el informe sale aunque el equipo no se haya
+                  identificado, y por eso el informe firmado lista las candidatas
+                  (ver `alternatives` en report.ts). Que aqui no se haya visto en
+                  pantalla no significa que el camino no exista; significa que la
+                  maqueta no lo ejercita. */}
+              {!variant || resolution.alternatives.length > 0 ? (
+                <DataRow
+                  label="Variantes candidatas"
+                  tone={resolution.alternatives.length > 0 ? "warning" : "default"}
+                >
+                  {resolution.alternatives.length}
+                  {resolution.alternatives.length > 0
+                    ? " — sin elegir"
+                    : " — no se encontró ninguna variante que coincida"}
+                </DataRow>
+              ) : null}
+              {resolution.alternatives.length > 0 ? (
+                <p className="tech border-t border-border px-4 py-2 text-caption text-text-muted">
+                  {resolution.alternatives.map((a) => a.key).join(" · ")}
+                </p>
+              ) : null}
               <DataRow label="Niveles de evidencia">{resolution.ladder.length}</DataRow>
               <DataRow label="Pruebas ejecutadas">
                 {probes.filter((p) => p.state !== "pending").length}/{probes.length}

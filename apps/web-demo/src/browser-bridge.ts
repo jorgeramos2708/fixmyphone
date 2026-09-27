@@ -152,16 +152,23 @@ const SIMULADOS: Simulated[] = [
   },
   {
     // El equipo de una tercera marca. Xiaomi es de las tres grandes del país y
-    // la demo solo tenía Samsung y Motorola, así que el que seialize esto en un
+    // la maqueta solo tenía Samsung y Motorola, así que el que seialize esto en un
     // taller ve dos marcas y cree que la herramienta solo conoce dos.
     //
-    // Se eligió este codename porque `Mi439` sí tiene dos variantes reales en el
-    // catálogo: `Mi439#1` es el Redmi 7A y `Mi439#2` el Redmi 8, con listas de
-    // números de modelo distintas (M1903... y M1908...). No es un caso elegido
-    // por adornar la pantalla; es el que hay.
+    // Se eligió este codename porque `Mi439` sí tiene varias variantes reales en
+    // el catálogo: `Mi439#1` es el Redmi 7A, `Mi439#2` el Redmi 8, `Mi439#3` el
+    // Redmi 8A y `Mi439#4` el Redmi 8A Dual, con números de modelo distintos
+    // (M1903..., M1908..., M1906...) que no se repiten entre placas. No es un
+    // caso elegido por adornar la pantalla; es el que hay.
+    //
+    // OJO, este fixture es el que demuestra que la ambigüedad NO es una sentencia
+    // de muerte: el codename cubre cuatro placas y el número de modelo que reporta
+    // el equipo (M1908C3IC) pertenece a una sola, la del Redmi 8. La herramienta
+    // baja un nivel y SI puede decir cual es. Un producto que se negara aqui
+    // estaria dejando trabajo hecho.
     id: "redmi-7a",
     label: "Redmi 8 (Xiaomi)",
-    note: "Gama de entrada muy voluminosa. El codename Mi439 cubre dos placas distintas en el catálogo.",
+    note: "Gama de entrada muy voluminosa. Su codename cubre cuatro placas y el número de modelo las separa.",
     props: {
       "ro.product.device": "Mi439",
       "ro.product.model": "M1908C3IC",
@@ -209,6 +216,52 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 62, charging: false },
   },
   {
+    // El UNICO caso en que la maqueta se niega, y esta puesto aqui a proposito.
+    //
+    // Es el equipo que hace visible la promesa central del producto: cuando hay
+    // varias placas posibles, la herramienta NO elige. Con los demas fixtures se
+    // podia sospechar que la ambiguedad nunca pasa, porque todos resolvian. Sin
+    // este no hay forma de mirar la pantalla y ver que la herramienta se detiene
+    // cuando debe.
+    //
+    // POR QUE ESTE Y NO OTRO. `nash` cubre el moto z2 force y el moto z (2018), y
+    // es el unico codename de la maqueta donde el numero de modelo NO separa las
+    // placas: XT1789-02 a XT1789-07 estan en las DOS variantes. O sea, el
+    // equipo entrega un dato que PARECE decidir y el catalogo lo tie a dos
+    // placas. Ahi la herramienta tiene algo que podria usar y no lo usa, que es
+    // justamente la prueba de que no esta adivinando.
+    //
+    // No es un caso inventado para que la pantalla quede bien: es una limitacion
+    // real del catalogo. Las dos filas repiten la misma lista de numeros de
+    // modelo, y con esos datos no hay forma honesta de saber cual de las dos
+    // placas es. Por eso el codigo que decide cual es se deja como acto humano.
+    //
+    // Lo que la pantalla muestra aqui: las dos candidatas con su SoC, su
+    // esquema de particiones y sus numeros de modelo, y la explicacion de por que
+    // no se eligio. NO ofrece un boton para escoger. Elegir aqui seria una
+    // pantalla de decision que el producto no tiene y que nadie pidio; la
+    // eleccion se hace en la confirmacion manual, que es un acto explicito y
+    // queda anotado de quien fue.
+    id: "moto-z2-ambiguo",
+    label: "moto z2 force (placa ambigua)",
+    note: "El número de modelo del equipo aparece en las dos placas del catálogo, así que no alcanza para decidir.",
+    props: {
+      "ro.product.device": "nash",
+      "ro.product.model": "XT1789-04",
+      "ro.product.manufacturer": "motorola",
+      "ro.build.version.release": "8",
+      "ro.build.version.security_patch": "2021-06-01",
+      "ro.build.fingerprint":
+        "motorola/nash/nash:8/OPR30.50-42/e5f6a7b8c9d0:user/release-keys",
+      "ro.boot.hardware": "sdm660",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "a1b2c3d4e5f6g7",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 55, charging: false },
+  },
+  {
     id: "desconocido",
     label: "Equipo fuera del catálogo (SM-S931B)",
     note: "Galaxy S24 Ultra. A propósito: el catálogo no lo tiene. La app debe decirlo, no adivinar.",
@@ -234,98 +287,171 @@ const SIMULADOS: Simulated[] = [
 // ---------------------------------------------------------------------------
 
 /**
- * Escalera de identificación.
+ * Escalera de identificación. Es la misma de `platform.resolve` del escritorio,
+ * nivel por nivel, y a propósito.
  *
- * Cada nivel añade evidencia. El orden va de barato a caro: un match por
- * número de modelo es fuerte; uno por prefijo de fingerprint es una conjetura
- * y se declara como tal con menos confianza.
+ * La maqueta no puede decidir distinto que el producto. Antes esta función
+ * caminaba por su cuenta y se quedaba con la primera variante que encontraba
+ * con `.find()`, de modo que para un codename con varias placas tomaba la
+ * primera y le declaraba 0.95 de confianza. Con el Xiaomi de la maqueta eso
+ * resolvía a Redmi 7A, cuando el número de modelo que reporta el equipo
+ * (M1908C3IC) pertenece al Redmi 8: la demo contradecía al `.exe` en uno de los
+ * equipos más comunes de la tienda, y lo hacía con seguridad de más.
+ *
+ * También pasaba lo contrario: en el nivel de la huella de compilación la
+ * escalera decía, en pantalla, "solo se puede usar como pista", y el código de
+ * justo debajo tomaba esa pista como respuesta. La escalera describía una
+ * decisión que el resolutor no había tomado.
+ *
+ * La regla es una sola y no tiene excepción: se baja hasta el fondo, y al
+ * final o hay una coincidencia única o se entrega la lista de candidatas. Nunca
+ * se elige la primera. Cuando hay varias, elegir es inventar, y la diferencia
+ * entre las variantes es justo lo que decide qué imagen se puede flashear.
  */
-function buildLadder(
-  props: RawDeviceProps,
-  match: DeviceVariant | null,
-): IdentityLadder[] {
-  const steps: IdentityLadder[] = [];
-  const device = props["ro.product.device"];
-  const model = props["ro.product.model"];
-  const fp = props["ro.build.fingerprint"];
-
-  if (device) {
-    const exacto = DEMO_CATALOG.find((v) => v.codename === device);
-    steps.push({
-      level: 1,
-      name: "ro.product.device",
-      evidence: exacto ? `coincide con el codename ${device}` : `${device}: no está en el catálogo`,
-      confidence: exacto ? 0.95 : 0.3,
-    });
-  }
-
-  if (model) {
-    const porModelo = DEMO_CATALOG.find((v) => v.modelNumbers.includes(model));
-    steps.push({
-      level: 2,
-      name: "Número de modelo",
-      evidence: porModelo
-        ? `${model} aparece en la lista de ${porModelo.modelNumbers.length} números de ${porModelo.key}`
-        : `${model} no figura en ningún registro`,
-      confidence: porModelo ? 0.9 : 0.2,
-    });
-  }
-
-  if (fp) {
-    steps.push({
-      level: 3,
-      name: "Fingerprint de compilación",
-      evidence: match
-        ? `el prefijo ${fp.split("/")[1]} coincide con ${match.codename}`
-        : `solo se puede usar como pista: ${fp.split("/")[1]}`,
-      confidence: match ? 0.6 : 0.25,
-    });
-  }
-
-  if (match) {
-    steps.push({
-      level: 4,
-      name: "Cruce de SoC",
-      evidence: `${match.soc ?? "SoC desconocido"} declarado para ${match.key}`,
-      confidence: match.soc ? 0.95 : 0.5,
-    });
-  }
-
-  return steps;
-}
-
 function resolveLocal(props: RawDeviceProps): Resolution {
-  const device = props["ro.product.device"];
-  const model = props["ro.product.model"];
+  const escalera: IdentityLadder[] = [];
+  const codename = props["ro.product.device"];
+  const modelo = props["ro.product.model"];
 
-  // 1) codename exacto
-  let match = device ? (DEMO_CATALOG.find((v) => v.codename === device) ?? null) : null;
-
-  // 2) número de modelo
-  if (!match && model) {
-    match = DEMO_CATALOG.find((v) => v.modelNumbers.includes(model)) ?? null;
-  }
-
-  // 3) prefijo de fingerprint (pista débil)
-  if (!match && props["ro.build.fingerprint"]) {
-    const hint = props["ro.build.fingerprint"].split("/")[1];
-    if (hint) match = DEMO_CATALOG.find((v) => v.codename === hint) ?? null;
-  }
-
-  const ladder = buildLadder(props, match);
-
-  if (!match) {
+  // --- L2: sin codename no hay ancla --------------------------------------
+  // Los números de modelo no son globales: dos marcas pueden escribir el mismo,
+  // y por eso un número suelto no cruza nada por específico que parezca. El
+  // escritorio corta aquí y esta maqueta corta igual, aunque antes no lo hiciera.
+  if (!codename) {
+    escalera.push({
+      level: 2,
+      name: "Nombre interno",
+      evidence:
+        "El equipo no expone ro.product.device. Suele pasar en recovery o en ROMs muy recortadas.",
+      confidence: 0.1,
+    });
     return {
       match: null,
-      ladder,
+      ladder: escalera,
       alternatives: [],
       unresolvedReason:
-        "Ningún codename ni número de modelo del equipo aparece en el catálogo. " +
-        "Se necesita una entrada curada antes de poder afirmar nada sobre esta variante.",
+        "El equipo conectado no expone ro.product.device, que es el dato con el que se identifica. Un número de modelo suelto no alcanza: esos números no son globales.",
     };
   }
 
-  return { match, ladder, alternatives: [] };
+  const porCodename = DEMO_CATALOG.filter((v) => v.codename === codename);
+
+  escalera.push({
+    level: 2,
+    name: "Nombre interno (codename)",
+    evidence: `ro.product.device = ${codename}`,
+    confidence: 0.55,
+  });
+
+  // --- L3: el catálogo conoce el codename ---------------------------------
+  if (porCodename.length === 1) {
+    escalera.push({
+      level: 3,
+      name: "Coincidencia exacta de codename",
+      evidence: `El catálogo tiene una sola variante para "${codename}": ${porCodename[0]!.key}`,
+      confidence: 0.85,
+    });
+    return { match: porCodename[0]!, ladder: escalera, alternatives: [] };
+  }
+
+  if (porCodename.length > 1) {
+    escalera.push({
+      level: 3,
+      name: "Codename ambiguo",
+      evidence: `"${codename}" corresponde a ${porCodename.length} variantes distintas: ${porCodename.map((v) => v.key).join(", ")}`,
+      confidence: 0.5,
+    });
+  } else {
+    escalera.push({
+      level: 3,
+      name: "Codename no registrado",
+      evidence: `El catálogo no tiene ninguna variante con el codename "${codename}".`,
+      confidence: 0.2,
+    });
+  }
+
+  // --- L4: el número de modelo --------------------------------------------
+  // Aquí es donde la ambigüedad del nivel 3 se resuelve sola, y bajar no es
+  // adivinar: es apoyarse en un dato más específico que el que se quedó
+  // atorado. Si el nivel 3 trajo varias placas y aquí hay una sola, se dice cuál
+  // es, y con nombre y todo.
+  if (modelo) {
+    const porModelo = DEMO_CATALOG.filter((v) => v.modelNumbers.includes(modelo));
+
+    if (porModelo.length === 1) {
+      escalera.push({
+        level: 4,
+        name: "Número de modelo",
+        evidence: `"${modelo}" pertenece a una sola variante: ${porModelo[0]!.key}`,
+        confidence: 0.9,
+      });
+      return { match: porModelo[0]!, ladder: escalera, alternatives: [] };
+    }
+
+    if (porModelo.length > 1) {
+      escalera.push({
+        level: 4,
+        name: "Número de modelo ambiguo",
+        evidence: `${modelo} aparece en ${porModelo.length} variantes: ${porModelo.map((v) => v.key).join(", ")}`,
+        confidence: 0.45,
+      });
+      return {
+        match: null,
+        ladder: escalera,
+        alternatives: porModelo,
+        unresolvedReason:
+          "El codename y el número de modelo apuntan a más de una variante de placa. Elegir una sería inventar: la diferencia entre ellas es exactamente la que define qué imagen se puede flashear.",
+      };
+    }
+
+    escalera.push({
+      level: 4,
+      name: "Número de modelo no registrado",
+      evidence: `El catálogo no conoce el número de modelo "${modelo}".`,
+      confidence: 0.3,
+    });
+  }
+
+  // --- L5: huella de compilación ------------------------------------------
+  // Se declara como pista porque es una pista, y por eso tampoco resuelve: el
+  // escritorio entrega las candidatas en lugar de tomar la primera.
+  const fp = props["ro.build.fingerprint"];
+  if (fp) {
+    const pista = fp.split("/")[1];
+    const porPista = pista ? DEMO_CATALOG.filter((v) => v.codename === pista) : [];
+    if (porPista.length) {
+      escalera.push({
+        level: 5,
+        name: "Pista por huella de compilación",
+        evidence: `La huella "${fp}" sugiere el codename "${pista}". Es una pista, no una prueba.`,
+        confidence: 0.4,
+      });
+      return {
+        match: null,
+        ladder: escalera,
+        alternatives: porPista,
+        unresolvedReason:
+          "Solo se pudo llegar a una pista por la huella de compilación. Con cero codename y cero número de modelo no se afirma nada: una suposición con este nivel de confianza es la forma más rápida de flashear la placa equivocada.",
+      };
+    }
+  }
+
+  // --- L6: se acabó la escalera -------------------------------------------
+  escalera.push({
+    level: 6,
+    name: "Sin resolución",
+    evidence: `Se intentó con codename "${codename}"${modelo ? ` y modelo "${modelo}"` : ""}. Ninguno dio una coincidencia única.`,
+    confidence: 0.15,
+  });
+
+  return {
+    match: null,
+    ladder: escalera,
+    alternatives: porCodename,
+    unresolvedReason: porCodename.length
+      ? "El codename existe en el catálogo pero con más de una variante, y no hubo un dato más específico que desambiguara."
+      : "El catálogo no conoce este equipo. Puede ser un modelo muy nuevo, o de una marca con cobertura baja en la base.",
+  };
 }
 
 // ---------------------------------------------------------------------------

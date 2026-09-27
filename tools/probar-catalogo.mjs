@@ -14,6 +14,7 @@ import {
   mkdtempSync,
   copyFileSync,
   readdirSync,
+  readFileSync,
   rmSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -59,23 +60,46 @@ check("fuentes registradas", Number(nFuentes.n) >= 3, `hay ${nFuentes.n}`);
 console.log("");
 console.log("Escalera de identificacion");
 
-/** Reproduce la logica de `platform.resolve` sin importar Electron. */
+/**
+ * Reproduce la logica de `platform.resolve` sin importar Electron.
+ *
+ * La escalera se baja SIEMPRE hasta el fondo. Un codename ambiguo no es una
+ * respuesta: solo significa que ese nivel no alcanza, y el nivel 4 (número de
+ * modelo) puede decidir sin problema. La version anterior de esta funcion
+ * cortaba en el nivel 3 con "ambiguo" y nunca llegaba al 4, asi que la prueba
+ * pasaba por un motivo equivocado: afirmaba que un codename ambiguo no se
+ * resuelve nunca, cuando en realidad si se resuelve siempre que el número de
+ * modelo pertenezca a una sola de las variantes.
+ *
+ * En la base hay 87 codenames con varias variantes y en 59 de ellos un numero de
+ * modelo identifica una sola placa. Negarse es el final raro, no el comun.
+ */
 function resolver(props) {
   const codename = props["ro.product.device"];
   const model = props["ro.product.model"];
   const fp = props["ro.build.fingerprint"];
 
-  const porCodename = codename
-    ? db.prepare("SELECT codename, variant, marketing_name FROM variant WHERE codename = ?").all(codename)
-    : [];
+  const claveDe = (f) => `${f.codename}#${f.variant ?? ""}`;
+
+  // --- L2: sin codename no hay por donde empezar -------------------------
+  // El producto corta aqui. En una ROM recortada o en recovery no se expone
+  // `ro.product.device`, y sin el no se cruza nada.
+  if (!codename) {
+    return { nivel: 2, sinResolver: true, motivo: "el equipo no expone ro.product.device" };
+  }
+
+  // --- L3: el catálogo conoce el codename --------------------------------
+  const porCodename = db
+    .prepare("SELECT codename, variant, marketing_name FROM variant WHERE codename = ?")
+    .all(codename);
 
   if (porCodename.length === 1) {
-    return { nivel: 3, clave: `${porCodename[0].codename}#${porCodename[0].variant ?? ""}`, n: 1 };
+    return { nivel: 3, clave: claveDe(porCodename[0]), n: 1 };
   }
-  if (porCodename.length > 1) {
-    return { nivel: 3, ambiguo: true, n: porCodename.length };
-  }
+  // Con 0 no se dice nada y con mas de uno se sigue bajando. En los dos casos
+  // el nivel 3 no contesta la pregunta.
 
+  // --- L4: número de modelo ----------------------------------------------
   if (model) {
     const filas = db
       .prepare(
@@ -84,24 +108,47 @@ function resolver(props) {
          WHERE j.value = ?`,
       )
       .all(model);
-    const codenames = [...new Set(filas.map((f) => f.codename))];
-    if (codenames.length === 1 && filas.length === 1) {
-      return { nivel: 4, clave: `${filas[0].codename}#${filas[0].variant ?? ""}`, n: 1 };
+
+    if (filas.length === 1) {
+      return { nivel: 4, clave: claveDe(filas[0]), n: 1 };
     }
-    if (codenames.length > 0) return { nivel: 4, ambiguo: true, n: filas.length };
+    if (filas.length > 1) {
+      // Aqui si se niega, y con la lista de candidatas a la vista.
+      return {
+        nivel: 4,
+        ambiguo: true,
+        n: filas.length,
+        alternativas: filas.map(claveDe),
+      };
+    }
   }
 
+  // --- L5: huella de compilación -----------------------------------------
   if (fp) {
     const pista = fp.split("/")[1];
     if (pista && pista !== codename) {
       const filas = db
         .prepare("SELECT codename, variant FROM variant WHERE codename = ?")
         .all(pista);
-      if (filas.length) return { nivel: 5, pista: true, n: filas.length };
+      if (filas.length) {
+        return {
+          nivel: 5,
+          pista: true,
+          n: filas.length,
+          alternativas: filas.map(claveDe),
+        };
+      }
     }
   }
 
-  return { nivel: 6, sinResolver: true };
+  // --- L6: nada dio una coincidencia única -------------------------------
+  return {
+    nivel: 6,
+    sinResolver: porCodename.length === 0,
+    ambiguo: porCodename.length > 1,
+    n: porCodename.length,
+    alternativas: porCodename.map(claveDe),
+  };
 }
 
 // Caso 1: codename unico. Es el camino que mas se usa.
@@ -138,10 +185,31 @@ const conModelo = db
   .get();
 const modeloReal = JSON.parse(conModelo.model_numbers)[0];
 const r3 = resolver({ "ro.product.model": modeloReal });
+
+// OJO, esto cambio y hay que entender por que. La version anterior de esta
+// prueba afirmaba que con un numero de modelo basta para dar resultado. No es lo
+// que hace el producto: `platform.resolve` corta en el nivel 2 cuando no hay
+// codename, y dice por que ("el equipo no expone ro.product.device, que es el
+// dato con el que se identifica"). La prueba pasaba porque su copia de la
+// escalera no cortaba ahi, no porque el producto resolviera eso.
+//
+// La decision del producto es defendible y conviene dejarla escrita: los numeros
+// de modelo no son globales, dos marcas distintas pueden escribir el mismo, y el
+// codename es el ancla. Un numero de modelo sin codename es un dato que en el
+// mejor de los casos acierta y en el peor cruza dos marcas. Ahi se prefiere
+// negarse.
+//
+// La prueba queda para que nadie "arregle" el codename metiendo un atajo que
+// resuelva con numero solo, que es el cambio que si seria peligroso.
 check(
-  `Solo con numero de modelo ("${modeloReal}") da resultado`,
-  r3.nivel === 4 || r3.ambiguo === true || r3.pista === true,
-  JSON.stringify(r3),
+  `Solo con numero de modelo ("${modeloReal}") NO alcanza, sin codename`,
+  r3.nivel === 2 && r3.sinResolver === true,
+  `devolvio ${JSON.stringify(r3)}`,
+);
+check(
+  "y el motivo dice que falta el codename, no que no se encontro nada",
+  typeof r3.motivo === "string" && r3.motivo.includes("ro.product.device"),
+  `motivo=${JSON.stringify(r3.motivo)}`,
 );
 
 // Caso 4: nada reconocible.
@@ -151,6 +219,222 @@ check("Equipo desconocido no inventa (L6)", r4.sinResolver === true, JSON.string
 // Caso 5: sin datos.
 const r5 = resolver({});
 check("Sin propiedades no inventa (L6)", r5.sinResolver === true, JSON.stringify(r5));
+
+// ---------------------------------------------------------------------------
+// El codename ambiguo NO es la ultima palabra
+// ---------------------------------------------------------------------------
+console.log("");
+console.log("Ambiguedad que si se puede resolver");
+
+// La ambiguedad del codename se baja siempre hasta el fondo. Aqui esta el caso
+// que separa a las dos mitades de la escalera: hay N variantes con el mismo
+// codename, y el numero de modelo que reporta el equipo pertenece a una sola de
+// ellas. Ahi la herramienta SI puede decir cual es, y se dice.
+//
+// Si este caso se perdia, la herramienta se negaria en la mitad de los equipos
+// reales, y negarse sin motivo es tan malo como adivinar: hace que el tecnico
+// busque por su cuenta, que es donde si se empezar a flashear la placa que no es.
+//
+// El codename y el numero salen de la propia base, no de un ejemplo escrito a
+// mano. `Mi439` esta hoy con cuatro variantes (Redmi 7A, Redmi 8, Redmi 8A y
+// Redmi 8A Dual) y sus dieciseis numeros de modelo se reparten sin repetir uno
+// entre variantes: cualquiera de ellos identifica una sola placa.
+const sePuede = db
+  .prepare(
+    `SELECT v.codename, v.variant, j.value AS modelo
+     FROM variant v, json_each(v.model_numbers) j
+     WHERE v.codename IN (
+       SELECT codename FROM variant GROUP BY codename HAVING COUNT(*) > 1
+     )
+     AND NOT EXISTS (
+       SELECT 1 FROM variant v2, json_each(v2.model_numbers) j2
+       WHERE v2.codename = v.codename AND j2.value = j.value AND v2.variant <> v.variant
+     )
+     LIMIT 1`,
+  )
+  .get();
+
+if (!sePuede) {
+  check("Hay un codename ambiguo que un numero de modelo desambigua", false,
+    "la base ya no tiene ningun caso asi; esta prueba se puede quitar, pero no se debe dejar pasar");
+} else {
+  const r6 = resolver({
+    "ro.product.device": sePuede.codename,
+    "ro.product.model": sePuede.modelo,
+  });
+  check(
+    `Codename ambiguo ("${sePuede.codename}") mas modelo "${sePuede.modelo}" SI decide`,
+    r6.nivel === 4 && r6.clave === `${sePuede.codename}#${sePuede.variant}`,
+    `devolvio ${JSON.stringify(r6)}; se esperaba nivel 4 y la variante ${sePuede.variant}`,
+  );
+  check(
+    "y no se niega a la vez que puede decidir",
+    r6.ambiguo !== true,
+    `devolvio ${JSON.stringify(r6)}`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Aqui si se niega, y con la lista de candidatas a la vista
+// ---------------------------------------------------------------------------
+console.log("");
+console.log("Negarse con las candidatas a la vista");
+
+// El numero de modelo esta en la base pero pertenece a mas de una variante del
+// mismo codename. Aqui la herramienta tiene un dato que PARECE decidir y no
+// decide: elegir la primera seria inventar, y la diferencia entre las variantes
+// es justo lo que define que imagen se puede flashear.
+//
+// Se busca en la base porque es un caso raro: hay codenames con un solo numero
+// de modelo repetido en varias variantes (Lenovo A6020, por ejemplo). Escribir
+// uno a mano seria un numero que podria dejar de existir.
+const compartido = db
+  .prepare(
+    `SELECT v.codename, j.value AS modelo, COUNT(DISTINCT v.variant) AS n
+     FROM variant v, json_each(v.model_numbers) j
+     WHERE v.codename IN (
+       SELECT codename FROM variant GROUP BY codename HAVING COUNT(*) > 1
+     )
+     GROUP BY v.codename, j.value
+     HAVING n > 1
+     LIMIT 1`,
+  )
+  .get();
+
+if (!compartido) {
+  check("Hay un numero de modelo que pertenece a varias variantes", false,
+    "la base ya no tiene ningun caso asi; se puede quitar esta prueba");
+} else {
+  const r7 = resolver({
+    "ro.product.device": compartido.codename,
+    "ro.product.model": compartido.modelo,
+  });
+  check(
+    `Modelo compartido ("${compartido.modelo}", ${compartido.n} variantes) NO se resuelve solo`,
+    r7.ambiguo === true,
+    `devolvio ${JSON.stringify(r7)}`,
+  );
+  check(
+    "y entrega las N candidatas, no una",
+    Array.isArray(r7.alternativas) && r7.alternativas.length === compartido.n,
+    `alternativas=${JSON.stringify(r7.alternativas)}`,
+  );
+  check(
+    "y las candidatas son claves de variante, no nombres de venta",
+    Array.isArray(r7.alternativas) && r7.alternativas.every((k) => /^[^#]+#/.test(k)),
+    `alternativas=${JSON.stringify(r7.alternativas)}`,
+  );
+}
+
+// El tercer caso de negarse: codename ambiguo y numero de modelo que la base no
+// tiene. Ni L3 ni L4 alcanzan, y sin numero de modelo no hay nada mas que
+// intentar. Tambien aqui la respuesta es la lista, no una eleccion.
+const sinModelo = db
+  .prepare(
+    `SELECT codename, COUNT(*) AS n FROM variant
+     GROUP BY codename HAVING n > 1
+     ORDER BY codename LIMIT 1`,
+  )
+  .get();
+const r8 = resolver({ "ro.product.device": sinModelo.codename });
+check(
+  `Codename ambiguo sin modelo ("${sinModelo.codename}", ${sinModelo.n}) NO se resuelve solo`,
+  r8.ambiguo === true,
+  `devolvio ${JSON.stringify(r8)}`,
+);
+check(
+  "y también entrega las N candidatas",
+  Array.isArray(r8.alternativas) && r8.alternativas.length === sinModelo.n,
+  `alternativas=${JSON.stringify(r8.alternativas)}`,
+);
+
+// --- El recorte de la maqueta no puede fabricar certeza ---------------------
+//
+// La maqueta web carga un recorte de 48 variantes en vez de las 734 de la base.
+// Ese recorte es un archivo generado, y hay una forma facil de corromperlo en la
+// que nada se rompe visiblemente: quedarse con UNA sola fila de un codename que
+// en la base tiene cuatro placas.
+//
+// El efecto es que el resolutor de la maqueta ve una coincidencia unica y
+// responde "equipo identificado, aqui esta la variante" con toda la seguridad de
+// un acierto, mientras que el `.exe` con la base completa se negaria. La demo
+// queda mas confiada que el producto, que es al reves de como debe ser, y quien
+// la mire no tiene forma de notarlo.
+//
+// Estas tres pruebas existen para que eso no pueda pasar en silencio:
+//
+//   1. Ningun codename ambiguo en la base puede llegar con una sola fila.
+//   2. Los grupos que si llegan tienen que llegar COMPLETOS.
+//   3. Tiene que quedar al menos un codename ambiguo, porque la promesa central
+//      del producto es no elegir cuando hay varias placas y sin un caso asi no
+//      hay nada que evaluar.
+console.log("");
+console.log("El recorte de la maqueta no fabrica certeza");
+
+const DEMO_CAT = join(RAIZ, "packages", "app", "src", "data", "demo-catalog.ts");
+if (!existsSync(DEMO_CAT)) {
+  check("el recorte de la maqueta existe", false,
+    `falta ${DEMO_CAT}; se regenera con \`npm run db:demo\``);
+} else {
+  const textoDemo = readFileSync(DEMO_CAT, "utf8");
+  // Se leen las claves del archivo generado. No se importa: es TypeScript y este
+  // archivo corre con node pelado, sin build.
+  const clavesDemo = [...textoDemo.matchAll(/"key":\s*"([^"]+)"/g)].map((m) => m[1]);
+
+  check("el recorte tiene claves de variante legibles", clavesDemo.length > 0,
+    "cambio el formato del archivo generado?");
+
+  const filasPorCodenameDemo = new Map();
+  for (const k of clavesDemo) {
+    const cn = k.split("#")[0];
+    filasPorCodenameDemo.set(cn, (filasPorCodenameDemo.get(cn) ?? 0) + 1);
+  }
+
+  const basesPorCodename = new Map(
+    db.prepare("SELECT codename, COUNT(*) AS n FROM variant GROUP BY codename").all()
+      .map((r) => [r.codename, r.n]),
+  );
+
+  // (1) ninguna fila sola de un codename que en la base es ambiguo
+  const solos = [...filasPorCodenameDemo.entries()].filter(
+    ([cn, n]) => n === 1 && (basesPorCodename.get(cn) ?? 1) > 1,
+  );
+  check(
+    "Ningun codename ambiguo en la base llega con una sola fila al recorte",
+    solos.length === 0,
+    solos.length
+      ? `llegan solos: ${solos.map(([cn]) => `${cn} (la base tiene ${basesPorCodename.get(cn)})`).join(", ")}. ` +
+        "Un codename ambiguo entra con su grupo entero o no entra; una fila sola " +
+        "hace que la maqueta afirme una certeza que el producto no tiene."
+      : "",
+  );
+
+  // (2) los grupos que llegan, llegan enteros
+  const gruposDemo = [...filasPorCodenameDemo.entries()].filter(([, n]) => n > 1);
+  const incompletos = gruposDemo.filter(
+    ([cn, n]) => (basesPorCodename.get(cn) ?? 0) !== n,
+  );
+  check(
+    "y los grupos que si llegan estan completos",
+    incompletos.length === 0,
+    incompletos.length
+      ? `${incompletos.map(([cn, n]) => `${cn}: ${n} de ${basesPorCodename.get(cn)}`).join(", ")}. ` +
+        "Un grupo incompleto hace que la maqueta anuncie menos candidatas de las que hay."
+      : "",
+  );
+
+  // (3) quede al menos un caso de ambiguedad que se pueda ver
+  check(
+    "y queda al menos un codename ambiguo en el recorte",
+    gruposDemo.length > 0,
+    "sin ningun grupo ambiguo no hay forma de ver que la herramienta se negaria",
+  );
+
+  console.log(
+    `        (${gruposDemo.length} codenames ambiguos en el recorte: ` +
+      `${gruposDemo.map(([cn, n]) => `${cn} x${n}`).join(", ") || "ninguno"})`,
+  );
+}
 
 // --- El campo `variant` puede ser NULL ------------------------------------
 console.log("");

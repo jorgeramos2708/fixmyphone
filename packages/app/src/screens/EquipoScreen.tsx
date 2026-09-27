@@ -233,10 +233,126 @@ function IdentityColumn({
   // campo aparte: es lo que el pipeline deriva y lo que hay que mostrar.
   const scheme = v ? partitionScheme(v) : null;
 
-  // --- Sin coincidencia: el caso honesto ---------------------------------
+  // --- Varias placas posibles: se reconhece el equipo, no la placa ---------
+  //
+  // Este caso y el de abajo se ven igual de lejos y dicen cosas distintas, asi
+  // que no pueden compartir ramal. Aqui el catalogo SI conoce el equipo: lo que
+  // no sabe es cual de las N placas es, porque ninguna de las props que el
+  // equipo expone lo dice. Decir "no reconocimos este equipo" aqui seria
+  // falso, y "reconocimos" sin mas tambien: la herramienta no eligio.
+  //
+  // Se muestran las candidatas porque negarse sin decir cuales son deja al
+  // tecnico igual que antes, solo que con menos informacion. Lo que NO se ofrece
+  // es un boton para elegir: esa eleccion es un acto humano y se hace en la
+  // confirmacion manual, no aqui.
+  //
+  // OJO, el parrafo de abajo NO dice quantas placas cubre el codename, y es a
+  // proposito. `alternatives` en el caso del numero de modelo viene YA filtrado:
+  // si el codename cubre tres placas y el numero que reporta el equipo esta en
+  // dos de ellas, la lista trae dos y el nombre interno sigue cubriendo tres.
+  // Hay tres codenames asi en la base hoy (guamp, haydn y lmi), o sea que
+  // decir "ese nombre interno cubre 2 variantes" seria falso en un equipo de
+  // verdad. El conteo que se muestra es el de las candidatas que hay en la mesa,
+  // que es lo unico que esta pantalla sabe. Cuantas placas cubre el codename lo
+  // dice el nivel 3 de la escalera, que si lo tiene medido.
+  if (!v && resolution.alternatives.length > 0) {
+    const candidatas = resolution.alternatives;
+    const modeloLeido = device.props["ro.product.model"];
+
+    return (
+      <Panel
+        title="Identificación"
+        hint={`${candidatas.length} placas posibles, ninguna elegida`}
+      >
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            <CircleHelp size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
+            <div className="min-w-0">
+              <h3 className="text-h1 font-semibold">
+                Hay {candidatas.length} placas posibles y no vamos a elegir una
+              </h3>
+              <p className="mt-2 max-w-prose text-body text-text-muted">
+                Leímos{" "}
+                <span className="tech text-text">
+                  {device.props["ro.product.device"] ?? "—"}
+                </span>{" "}
+                y el catálogo lo reconoce, pero los datos que entrega el equipo no
+                dicen cuál de las {candidatas.length} placas posibles es.{" "}
+                {modeloLeido ? (
+                  <>
+                    El número de modelo que reporta,{" "}
+                    <span className="tech text-text">{modeloLeido}</span>,{" "}
+                    {candidatas.filter((c) => c.modelNumbers.includes(modeloLeido))
+                      .length > 1
+                      ? `aparece en ${candidatas.filter((c) => c.modelNumbers.includes(modeloLeido)).length} de ellas.`
+                      : "no pertenece a ninguna de ellas."}
+                  </>
+                ) : (
+                  <>El equipo no expone número de modelo, que era el dato que podía separarlas.</>
+                )}{" "}
+                <strong className="text-text">No vamos a adivinar.</strong> La diferencia
+                entre estas placas es justo lo que decide qué imagen se puede
+                flashear.
+              </p>
+            </div>
+          </div>
+
+          {/* Las candidatas y lo que las distingue. Se muestran enteras y sin
+              recortar, porque para tomar la decisión el técnico necesita ver la
+              diferencia completa, no un resumen. */}
+          <ul className="mt-5 divide-y divide-border border border-border rounded-md">
+            {candidatas.map((c) => {
+              const esquemaC = partitionScheme(c);
+              return (
+                <li key={c.key} className="px-3 py-2.5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <span className="text-body font-medium text-text">{c.marketingName}</span>
+                    <span className="tech text-small text-text-faint">{c.key}</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-small text-text-muted">
+                    {c.vendorNombre ? <span>{c.vendorNombre}</span> : null}
+                    <span className="inline-flex items-center gap-1.5">
+                      <Cpu size={13} strokeWidth={1.75} className="text-text-faint" />
+                      {c.soc ?? "SoC sin dato"}
+                    </span>
+                    <span
+                      className={
+                        esquemaC === "a_only" ? "text-warning" : esquemaC === null ? "text-text-faint" : undefined
+                      }
+                    >
+                      {esquemaC === "a_only" ? "Solo A" : esquemaC === "a_b" ? "A/B" : "A/B sin dato"}
+                    </span>
+                  </div>
+                  {c.modelNumbers.length > 0 ? (
+                    <p className="tech mt-1.5 text-small text-text-faint">
+                      {c.modelNumbers.join(" · ")}
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+
+          {resolution.unresolvedReason ? (
+            <p className="mt-4 border-l-2 border-border-strong pl-3 text-small text-text-faint">
+              {resolution.unresolvedReason}
+            </p>
+          ) : null}
+
+          {resolution.ladder.length > 0 ? (
+            <div className="mt-6">
+              <Ladder resolution={resolution} />
+            </div>
+          ) : null}
+        </div>
+      </Panel>
+    );
+  }
+
+  // --- Sin coincidencia: el catálogo no conoce el equipo ------------------
   if (!v) {
     return (
-      <Panel title="Identificación" hint="sin coincidencia en el catálogo">
+      <Panel title="Identificación" hint="el catálogo no conoce este equipo">
         <div className="p-4">
           <div className="flex items-start gap-3">
             <CircleHelp size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
@@ -249,7 +365,7 @@ function IdentityColumn({
                 </span>{" "}
                 y{" "}
                 <span className="tech text-text">{device.props["ro.product.model"] ?? "—"}</span>
-                , pero el catálogo no tiene una variante que coincida.{" "}
+                , pero el catálogo no tiene ninguna variante con esos datos.{" "}
                 <strong className="text-text">
                   No vamos a adivinar.
                 </strong>{" "}
