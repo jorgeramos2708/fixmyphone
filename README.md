@@ -99,9 +99,10 @@ La unidad de medida del proyecto es `npm test`:
 
 ```bash
 npm test
-#   16  pruebas de catálogo  (la escalera, la ambigüedad, el artefacto)
-#   52  pruebas de licencia  (casi todas, ataques)
-#   20  pruebas de empaquetado (lo que se entrega de verdad)
+#   16  pruebas de catálogo   (la escalera, la ambigüedad, el artefacto)
+#   52  pruebas de licencia   (casi todas, ataques)
+#   15  pruebas de clon       (la CLI en un HOME vacío: lo que hace un recién bajado)
+#   22  pruebas de empaquetado (lo que se entrega de verdad)
 ```
 
 ### Procedencia por dato
@@ -116,8 +117,8 @@ hueco y se ve en pantalla como "no registrado", que es lo que es.
 - **Cobertura desigual.** Samsung 117 de 3,426 referencias de LineageOS;
   Motorola 95 de 898; Huawei 9 de 1,550; ZTE 4 de 1,805. Oppo, Vivo y Tecno
   no tienen ninguna variante. No es un bug del pipeline: es que la fuente
-  pública de esos equipos no está accessible o no está en formato
-  parseable. Cerrarlo requiere Either encontrar esas fuentes o aceptar que
+  pública de esos equipos no está accesible o no está en formato
+  parseable. Cerrarlo requiere encontrar esas fuentes o aceptar que
   la herramienta es fuerte en Samsung/Motorola/Xiaomi y débil en el resto.
 - **Homologación IFT: `desconocido` en las 734.** No hay fuente pública
   consultable. Mientras sea así, la app lo dice en pantalla en vez de
@@ -135,18 +136,70 @@ hueco y se ve en pantalla como "no registrado", que es lo que es.
 El taller emite su propia licencia con un CLI. No hay servidor, no hay
 suscripción, no hay base de datos de clientes.
 
+### Probar el producto completo, ahora mismo
+
 ```bash
-# una vez, genera la clave del emisor
+node packages/licensing/src/cli.ts demo --out demo.fmp
+```
+
+Eso emite una licencia **premium de 10 años** firmada con la clave que ya viaja
+en el repositorio, que es la misma que lleva el `.exe` dentro. Se activa
+pegando el contenido del archivo en la pantalla de Licencia. No hay que
+comprar nada ni hablar con nadie.
+
+Para comprobar que la app la acepta, y no solo que la firma cuadra consigo
+misma:
+
+```bash
+node packages/licensing/src/cli.ts verify demo.fmp --app
+```
+
+### Emitir para un taller de verdad
+
+```bash
+# una vez: genera la clave del emisor
 node packages/licensing/src/cli.ts keygen
+
+# dice si esa clave ya está puesta en la app, o si falta compilarla
+node packages/licensing/src/cli.ts public-key
 
 # el taller lee el id de equipo del cliente y emite
 node packages/licensing/src/cli.ts machine-id
 node packages/licensing/src/cli.ts issue --tier premium \
   --subject "Taller Pérez" --days 365 --out taller.fmp
 
-# el cliente la pega en la pantalla de Licencia, o así:
-fmp-license verify taller.fmp
+# el cliente la pega en la pantalla de Licencia
 ```
+
+**El orden importa, y no es un detalle.** `keygen` crea una clave *nueva*, cuya
+parte pública todavía no está en el binario. Si se emite antes de copiarla y
+recompilar, las licencias salen firmadas, `verify` dice "Firma válida" y la app
+las rechaza como dañadas. El taller ve verde en la terminal y un rechazo en la
+pantalla del cliente, que es la peor combinación posible. Por eso:
+
+- `public-key` **avisa** si la clave que tienes no es la que lleva la app
+- `verify` **avisa** lo mismo, y con `--app` comprueba contra la clave de la
+  app de verdad, sin cambiar nada
+- `--key <ruta>` existe para emitir y verificar con una clave concreta
+
+Quien solo quiera probar no necesita nada de esto: `demo` usa la clave del
+repositorio y la app la acepta sin recompilar.
+
+### La clave de demostración está publicada, a propósito
+
+`packages/licensing/demo-issuer.key.txt` es la mitad privada del par cuya
+mitad pública va embebida en el `.exe`. Está en el repositorio, y el archivo
+lleva escrito por qué.
+
+El precio es que **esta build no puede cobrar**: la verificación es offline y
+hay una sola clave pública dentro, así que no hay forma de distinguir "esta
+licencia me la emitió el taller" de "esta licencia me la emitió el que clonó el
+repositorio". Quien tenga ese archivo emite las que quiera, para siempre.
+
+Es una decisión, no un descuido, y está escrita en tres sitios porque es fácil
+olvidarla. El archivo dice exactamente qué hacer para pasar a producción:
+`keygen`, copiar la clave nueva a `public-key.ts`, recompilar. Las licencias de
+demo dejan de aceptarse, que es lo correcto.
 
 | | Gratis | Premium |
 |---|---|---|
