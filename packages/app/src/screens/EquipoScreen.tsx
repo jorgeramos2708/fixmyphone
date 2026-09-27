@@ -44,15 +44,44 @@ import { Button, Badge, Panel, DataRow, EmptyState } from "../components/primiti
  * marca, y eso no es una falla del equipo ni una señal de que abrirlo sea riesgoso
  * por el IFT: es que la marca no lo publica. Ponerlo en rojo enseñaría al técnico
  * a desconfiar de un equipo reparable, que es el error que cuesta clientes.
+ *
+ * LAS ETIQUETAS TIENEN QUE SOSTENERSE SOLAS
+ * ----------------------------------------
+ * La etiqueta de cada estado dice SI se buscó o NO, sin depender del tooltip. No
+ * es dejadez: `sin_verificar` ya se veía como "No encontrado en el padrón IFT" y
+ * `desconocido` como "Sin verificar", que en español se leen casi igual y
+ * significan lo contrario. "Sin verificar" parece un resultado negativo, y lo
+ * que realmente significa es que nadie buscó. Esa es justo la confusión que los
+ * cuatro estados existen para evitar, y se había colado de vuelta en el texto.
+ *
+ * El tooltip además es `title`, que solo existe para el ratón: quien navega con
+ * teclado no lo lee. Por eso la explicación va también en la fila, en letra
+ * chica y siempre visible.
  */
 const tonoHomologacion: Record<
   HomologadoIft,
-  { texto: string; tono: "success" | "warning" | "neutral" | "danger" }
+  { texto: string; tono: "success" | "warning" | "neutral" | "danger"; explica: string }
 > = {
-  homologado: { texto: "Homologado", tono: "success" },
-  sin_verificar: { texto: "No encontrado en el padrón IFT", tono: "warning" },
-  desconocido: { texto: "Sin verificar", tono: "neutral" },
-  no_soportado: { texto: "No soportado", tono: "danger" },
+  homologado: {
+    texto: "Homologado por el IFT",
+    tono: "success",
+    explica: "El modelo aparece en la tabla de certificados que publica la marca.",
+  },
+  sin_verificar: {
+    texto: "No está en el padrón del IFT",
+    tono: "warning",
+    explica: "Se buscó en la tabla de la marca y este modelo no aparece. No significa que el equipo sea ilegal ni que no se pueda reparar.",
+  },
+  desconocido: {
+    texto: "No se ha buscado",
+    tono: "neutral",
+    explica: "No hay una tabla de certificados del IFT accesible para esta marca, así que no se buscó. No es un resultado negativo.",
+  },
+  no_soportado: {
+    texto: "No soportado",
+    tono: "danger",
+    explica: "Alguien en el equipo decidió que este modelo queda fuera del alcance de la herramienta.",
+  },
 };
 
 /**
@@ -324,21 +353,29 @@ function IdentityColumn({
           </div>
 
           {/* Homologación IFT. Va con su texto de estado y no solo con una
-              marca de color, porque "sin verificar" y "no se buscó" son
-              cosas distintas y el técnico tiene que poder leer cuál es cuál
-              sin interpretar un tono. El tooltip explica el estado entero. */}
-          <div className="mt-3 flex items-center gap-2 border-t border-border pt-4">
-            <ShieldCheck size={15} strokeWidth={1.75} className="shrink-0 text-text-faint" />
-            <span className="tech-label mr-1">IFT</span>
-            <Badge tone={tonoHomologacion[v.homologadoIft].tono}
-                    title={TOOLTIP_HOMOLOGACION[v.homologadoIft]}>
-              {tonoHomologacion[v.homologadoIft].texto}
-            </Badge>
-            {v.iftCertificado ? (
-              <span className="tech text-caption text-text-faint">
-                {v.iftCertificado}
-              </span>
-            ) : null}
+              marca de color, porque "no está en el padrón" y "no se ha buscado"
+              son cosas distintas y el técnico tiene que poder leer cuál es cuál
+              sin interpretar un tono.
+
+              La explicación va debajo y a la vista, no en el `title` del badge.
+              Un `title` solo se lee con el ratón encima, y esta es la fila donde
+              más importa que se entienda: es la que dice si el dato es
+              negativo o es que nadie lo buscó. */}
+          <div className="mt-3 border-t border-border pt-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={15} strokeWidth={1.75} className="shrink-0 text-text-faint" />
+              <span className="tech-label mr-1">IFT</span>
+              <Badge tone={tonoHomologacion[v.homologadoIft].tono}
+                      title={TOOLTIP_HOMOLOGACION[v.homologadoIft]}>
+                {tonoHomologacion[v.homologadoIft].texto}
+              </Badge>
+              {v.iftCertificado ? (
+                <span className="tech text-caption text-text-faint">{v.iftCertificado}</span>
+              ) : null}
+            </div>
+            <p className="mt-1.5 pl-[3.375rem] text-caption text-text-faint">
+              {tonoHomologacion[v.homologadoIft].explica}
+            </p>
           </div>
 
           <div className="mt-4 border-t border-border pt-4">

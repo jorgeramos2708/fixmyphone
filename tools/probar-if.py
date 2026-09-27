@@ -305,6 +305,67 @@ prueba("'no_soportado' no lo produce el cruce en ningun caso",
            ift.cruza(V(m, mods), padron) for m, mods in [
                ("oppo", ["CPH2931"]), ("oppo", ["CPH9999"]), ("samsung", ["X"])])})
 
+# --- La primera frase es la que se lee, y es la que estaba mal ----------------
+#
+# Estas pruebas existen por un error concreto. `desconocido` se explicaba como
+# "Sin verificar. No hay una tabla de certificados...", y las dos pruebas de
+# arriba pasaban: la primera busca "no aparece" en el texto de `sin_verificar`
+# y la segunda "no se ha buscado" en el de `desconocido`, y las dos frases
+# seguian ahi, bien escritas, despues de un encabezado que decia lo contrario.
+#
+# "Sin verificar" en espanol se lee como RESULTADO NEGATIVO, y lo que significa
+# `desconocido` es que nadie busco. Es la confusion que los cuatro estados
+# existen para evitar, y estaba escrita en el texto que se muestra.
+#
+# Un tooltip no se juzga por si contiene la frase, sino por si la PRIMERA frase
+# dice lo mismo que el estado. Estas pruebas miran el inicio.
+
+_MALO_DESCONOCIDO = ("sin verificar", "no verificado", "no homologado",
+                     "no esta homologado", "no fue homologado")
+_primeras = {e: ift.TOOLTIP[e].strip().lower() for e in ift.ESTADOS}
+
+prueba("el texto de 'desconocido' NO abre con una frase que parezca negativa",
+       not _primeras[ift.DESCONOCIDO].startswith(_MALO_DESCONOCIDO),
+       _primeras[ift.DESCONOCIDO][:46])
+prueba("ni la contiene en ninguna parte",
+       not any(malo in ift.TOOLTIP[ift.DESCONOCIDO].lower()
+               for malo in _MALO_DESCONOCIDO),
+       ift.TOOLTIP[ift.DESCONOCIDO][:46])
+prueba("'desconocido' abre diciendo que no se ha buscado",
+       _primeras[ift.DESCONOCIDO].startswith("no se ha buscado"),
+       _primeras[ift.DESCONOCIDO][:46])
+prueba("'sin_verificar' abre diciendo que no esta en el padron",
+       _primeras[ift.SIN_VERIFICAR].startswith("no est"),
+       _primeras[ift.SIN_VERIFICAR][:46])
+prueba("los dos estados que se confunden NO abren igual",
+       _primeras[ift.SIN_VERIFICAR].split(".")[0]
+       != _primeras[ift.DESCONOCIDO].split(".")[0],
+       f"sin_verificar={_primeras[ift.SIN_VERIFICAR][:24]!r} "
+       f"desconocido={_primeras[ift.DESCONOCIDO][:24]!r}")
+prueba("'sin_verificar' descarta las tres malas lecturas, no solo una",
+       all(x in ift.TOOLTIP[ift.SIN_VERIFICAR].lower()
+           for x in ("no significa", "ilegal", "reparar")),
+       ift.TOOLTIP[ift.SIN_VERIFICAR][-72:])
+prueba("'desconocido' dice que no es un resultado negativo",
+       "no es un resultado negativo" in ift.TOOLTIP[ift.DESCONOCIDO].lower())
+
+# El mismo texto vive en dos lenguajes: `TOOLTIP` aqui y
+# `TOOLTIP_HOMOLOGACION` en packages/core/src/bridge.ts. En el comentario de
+# ift.py se reconoce que hay que cambiar los dos lados, asi que se comprueba que
+# el lado de TypeScript no se quede con la frase vieja. No se importa el modulo
+# porque es TypeScript; se lee el archivo, que para detectar una frase
+# prohibida es suficiente.
+_TS = Path(__file__).resolve().parent.parent / "packages/core/src/bridge.ts"
+if _TS.exists():
+    _texto_ts = _TS.read_text(encoding="utf-8")
+    prueba("el texto de 'desconocido' en la app tampoco dice 'Sin verificar'",
+           "Sin verificar." not in _texto_ts,
+           "bridge.ts todavia abre el estado desconocido con 'Sin verificar'")
+    prueba("la app nombra los cuatro estados",
+           all(f'"{e}"' in _texto_ts for e in ift.ESTADOS))
+else:
+    prueba("se pudo leer bridge.ts para comparar los dos TOOLTIP", False,
+           f"no existe {_TS}")
 
 seccion("Un padron a medio leer se distingue de uno vacio")
 

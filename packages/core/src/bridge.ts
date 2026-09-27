@@ -148,13 +148,21 @@ export type HomologadoIft =
  * Texto que explica cada estado de homologación. Vive acá y no en la pantalla
  * para que el significado no dependa de quién construyó la vista, y para que
  * los cuatro textos se puedan revisar juntos.
+ *
+ * LA PRIMERA FRASE ES LA QUE CUENTA
+ * ---------------------------------
+ * Cada texto empieza por lo que el estado AFIRMA, no por una ausencia
+ * ("no homologado"). "Sin verificar" abriendo la entrada de `desconocido` era
+ * justo el error: en español se lee como resultado negativo, cuando lo que
+ * significa es que nadie buscó. Este texto también se imprime en el informe
+ * firmado, así que la frase que abre es la que queda archivada como evidencia.
  */
 export const TOOLTIP_HOMOLOGACION: Record<HomologadoIft, string> = {
   homologado: "Homologado por el IFT. Folio encontrado en la tabla de certificados de la marca.",
   sin_verificar:
-    "No encontrado en el padrón IFT. Se buscó en la tabla de certificados de la marca y el modelo no aparece; eso no significa que no esté homologado, que la marca no publica ese equipo.",
+    "No está en el padrón del IFT. Se buscó en la tabla de certificados de la marca y el modelo no aparece; eso no significa que no esté homologado, ni que el equipo sea ilegal, ni que no se pueda reparar.",
   desconocido:
-    "Sin verificar. No hay una tabla de certificados del IFT accesible para esta marca, así que no se ha buscado.",
+    "No se ha buscado. No hay una tabla de certificados del IFT accesible para esta marca, así que no se consultó nada. No es un resultado negativo.",
   no_soportado:
     "Marcado como no soportado por confirmación manual. Este equipo está fuera del alcance de la herramienta.",
 };

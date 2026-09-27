@@ -1,6 +1,6 @@
 # FixMyPhone - device-db run report
 
-Generado: 2026-09-27T02:44:47+00:00
+Generado: 2026-09-27T02:51:42+00:00
 
 ## Resumen
 
@@ -136,8 +136,8 @@ Se leyeron 79 certificados de 2 marcas. Las demas no tienen una tabla de certifi
 | estado | variantes | que significa |
 |---|---|---|
 | homologado | 11 | Homologado por el IFT. Folio encontrado en la tabla de certificados de la marca. |
-| sin_verificar | 92 | No encontrado en el padron IFT. Se busco en la tabla de certificados de la marca y el modelo no aparece; eso no signific |
-| desconocido | 631 | Sin verificar. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se ha buscado. |
+| sin_verificar | 92 | No esta en el padron del IFT. Se busco en la tabla de certificados de la marca y el modelo no aparece; eso no significa  |
+| desconocido | 631 | No se ha buscado. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se consulto nada. No es |
 | no_soportado | 0 | Marcado como no soportado por confirmacion manual. Este equipo esta fuera del alcance de la herramienta. |
 
 

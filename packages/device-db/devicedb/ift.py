@@ -53,17 +53,31 @@ NO_SOPORTADO = "no_soportado"
 
 ESTADOS = (HOMOLOGADO, SIN_VERIFICAR, DESCONOCIDO, NO_SOPORTADO)
 
-# Texto que la interfaz muestra al pasar el cursor. Sin esto el tecnico ve una
-# palabra de estado y tiene que adivinar que significa.
+# Texto que explica cada estado. Aparece en el reporte del pipeline, en el
+# informe firmado de la app y en la pantalla.
+#
+# LA PRIMERA FRASE ES LA QUE CUENTA
+# ---------------------------------
+# Cada texto empieza por lo que el estado AFIRMA, no por una ausencia. "Sin
+# verificar" abriendo la entrada de DESCONOCIDO era justo el error: se lee como
+# resultado negativo, cuando lo que significa es que nadie busco. Y como esta
+# tabla tambien es la que se imprime en run_report.md, la frase que abre queda
+# ahi escrita para quien lo lea en un ano.
+#
+# Ojo: este texto y el TOOLTIP_HOMOLOGACION de packages/core/src/bridge.ts son
+# la misma idea en dos lenguajes, porque uno se genera en Python y el otro se
+# compila con TypeScript. Si se cambia una frase, se cambia en los dos lados, o
+# el reporte del pipeline y la app terminan diciendo cosas distintas.
 TOOLTIP: dict[str, str] = {
     HOMOLOGADO: "Homologado por el IFT. Folio encontrado en la tabla de "
                 "certificados de la marca.",
-    SIN_VERIFICAR: "No encontrado en el padron IFT. Se busco en la tabla de "
+    SIN_VERIFICAR: "No esta en el padron del IFT. Se busco en la tabla de "
                    "certificados de la marca y el modelo no aparece; eso no "
-                   "significa que no este homologado, que la marca no publica "
-                   "ese equipo.",
-    DESCONOCIDO: "Sin verificar. No hay una tabla de certificados del IFT "
-                 "accesible para esta marca, asi que no se ha buscado.",
+                   "significa que no este homologado, ni que el equipo sea "
+                   "ilegal, ni que no se pueda reparar.",
+    DESCONOCIDO: "No se ha buscado. No hay una tabla de certificados del IFT "
+                 "accesible para esta marca, asi que no se consulto nada. No es "
+                 "un resultado negativo.",
     NO_SOPORTADO: "Marcado como no soportado por confirmacion manual. Este "
                   "equipo esta fuera del alcance de la herramienta.",
 }
