@@ -76,8 +76,10 @@
   --color-border-strong: #b9c4d5;
 
   --color-text: #1e293b;
-  --color-text-muted: #50627a;
-  --color-text-faint: #64748b;
+  /* Los grises secundarios se midieron oscuros de propósito: en claro los
+     tonos slate-500 se leían con esfuerzo sobre blancos y grises claros. */
+  --color-text-muted: #334155;
+  --color-text-faint: #475569;
 
   /* --- Tipografía ------------------------------------------------------ */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
