@@ -15,6 +15,11 @@ const bridge = createBrowserBridge();
  * verdad. Meterlo dentro de la app sería ensuciar el producto con una
  * necesidad de la demo.
  *
+ * Se muestra como BARRA propia, debajo de la app, dentro del marco de la demo
+ * (`demo-frame`): la app ocupa solo el alto que le queda y la barra no tapa
+ * nada. Antes era una tarjeta flotante sobre el área de trabajo y se encimaba
+ * con las tarjetas del contenido.
+ *
  * Incluye a propósito un equipo que NO está en el catálogo, para poder ver
  * cómo se comporta la herramienta cuando no sabe. Esa es la parte honesta de
  * la demo: la mitad de las herramientas de reparación hacen exactamente lo
@@ -28,28 +33,29 @@ function SimPicker() {
   const activa = SIMULADOS.find((s) => s.id === id);
 
   return (
-    <div className="pointer-events-auto fixed bottom-11 left-3 z-50 w-[420px] rounded-lg border border-border-strong bg-surface-2 shadow-xl">
-      <div className="flex items-center gap-2 px-3 py-2">
-        <span className="tech-label shrink-0">Equipo simulado</span>
-        <select
-          value={id}
-          onChange={(e) => {
-            setId(e.target.value);
-            bridge.setSim(e.target.value);
-          }}
-          className="min-w-0 flex-1 rounded-sm border border-border bg-bg px-2 py-1 text-small text-text focus:border-brand focus:outline-none"
-        >
-          {SIMULADOS.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="flex shrink-0 items-center gap-2 border-t border-border bg-surface-2 px-3 py-2">
+      <span className="tech-label shrink-0">Equipo simulado</span>
+      <select
+        value={id}
+        onChange={(e) => {
+          setId(e.target.value);
+          bridge.setSim(e.target.value);
+        }}
+        className="max-w-[55%] shrink-0 rounded-sm border border-border bg-bg px-2 py-1 text-small text-text focus:border-brand focus:outline-none"
+      >
+        {SIMULADOS.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.label}
+          </option>
+        ))}
+      </select>
       {activa ? (
-        <p className="border-t border-border px-3 py-2 text-caption text-text-faint">
+        <span
+          className="min-w-0 flex-1 truncate text-caption text-text-faint"
+          title={activa.note}
+        >
           {activa.note}
-        </p>
+        </span>
       ) : null}
     </div>
   );
@@ -74,7 +80,11 @@ const raiz = (raizGlobal.__fmpRaiz ??= createRoot(contenedor));
 
 raiz.render(
   <StrictMode>
-    <App bridge={bridge} />
-    <SimPicker />
+    <div className="demo-frame">
+      <div className="demo-app-host">
+        <App bridge={bridge} />
+      </div>
+      <SimPicker />
+    </div>
   </StrictMode>,
 );

@@ -16,5 +16,29 @@ body {
   overflow: hidden;
 }
 
+/* Marco de la demo. La app de escritorio está diseñada a pantalla completa
+   (h-screen) y si el selector flotara sobre ella taparía el área de trabajo.
+   Aquí la demo es una columna: la app ocupa solo el alto que le queda y el
+   selector es una barra propia debajo. Nada se encima. */
+.demo-frame {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-app-host {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Dentro del host, la app pide h-screen (100vh), que desbordaría el marco por
+   detrás de la barra. Solo en la demo se le da el alto del host; el producto
+   no se toca. Si la app deja de usar h-screen, esta regla simplemente deja de
+   aplicar y la barra sigue separada. */
+.demo-app-host .h-screen {
+  height: 100%;
+}
+
 /* Fuentes. Se usan las del sistema porque la demo tiene que cargar sin red;
    la app de escritorio empaqueta Inter y JetBrains Mono como archivos. */
