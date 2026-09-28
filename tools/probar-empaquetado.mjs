@@ -42,6 +42,16 @@ import { join, resolve, dirname, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
+let babelParse = null;
+try {
+  ({ parse: babelParse } = await import("@babel/parser"));
+} catch {
+  console.error(
+    "No está @babel/parser (es una dependencia de vite). Ejecuta: npm install",
+  );
+  process.exit(1);
+}
+
 const RAIZ = resolve(import.meta.dirname, "..");
 const DESKTOP = join(RAIZ, "apps", "desktop");
 const OUT = join(DESKTOP, "out");
@@ -204,6 +214,11 @@ seccion("El texto que la persona lee, dentro del asar");
 // de buscarla en el asar. Si una cadena que el asar deberia traer no esta en el
 // fuente, el fallo es de esta prueba y no del empaquetado, y se reporta como tal
 // en vez de disfrazarse de "falta texto en el asar".
+//
+// Las agujas curadas tienen un hueco: un cambio PURAMENTE ADITIVO (una frase
+// nueva que no toca ninguna aguja) no invalidaba un asar viejo. Se cierra con un
+// inventario automático del texto que el fuente RENDERIZA: se extrae con el
+// parser del propio build y se exige entero en el asar, sin que nadie lo cure.
 
 const FUENTES_DE_UI = [
   join(RAIZ, "packages", "app", "src", "screens", "EquipoScreen.tsx"),
@@ -276,6 +291,71 @@ const CADENAS_DE_UI = [
 ];
 
 /**
+ * Los textos que el fuente renderiza o expone, extraídos con el parser del
+ * propio build. Todo lo que devuelve SALE del fuente: si una frase nueva
+ * aparece en pantalla, esta aquí sin que nadie la cure.
+ *
+ * Se colapsa el whitespace porque el build junta los trozos de texto JSX; se
+ * saltan los especificadores de import y los miembros de tipos, que no llegan
+ * al bundle.
+ */
+function inventarioDeTexto(fuentePorNombre) {
+  const inventario = new Set();
+  let error = null;
+
+  const colapsa = (t) => t.replace(/\s+/g, " ").trim();
+  const esSpecifier = (nodo, padre) =>
+    [
+      "ImportDeclaration",
+      "ExportNamedDeclaration",
+      "ExportAllDeclaration",
+      "ImportExpression",
+    ].includes(padre?.type);
+  const estaEnTipo = (nodo) => {
+    for (let n = nodo; n; n = n.parentNode) {
+      if (n.type === "TSLiteralType" || n.type === "TSTypeAliasDeclaration") return true;
+    }
+    return false;
+  };
+
+  for (const [nombre, codigo] of Object.entries(fuentePorNombre)) {
+    let ast;
+    try {
+      ast = babelParse(codigo, {
+        sourceType: "module",
+        plugins: ["typescript", "jsx"],
+      });
+    } catch (e) {
+      error = `no se pudo parsear ${nombre}: ${e.message}`;
+      break;
+    }
+    (function walk(n, padre) {
+      if (!n || typeof n !== "object") return;
+      if (Array.isArray(n)) {
+        for (const hijo of n) walk(hijo, padre);
+        return;
+      }
+      n.parentNode = padre;
+      const esLiteral = n.type === "StringLiteral";
+      const esJsx = n.type === "JSXText";
+      if (esLiteral) {
+        if (esSpecifier(n, n.parentNode) || estaEnTipo(n)) return;
+      } else if (!esJsx) {
+        for (const k of Object.keys(n)) {
+          if (k === "loc" || k === "start" || k === "end" || k === "extra" || k === "parentNode") continue;
+          walk(n[k], n);
+        }
+        return;
+      }
+      const t = colapsa(esLiteral ? n.value : n.value);
+      if (t.length >= 3 && /\p{L}/u.test(t)) inventario.add(t);
+    })(ast, null);
+  }
+
+  return { textos: [...inventario], error };
+}
+
+/**
  * Devuelve la lista de problemas del asar. Vacia = el texto de UI esta entero y
  * es el que la persona va a leer.
  */
@@ -311,6 +391,27 @@ function problemasDeTextoDeUi(asar, fuentePorNombre) {
     if (!esta) problemas.push(`falta en el asar: ${porQue}`);
   }
 
+  // El inventario automático. Los textos del fuente que llegan a la pantalla
+  // se exigen todos en el asar: un cambio aditivo (una frase nueva que no
+  // toca ninguna aguja curada) se detecta igual, porque el asar viejo no la
+  // tiene.
+  const inv = inventarioDeTexto(fuentePorNombre);
+  if (inv.error) {
+    problemas.push(`LA PRUEBA: ${inv.error}`);
+  } else {
+    const faltantes = inv.textos.filter((t) => !texto.includes(t));
+    if (faltantes.length) {
+      problemas.push(
+        `el asar no trae ${faltantes.length} texto(s) que el fuente renderiza: ` +
+          faltantes
+            .slice(0, 5)
+            .map((t) => JSON.stringify(t.slice(0, 60)))
+            .join(", ") +
+          (faltantes.length > 5 ? ", ..." : ""),
+      );
+    }
+  }
+
   // Cuantas veces aparece el encabezado del caso ambiguo. Una vez es lo
   // correcto: si aparece dos, la rama ambigua y la de "no reconocimos" estan
   // mostrando el mismo texto, que es el defecto.
@@ -337,12 +438,20 @@ function problemasDeTextoDeUi(asar, fuentePorNombre) {
 
   // Un paquete de mentira con el texto que SI tiene que estar. No describe el
   // asar real: sirve de base para mutarlo y ver si la guarda se da cuenta.
-  const limpio = Buffer.from(
-    CADENAS_DE_UI.filter((c) => !c.vieja)
-      .map((c) => c.aguja)
-      .join(" "),
-    "utf8",
+  const inv = inventarioDeTexto(fuentePorNombre);
+  check(
+    "el inventario de textos del fuente se pudo extraer",
+    !inv.error,
+    inv.error ?? "",
   );
+  const tokens = [
+    ...new Set([
+      ...CADENAS_DE_UI.filter((c) => !c.vieja).map((c) => c.aguja),
+      ...inv.textos,
+    ]),
+  ];
+  const unido = (lista) => lista.join(" ");
+  const limpio = Buffer.from(unido(tokens), "utf8");
 
   check(
     "La guarda de texto de UI no reporta nada con un paquete que si trae el texto",
@@ -350,50 +459,71 @@ function problemasDeTextoDeUi(asar, fuentePorNombre) {
     problemasDeTextoDeUi(limpio, fuentePorNombre).join("; "),
   );
 
-  // Y ahora al reves: seis mutaciones, un defecto cada una. Una guarda que no
-  // se rompe con esto no esta mirando lo que dice mirar.
+  // Y ahora al reves: siete mutaciones, un defecto cada una. Una guarda que no
+  // se rompe con esto no esta mirando lo que dice mirar. Cada mutacion opera
+  // con TOKENS enteros (agujas + inventario), no con subcadenas: si le
+  // pedimos a la guarda que note la ausencia de una frase, la frase tiene que
+  // haberse ido de verdad, no quedarse camuflada dentro de una frase vecina.
   const TITULO = "placas posibles y no vamos a elegir una";
+
+  // Un token del inventario que no este embebido en otro: su ausencia es
+  // detectable por el inventario y no se esconde dentro de una frase vecina.
+  const sola =
+    inv.textos.find(
+      (t) => t.length > 20 && !inv.textos.some((o) => o !== t && o.includes(t)),
+    ) ?? inv.textos[inv.textos.length - 1];
+
   const mutaciones = [
     {
       nombre: "se borra el encabezado del caso ambiguo",
-      datos: limpio.toString().replace(TITULO, "placas posibles, elegimos una"),
+      datos: unido(tokens.filter((t) => t !== TITULO)),
       espera: "falta en el asar: el encabezado del caso ambiguo",
     },
     {
       nombre: "vuelve la frase vieja que atribuia el conteo al codename",
-      datos: limpio
-        .toString()
-        .replace(
-          "dicen cuál de las ",
-          "ese nombre interno cubre 7 variantes de placa distintas, ",
-        ),
+      datos: unido([
+        ...tokens,
+        "ese nombre interno cubre 7 variantes de placa distintas, ",
+      ]),
       espera: "viaja en el asar sin estar en el fuente",
     },
     {
       nombre: "vuelve el comentario viejo de Resolution.alternatives",
-      datos: limpio
-        .toString()
-        .replace("Variantes candidatas", "Variantes candidatas /* Apple's ex Servidores */"),
+      datos: unido([...tokens, "/* Apple's ex Servidores */"]),
       espera: "viaja en el asar sin estar en el fuente",
     },
     {
       nombre: "se duplica el encabezado: dos ramas con el mismo texto",
-      datos: limpio.toString().replace(TITULO, `${TITULO} ${TITULO}`),
-      espera: "aparece 2 veces",
+      datos: unido([...tokens, TITULO]),
+      espera: "y tiene que aparecer 1",
     },
     {
       nombre: "entra la maqueta web en el asar del ejecutable",
-      datos: limpio
-        .toString()
-        .replace("Variantes candidatas", "Variantes candidatas SIMULADOS web-demo browser-bridge"),
+      datos: unido([...tokens, "SIMULADOS web-demo browser-bridge"]),
       espera: "trae la maqueta web",
     },
     {
       nombre: "el cierre pasa a una promesa que el producto no cumple",
-      datos: limpio
-        .toString()
-        .replace("No vamos a adivinar", "Vamos a adivinar la mas probable"),
+      // La frase vive dos veces en el paquete de mentira: como aguja curada
+      // ("No vamos a adivinar") y como token entero ("No vamos a adivinar.").
+      // Para que la ausencia sea real hay que quitar las dos.
+      datos: unido(
+        tokens.map((t) =>
+          t.includes("No vamos a adivinar")
+            ? "Vamos a adivinar la placa mas probable"
+            : t,
+        ),
+      ),
       espera: "falta en el asar: el cierre del parrafo",
+    },
+    {
+      // El hueco que las agujas curadas dejaban abierto: una frase NUEVA en el
+      // fuente que no toca ninguna aguja. El asar viejo no la trae, y la
+      // guarda tiene que darse cuenta por el inventario, sin aguja nueva.
+      nombre:
+        "el asar viejo no trae un texto que el fuente si renderiza (cambio aditivo)",
+      datos: unido(tokens.filter((t) => t !== sola)),
+      espera: "no trae 1 texto(s) que el fuente renderiza",
     },
   ];
 

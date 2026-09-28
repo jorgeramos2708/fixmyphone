@@ -106,6 +106,14 @@ const SUITES = [
       return m ? Number(m[1]) + Number(m[2]) : null;
     },
   },
+  {
+    nombre: "resolutor",
+    comando: ["node", "tools\\probar-resolutor.mjs"],
+    total: (out) => {
+      const m = /(\d+) correctas, (\d+) fallas/.exec(out);
+      return m ? Number(m[1]) + Number(m[2]) : null;
+    },
+  },
 ];
 
 console.log("La unidad de medida del README");

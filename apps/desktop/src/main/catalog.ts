@@ -208,7 +208,17 @@ export class Catalog {
     if (!this.db) return [];
     const codenames = this.modelIndex.get(model);
     if (!codenames) return [];
-    return codenames.flatMap((c) => this.byCodename(c));
+
+    // El índice guarda solo codenames, y eso está bien para no repetir el
+    // mismo codename dos veces. Pero el número de modelo NO pertenece a todas
+    // las variantes de ese codename: puede listarlo una sola. Devolver el
+    // grupo entero inflaría las candidatas con placas que ese número no
+    // describe, y con placas que no describen el número no se identifican
+    // equipos: se ensucia el conteo de "cuántas variantes podrían ser", que
+    // es justo lo que se muestra en la pantalla de ambigüedad.
+    return codenames.flatMap((c) =>
+      this.byCodename(c).filter((v) => v.modelNumbers.includes(model)),
+    );
   }
 
   /**

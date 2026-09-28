@@ -123,11 +123,12 @@ La unidad de medida del proyecto es `npm test`:
 
 ```bash
 npm test
-#   63  pruebas de catálogo    (la escalera, la ambigüedad, el artefacto)
+#   63  pruebas de catálogo    (ambigüedad, artefacto y la copia de la escalera)
 #  135  pruebas de IFT         (alias de marca, homologación, el cruce)
 #   52  pruebas de licencia    (casi todas, ataques)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
-#   36  pruebas de empaquetado (lo que se entrega de verdad)
+#   39  pruebas de empaquetado (lo que se entrega de verdad)
+#   27  pruebas de resolutor   (el resolutor real de platform.ts contra la base real)
 ```
 
 Estas cifras las verifica `probar-unidad-de-medida.mjs`, que corre cada suite,
