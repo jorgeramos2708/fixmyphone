@@ -18,14 +18,14 @@ comercial, y cuando hay más de una plausible **no elige por el técnico**.
 
 | | Estado |
 |---|---|
-| Catálogo de variantes | **734 variantes**, 48,908 alias de número de modelo |
+| Catálogo de variantes | **750 variantes**, 48,908 alias de número de modelo |
 | Escalera de identidad L0–L6 | implementada y probada |
 | Diagnóstico por sonda | **17 sondas** de solo lectura, con el comando visible |
 | Procedimientos seguros | cadena de verificación por variante (11,043 puertas) |
 | Licencias Ed25519 offline | emitir, verificar, atar a equipo |
 | App de escritorio (Windows) | **`.exe` compilado y ejecutado** |
 | Demo web | mismo código de UI, puente simulado |
-| Homologación IFT | **11 `homologado`** con folio, 92 `sin_verificar`, 631 `desconocido` (ver *Lo que falta*) |
+| Homologación IFT | **11 `homologado`** con folio, 92 `sin_verificar`, 647 `desconocido` (ver *Lo que falta*) |
 
 ### Artefactos
 
@@ -144,16 +144,16 @@ hueco y se ve en pantalla como "no registrado", que es lo que es.
 
 ### Lo que falta
 
-- **Cobertura desigual.** Samsung 117 de 3,426 referencias de LineageOS;
+- **Cobertura desigual.** Samsung 133 de 3,426 referencias de LineageOS;
   Motorola 95 de 898; Huawei 9 de 1,550; ZTE 4 de 1,805. Oppo, Vivo y Tecno
   no tienen ninguna variante. No es un bug del pipeline: es que la fuente
   pública de esos equipos no está accesible o no está en formato
   parseable. Cerrarlo requiere encontrar esas fuentes o aceptar que
   la herramienta es fuerte en Samsung/Motorola/Xiaomi y débil en el resto.
-- **Homologación IFT: 11 `homologado`, 92 `sin_verificar`, 631 `desconocido`.**
+- **Homologación IFT: 11 `homologado`, 92 `sin_verificar`, 647 `desconocido`.**
   Se cruzan las tablas por marca (OPPO, Motorola); el padrón central no da
   una tabla. Mientras no cambie, la app lo dice en pantalla en vez de adivinar.
-- **Fechas de lanzamiento: 698 de 734.** Las 36 restantes no tienen fecha
+- **Fechas de lanzamiento: 714 de 750.** Las 36 restantes no tienen fecha
   porque la fuente no la trae. Rellenarlas con una fecha inventada sería
   peor que admitir que no se sabe.
 - **IMEI/ESN: no se escriben.** Esta herramienta lee, identifica y documenta.

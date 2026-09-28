@@ -654,7 +654,7 @@ const SIMULADOS: Simulated[] = [
   },
   {
     id: "desconocido",
-    label: "Galaxy S24 Ultra (SM-S931B)",
+    label: "Galaxy S25 (SM-S931B)",
     fueraDelCatalogo: true,
     props: {
       "ro.product.device": "e1s",

@@ -1,22 +1,22 @@
 # FixMyPhone - device-db run report
 
-Generado: 2026-09-27T02:51:42+00:00
+Generado: 2026-09-28T20:34:45+00:00
 
 ## Resumen
 
-- **Variantes (codename+variante)**: 734
+- **Variantes (codename+variante)**: 750
 
-- **Codenames unicos**: 605
+- **Codenames unicos**: 621
 
 - **Filas catalogo Play (GMS)**: 53994
 
 - **Tokens de runtime (ro.product.device)**: 37109
 
-- **Tokens Play sin equivalente LineageOS**: 36698
+- **Tokens Play sin equivalente LineageOS**: 36681
 
 - **Fabricantes con SoC identificado**: 9
 
-- **Brechas abiertas**: 870
+- **Brechas abiertas**: 902
 
 - **Conflictos**: 2
 
@@ -37,7 +37,7 @@ Generado: 2026-09-27T02:51:42+00:00
 |---|---|---|---|---|
 | lineageos | LineageOS wiki (_data/devices/*.yml) | https://github.com/LineageOS/lineage_wiki | CC BY-SA 3.0 | 732 |
 | play | Google Play certified devices (supported_devices.csv) | https://storage.googleapis.com/play_public/supported_devices.csv | Google public dataset | 53994 |
-| seed | FixMyPhone curated repair knowledge | internal | Proprietary (FixMyPhone) | 605 |
+| seed | FixMyPhone curated repair knowledge | internal | Proprietary (FixMyPhone) | 621 |
 | ift_oppo | Certificados IFT publicados por oppo (Mexico) | https://www.oppo.com/mx/ift/ | Fuente secundaria de la marca | 51 |
 | ift_motorola | Certificados IFT publicados por motorola (Mexico) | https://www.motorola.com.mx/ift/ | Fuente secundaria de la marca | 28 |
 
@@ -78,16 +78,16 @@ Generado: 2026-09-27T02:51:42+00:00
 | qualcomm | Qualcomm MSM8992 Snapdragon 808 | 7 |
 | qualcomm | Qualcomm SM8650 Snapdragon 8 Gen3 | 7 |
 | exynos | Samsung Exynos 5420 | 7 |
+| qualcomm | Qualcomm SM8750 Snapdragon 8 Elite | 7 |
 | qualcomm | Qualcomm MSM8940 Snapdragon 435 | 6 |
 | qualcomm | Qualcomm SM7435-AB Snapdragon 7s Gen 2 | 6 |
-| exynos | Samsung Exynos 9825 | 6 |
 
 
 ## Cobertura por marca (top 25 del catalogo Play)
 
 | marca | en_lineageos | en_play | como_la_escribia_play |
 |---|---|---|---|
-| Samsung | 117 | 3426 | - |
+| Samsung | 133 | 3426 | - |
 | ZTE | 4 | 1805 | - |
 | Huawei | 9 | 1550 | - |
 | Alcatel | 0 | 1395 | TCT (Alcatel) |
@@ -137,7 +137,7 @@ Se leyeron 79 certificados de 2 marcas. Las demas no tienen una tabla de certifi
 |---|---|---|
 | homologado | 11 | Homologado por el IFT. Folio encontrado en la tabla de certificados de la marca. |
 | sin_verificar | 92 | No esta en el padron del IFT. Se busco en la tabla de certificados de la marca y el modelo no aparece; eso no significa  |
-| desconocido | 631 | No se ha buscado. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se consulto nada. No es |
+| desconocido | 647 | No se ha buscado. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se consulto nada. No es |
 | no_soportado | 0 | Marcado como no soportado por confirmacion manual. Este equipo esta fuera del alcance de la herramienta. |
 
 
@@ -189,10 +189,10 @@ Variantes con folio encontrado:
 
 | tipo | casos |
 |---|---|
-| ab_desconocido | 452 |
+| ab_desconocido | 468 |
 | sin_model_numbers | 243 |
 | dynamic_partitions_desconocido | 173 |
-| sin_recovery_partition | 2 |
+| sin_recovery_partition | 18 |
 
 
 ## Muestra de variantes (10 aleatorias deterministicas)
@@ -200,12 +200,12 @@ Variantes con folio encontrado:
 | codename | modelo | soc | platform | ab | dyn | android |
 |---|---|---|---|---|---|---|
 | A6020 | Vibe K5 | Qualcomm MSM8929 Snapdragon 415 | msm8916 | - | - | - |
-| alphaplus | G8 ThinQ | Qualcomm SM8150 Snapdragon 855 | sm8150 | True | True | 20 |
-| chaozu | Aquaris U | Qualcomm MSM8937 Snapdragon 430 | msm8937 | - | - | - |
-| f62 | Galaxy F62 | Samsung Exynos 9825 | exynos9820 | - | True | 22 |
-| h873 | G6 (Canada - ENG BL) | Qualcomm MSM8996 Pro Snapdragon 821 | msm8996 | - | True | 21 |
-| kiev | moto g 5G | Qualcomm SM7225 Snapdragon 750G | sm8250 | True | True | 22 |
-| marlin | Pixel XL | Qualcomm MSM8996 Pro Snapdragon 821 | marlin | True | True | 21 |
-| ocean | moto g7 power | Qualcomm SDM632 Snapdragon 632 | sdm632 | True | True | 21 |
-| r8q | Galaxy S20 FE (Snapdragon) | Qualcomm SM8250 Snapdragon 865 | sm8250 | - | True | 22 |
-| timelm | V60 ThinQ | Qualcomm SM8250 Snapdragon 865 | sm8250 | True | True | 22 |
+| angler | Nexus 6P | Qualcomm MSM8994 Snapdragon 810 | angler | - | - | - |
+| cheetah | Pixel 7 Pro | Google Tensor GS201 | gs | True | True | 22 |
+| figo | P Smart | HiSilicon Kirin 659 | hi6250 | - | - | - |
+| hannah | moto e5 plus (XT1924-6/7/8) | Qualcomm MSM8940 Snapdragon 435 | msm8953 | - | True | 17 |
+| kltechn | Galaxy S5 LTE (G9006V/8V) | Qualcomm MSM8974AC Snapdragon 801 | msm8974 | - | True | 17 |
+| mh2lm | V50S ThinQ | Qualcomm SM8150 Snapdragon 855 | sm8150 | True | True | 20 |
+| oneplus3 | 3 | Qualcomm MSM8996 Snapdragon 820 | msm8996 | - | True | 17 |
+| rosemary | Redmi Note 10S NFC | Mediatek Helio G95 | mt6785 | True | True | 22 |
+| umi | Mi 10 | Qualcomm SM8250 Snapdragon 865 | sm8250 | - | True | 22 |

@@ -89,7 +89,7 @@ const tonoHomologacion: Record<
  * Lo que el catálogo afirma que esta variante puede hacer.
  *
  * Se consulta con `has()` y NO con `includes()` directo: el helper lleva un
- * Set cacheado por variante, y en una lista de 20+ capacidades con 734
+ * Set cacheado por variante, y en una lista de 20+ capacidades con 750
  * variantes la diferencia se nota. Además deja el criterio en un solo lugar.
  *
  * Solo se muestran las que el técnico usa para decidir, no las 23. Mostrar

@@ -113,7 +113,7 @@ cache que usa el pipeline.
 
 `sin_verificar` y `desconocido` estan separados a proposito y la prueba lo
 verifica: si fueran el mismo estado, el tooltip "no encontrado en el padron
-IFT" seria falso para 631 variantes a las que nadie busco.
+IFT" seria falso para 647 variantes a las que nadie busco.
 
 Un detalle del formato: **el numero de certificado es distinto en cada marca**
 (`JUOPCP26-00023609` en OPPO, `MOMOXT22-16676` en Motorola), el prefijo `IFT `
@@ -122,13 +122,13 @@ modelos** (OPPO publica `JUOPCP26-007492` para el A6t y el A6k). Por eso el
 indice es por modelo y no por folio, y por eso dos modelos con el mismo folio
 no generan aviso.
 
-### Estado medido del cruce (2026-09-27)
+### Estado medido del cruce (2026-09-28)
 
 | estado | variantes | |
 |---|---|---|
 | `homologado` | 11 | las 11 son Motorola, con folio verificado contra la pagina |
 | `sin_verificar` | 92 | 84 Motorola + 8 OPPO: se buscaron, no aparecen |
-| `desconocido` | 631 | marcas sin tabla de certificados accesible |
+| `desconocido` | 647 | marcas sin tabla de certificados accesible |
 
 **OPPO da 0 de 8 y no es un bug.** LineageOS documenta el OPPO "International"
 con codigos internos (`f1f`, `R8106`, `R7Plus`, `X9077`), no con numeros CPH, y
@@ -176,18 +176,18 @@ Por cada variante:
 - **`mx_operator`**: Telcel / AT&T Mexico / Movistar / MVNO con bandas LTE y 5G,
   incluida la banda 28 (700 MHz APT) que define la cobertura interior en Mexico.
 
-## Estado real medido (primera corrida, 2026-09-26)
+## Estado real medido (corrida 2026-09-28)
 
 ```
-VARIANTES: 734    CODENAMES: 605    PLAY: 53,994    TOKENS: 37,109
-SoC por familia: qualcomm 584 | exynos 60 | tensor 16 | mediatek 14 | hisilicon 4
+VARIANTES: 750    CODENAMES: 621    PLAY: 53,994    TOKENS: 37,109
+SoC por familia: qualcomm 592 | exynos 66 | tensor 16 | mediatek 16 | hisilicon 4
 ```
 
 ### La brecha que queda, en numeros
 
 | Marca | En LineageOS | En Play | Lectura |
 |---|---|---|---|
-| Samsung | 115 (+2 curados) | 3,426 | **7% de resolucion en runtime** |
+| Samsung | 117 (+16 curados) | 3,426 | **7% de resolucion en runtime** |
 | Motorola | 95 | 898 | 11% |
 | Sony | 44 | 534 | 8% |
 | Huawei | 9 | 1,550 | 0.6% |
@@ -202,7 +202,7 @@ no es un problema de codigo, es de contenido, y se cierra con curacion humana
 base, la app lee su SoC/plataforma del propio dispositivo y propone el registro.
 
 Brechas abiertoas (con linea base, para que la regresion sea visible):
-`sin_model_numbers 243`, `ab_desconocido 452`, `dynamic_desconocido 173`.
+`sin_model_numbers 243`, `ab_desconocido 468`, `dynamic_desconocido 173`.
 
 ## Extender
 

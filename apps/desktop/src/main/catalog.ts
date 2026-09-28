@@ -165,7 +165,7 @@ export class Catalog {
     this.qAll = this.db.prepare(`SELECT ${COLS} FROM variant`);
     this.qStats = this.db.prepare(`SELECT COUNT(*) AS n FROM variant`);
 
-    // Una sola pasada completa para el índice. 734 filas: instantáneo, y evita
+    // Una sola pasada completa para el índice. 750 filas: instantáneo, y evita
     // escanear la tabla en cada consulta por número de modelo.
     //
     // Se guarda solo el codename, no la variante completa, porque un mismo

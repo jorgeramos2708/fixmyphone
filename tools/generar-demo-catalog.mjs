@@ -4,7 +4,7 @@
  *
  * POR QUE EXISTE ESTE SCRIPT
  * --------------------------
- * La app de escritorio abre el SQLite completo: 734 variantes, 12 MB. El
+ * La app de escritorio abre el SQLite completo: 750 variantes, 12 MB. El
  * navegador no puede abrir un SQLite sin WASM, asi que la demo web necesita una
  * copia en TypeScript. Ese archivo antes se generaba a mano, una sola vez, y por
  * eso termino con caracteres rotos en los acentos de la cabecera y sin forma de
@@ -49,9 +49,9 @@ const COLS = `codename, variant, marketing_name, vendor, vendor_nombre, soc_raw,
 const todas = db.prepare(`SELECT ${COLS} FROM variant`).all();
 
 // Lo que la cabecera del archivo generado va a decir del catalogo completo se
-// mide aqui, no se escribe a mano. Un "734 variantes" en un comentario es una
+// mide aqui, no se escribe a mano. Un "750 variantes" en un comentario es una
 // afirmacion sobre otro archivo, y envejece sin que nadie lo note: el dia que la
-// base tenga 800, el comentario seguira diciendo 734 y nadie lo va a leer como lo
+// base tenga 800, el comentario seguira diciendo 750 y nadie lo va a leer como lo
 // que es, una verdad que dejo de serlo.
 const TOTAL_FUENTE = todas.length;
 const MB_FUENTE = statSync(DB).size / 1024 / 1024;

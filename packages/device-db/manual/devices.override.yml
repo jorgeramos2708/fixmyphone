@@ -50,6 +50,187 @@ devices:
     evidence: "modelo base Exynos 850; confirmar si el A14 5G usa otra variante"
     confidence: "manual"
 
+  # Serie A 2022-2024 y serie S23+/S23 Ultra / S24 / S25.
+  # Token y modelos segun el catalogo GMS de Google Play (snapshot
+  # b49a26c6162e223a3a896485 en data/raw/play); fechas y SoC segun Wikipedia.
+  # Samsung no publica tabla de certificados: estos codenames no vienen de
+  # LineageOS ni del padron IFT, por eso se curan a mano.
+  a15:
+    vendor: Samsung
+    marketing_name: Galaxy A15
+    soc_raw: MediaTek Helio G99
+    model_numbers: [SM-A155F, SM-A155F/DS, SM-A155M, SM-A155M/DS, SM-A155N]
+    android_version: 14
+    release: 2023-12-16
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A15 (Helio G99, disponible 2023-12-16)"
+    confidence: "manual"
+
+  a15x:
+    vendor: Samsung
+    marketing_name: Galaxy A15 5G
+    soc_raw: MediaTek Dimensity 6100+
+    model_numbers: [SM-A1560, SM-A156B, SM-A156B/DS, SM-A156E, SM-A156E/DS, SM-A156M, SM-A156M/DS, SM-A156U, SM-A156U1, SM-A156W, SM-A156L]
+    android_version: 14
+    release: 2023-12-16
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A15 (Dimensity 6100+, disponible 2023-12-16); SM-A156L es Galaxy Buddy3 (Corea), misma placa"
+    confidence: "manual"
+
+  a25x:
+    vendor: Samsung
+    marketing_name: Galaxy A25 5G
+    soc_raw: Samsung Exynos 1280
+    model_numbers: [SM-A2560, SM-A256B, SM-A256B/DS, SM-A256E, SM-A256E/DS, SM-A256N, SM-A256U, SM-A256U1]
+    android_version: 14
+    release: 2023-12-16
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A25_5G (Exynos 1280, disponible 2023-12-16)"
+    confidence: "manual"
+
+  a35x:
+    vendor: Samsung
+    marketing_name: Galaxy A35 5G
+    soc_raw: Samsung Exynos 1380
+    model_numbers: [SM-A3560, SM-A356B, SM-A356B/DS, SM-A356E, SM-A356E/DS, SM-A356N, SM-A356U, SM-A356U1, SM-A356W]
+    android_version: 14
+    release: 2024-03-15
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A35_5G (Exynos 1380, disponible 2024-03-15)"
+    confidence: "manual"
+
+  a53x:
+    vendor: Samsung
+    marketing_name: Galaxy A53 5G
+    soc_raw: Samsung Exynos 1280
+    model_numbers: [SM-A5360, SM-A536B, SM-A536B/DS, SM-A536E, SM-A536E/DS, SM-A536N, SM-A536U, SM-A536U1, SM-A536W, SM-A536V]
+    android_version: 12
+    release: 2022-03-17
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A53_5G (Exynos 1280, disponible 2022-03-17); SM-A536V es la variante UW de carrier en USA, misma placa"
+    confidence: "manual"
+
+  a55x:
+    vendor: Samsung
+    marketing_name: Galaxy A55 5G
+    soc_raw: Samsung Exynos 1480
+    model_numbers: [SM-A5560, SM-A556B, SM-A556B/DS, SM-A556E, SM-A556E/DS, SM-A556S]
+    android_version: 14
+    release: 2024-03-15
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A55_5G (Exynos 1480, disponible 2024-03-15); SM-A556S es Galaxy Quantum5 (Corea), misma placa"
+    confidence: "manual"
+
+  dm2q:
+    vendor: Samsung
+    marketing_name: Galaxy S23+
+    soc_raw: Qualcomm SM8550 Snapdragon 8 Gen 2
+    model_numbers: [SM-S9160, SM-S916B, SM-S916B/DS, SM-S916N, SM-S916U, SM-S916U1, SM-S916W]
+    android_version: 13
+    release: 2023-02-17
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S23 (SD 8 Gen 2 en todos los mercados, disponible 2023-02-17)"
+    confidence: "manual"
+
+  dm3q:
+    vendor: Samsung
+    marketing_name: Galaxy S23 Ultra
+    soc_raw: Qualcomm SM8550 Snapdragon 8 Gen 2
+    model_numbers: [SM-S9180, SM-S918B, SM-S918B/DS, SM-S918N, SM-S918Q, SM-S918U, SM-S918U1, SM-S918W]
+    android_version: 13
+    release: 2023-02-17
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S23 (SD 8 Gen 2 en todos los mercados, disponible 2023-02-17)"
+    confidence: "manual"
+
+  e1q:
+    vendor: Samsung
+    marketing_name: Galaxy S24
+    soc_raw: Qualcomm SM8650 Snapdragon 8 Gen 3
+    model_numbers: [SM-S9210, SM-S921E, SM-S921Q, SM-S921U, SM-S921U1, SM-S921W]
+    android_version: 14
+    release: 2024-01-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); variante Snapdragon 8 Gen 3 para Norteamerica/Este de Asia segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S24 (disponible 2024-01-31); la variante Exynos 2400 es e1s (global/MX) - NO mezclar"
+    confidence: "manual"
+
+  e1s:
+    vendor: Samsung
+    marketing_name: Galaxy S24
+    soc_raw: Samsung Exynos 2400
+    model_numbers: [SM-S921B, SM-S921B/DS, SM-S921N]
+    android_version: 14
+    release: 2024-01-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); variante Exynos 2400 para mercado global (Mexico) segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S24 (disponible 2024-01-31); la variante Snapdragon 8 Gen 3 es e1q - NO mezclar"
+    confidence: "manual"
+
+  e2q:
+    vendor: Samsung
+    marketing_name: Galaxy S24+
+    soc_raw: Qualcomm SM8650 Snapdragon 8 Gen 3
+    model_numbers: [SM-S9260, SM-S926U, SM-S926U1, SM-S926W]
+    android_version: 14
+    release: 2024-01-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); variante Snapdragon 8 Gen 3 para Norteamerica/Este de Asia segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S24 (disponible 2024-01-31); la variante Exynos 2400 es e2s (global/MX) - NO mezclar"
+    confidence: "manual"
+
+  e2s:
+    vendor: Samsung
+    marketing_name: Galaxy S24+
+    soc_raw: Samsung Exynos 2400
+    model_numbers: [SM-S926B, SM-S926B/DS, SM-S926N]
+    android_version: 14
+    release: 2024-01-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); variante Exynos 2400 para mercado global (Mexico) segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S24 (disponible 2024-01-31); la variante Snapdragon 8 Gen 3 es e2q - NO mezclar"
+    confidence: "manual"
+
+  e3q:
+    vendor: Samsung
+    marketing_name: Galaxy S24 Ultra
+    soc_raw: Qualcomm SM8650 Snapdragon 8 Gen 3
+    model_numbers: [SM-S9280, SM-S928B, SM-S928B/DS, SM-S928N, SM-S928Q, SM-S928U, SM-S928U1, SM-S928W]
+    android_version: 14
+    release: 2024-01-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S24 (S24 Ultra usa Snapdragon 8 Gen 3 en TODOS los mercados, token unico e3q, disponible 2024-01-31)"
+    confidence: "manual"
+
+  pa1q:
+    vendor: Samsung
+    marketing_name: Galaxy S25
+    soc_raw: Qualcomm SM8750 Snapdragon 8 Elite
+    model_numbers: [SM-S9310, SM-S931B, SM-S931B/DS, SM-S931N, SM-S931Q, SM-S931U, SM-S931U1, SM-S931W, SM-S931Z]
+    android_version: 15
+    release: 2025-02-07
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S25 (Snapdragon 8 Elite en todos los mercados, disponible 2025-02-07)"
+    confidence: "manual"
+
+  pa2q:
+    vendor: Samsung
+    marketing_name: Galaxy S25+
+    soc_raw: Qualcomm SM8750 Snapdragon 8 Elite
+    model_numbers: [SM-S9360, SM-S936B, SM-S936B/DS, SM-S936N, SM-S936U, SM-S936U1, SM-S936W]
+    android_version: 15
+    release: 2025-02-07
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S25 (Snapdragon 8 Elite en todos los mercados, disponible 2025-02-07)"
+    confidence: "manual"
+
+  pa3q:
+    vendor: Samsung
+    marketing_name: Galaxy S25 Ultra
+    soc_raw: Qualcomm SM8750 Snapdragon 8 Elite
+    model_numbers: [SM-S9380, SM-S938B, SM-S938B/DS, SM-S938N, SM-S938Q, SM-S938U, SM-S938U1, SM-S938W, SM-S938Z]
+    android_version: 15
+    release: 2025-02-07
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S25 (Snapdragon 8 Elite en todos los mercados, disponible 2025-02-07)"
+    confidence: "manual"
+
 # ---------------------------------------------------------------------------
 # Cola de curacion priorizada (generada por el reporte de brechas del pipeline).
 # Formato: codename | modelo | por que importa en Mexico | fuente sugerida

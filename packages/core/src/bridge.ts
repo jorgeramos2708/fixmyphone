@@ -135,7 +135,7 @@ export interface VerificationGate {
  * "Galaxy A54" existe como Exynos 1380 y como Snapdragon 6 Gen 1. Una base de
  * datos keyed por modelo manda a flashear la imagen de la placa que no lleva.
  *
- * 518 de 734 variantes del catálogo no tienen sufijo de variante; en ese caso
+ * 534 de 750 variantes del catálogo no tienen sufijo de variante; en ese caso
  * la clave es el codename a secas. Ver `variantKey`.
  */
 export type HomologadoIft =
