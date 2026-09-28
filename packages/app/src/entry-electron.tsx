@@ -23,10 +23,10 @@ if (!bridge) {
   // Si el preload falló, la app no puede funcionar. Decirlo claro es mejor
   // que renderizar una pantalla en blanco que el técnico no sabe leer.
   document.getElementById("root")!.innerHTML =
-    '<div style="font:14px system-ui;color:#e2e8f0;background:#0b1120;' +
+    '<div style="font:14px system-ui;color:#1e293b;background:#f1f4f9;' +
     'height:100vh;display:grid;place-items:center;text-align:center;padding:2rem">' +
     "<div><p style='font-size:20px;font-weight:600;margin:0 0 8px'>No se pudo iniciar FixMyPhone</p>" +
-    "<p style='color:#94a3b8;margin:0'>El puente con el proceso principal no está disponible.<br>" +
+    "<p style='color:#50627a;margin:0'>El puente con el proceso principal no está disponible.<br>" +
     "Reinstala la aplicación y vuelve a abrirla.</p></div></div>";
 } else {
   // La raiz se guarda en `globalThis` para que una recarga en caliente no

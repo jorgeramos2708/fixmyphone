@@ -217,7 +217,7 @@ seccion("El renderer carga un bundle y una hoja de estilo");
   );
   check(
     "y detecta si una utilidad del producto falta en el css",
-    utilidadesFaltantes(".flex-col{flex-direction:column;} .bg-surface{background:#131c31;}").includes(".h-screen{"),
+    utilidadesFaltantes(".flex-col{flex-direction:column;} .bg-surface{background:#ffffff;}").includes(".h-screen{"),
     "un css sin .h-screen{ deberia reportarlo",
   );
 

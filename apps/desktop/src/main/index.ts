@@ -71,7 +71,7 @@ function createWindow(): void {
     minWidth: 1120,
     minHeight: 720,
     show: false,
-    backgroundColor: "#0b1120", // igual a --color-bg: sin destello blanco al abrir
+    backgroundColor: "#f1f4f9", // igual a --color-bg: sin destello al abrir
     titleBarStyle: "default",
     autoHideMenuBar: true,
     webPreferences: {

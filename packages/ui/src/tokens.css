@@ -8,6 +8,13 @@
    declaran explícitamente porque son relativas al paquete de UI. */
 @source "../../app/src";
 
+/* Los controles nativos (select, scrollbars, autofill) siguen el esquema del
+   documento. Sin esto, en tema claro los selects del simulador y las barras
+   dibujarían oscuro. */
+:root {
+  color-scheme: light;
+}
+
 /* ============================================================================
    FIXMYPHONE — Tokens de diseño
    ----------------------------------------------------------------------------
@@ -36,31 +43,40 @@
 
 @theme {
   /* --- Marca y estados -------------------------------------------------- */
-  --color-brand: #f97316;          /* naranja herramienta */
-  --color-brand-hover: #ea580c;
-  --color-brand-subtle: #431407;   /* fondos de acento al 12% */
-  --color-brand-ink: #ffedd5;      /* texto sobre acento */
+  --color-brand: #2563eb;          /* azul de instrumento: la acción primaria.
+                                      En claro el acento se mueve fuera de la
+                                      familia ámbar para no competir con el
+                                      estado de advertencia (antes ambos eran
+                                      casi el mismo matiz). */
+  --color-brand-hover: #1d4ed8;
+  --color-brand-subtle: #dbeafe;   /* fondos de acento y badges de marca */
+  --color-brand-ink: #ffffff;      /* texto sobre acento */
 
-  --color-success: #16a34a;
-  --color-success-subtle: #052e16;
-  --color-warning: #f59e0b;
-  --color-warning-subtle: #451a03;
-  --color-danger: #dc2626;
-  --color-danger-subtle: #450a0a;
-  --color-info: #2563eb;
-  --color-info-subtle: #172554;
+  --color-success: #15803d;
+  --color-success-subtle: #dcfce7;
+  --color-warning: #b45309;
+  --color-warning-subtle: #fef3c7;
+  --color-danger: #b91c1c;
+  --color-danger-subtle: #fee2e2;
+  /* El "info" era azul; en claro el azul es la marca, así que info pasa a
+     cian. La semántica no cambia: verde = correcto, ámbar = precaución,
+     rojo = peligro, cian = aclaración. */
+  --color-info: #0891b2;
+  --color-info-subtle: #cffafe;
 
-  /* --- Superficies (tema oscuro por defecto: es una herramienta de
-         taller, se usa 8 horas al día junto a un microscope) ------------ */
-  --color-bg: #0b1120;
-  --color-surface: #131c31;
-  --color-surface-2: #1b2740;
-  --color-surface-3: #243049;
-  --color-border: #243049;
-  --color-border-strong: #33415e;
+  /* --- Superficies (tema claro: la pantalla compite con luz de banco y de
+         equipo en el taller. En oscuro, los bordes de panel se volvían
+         líneas fantasma a contraluz; en claro el contraste de bordes es
+         más predecible) ----------------------------------------------- */
+  --color-bg: #f1f4f9;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef2f7;
+  --color-surface-3: #e3e9f2;
+  --color-border: #d8dfe9;
+  --color-border-strong: #b9c4d5;
 
-  --color-text: #e2e8f0;
-  --color-text-muted: #94a3b8;
+  --color-text: #1e293b;
+  --color-text-muted: #50627a;
   --color-text-faint: #64748b;
 
   /* --- Tipografía ------------------------------------------------------ */
