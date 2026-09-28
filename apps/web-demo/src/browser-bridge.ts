@@ -128,7 +128,7 @@ const SIMULADOS: Simulated[] = [
     // `brom`. Un fixture que describe riesgos que el catalogo no tiene
     // desorienta a quien lo lee sobre lo que la herramienta afirma.
     id: "moto-g34",
-    label: "moto g34 5G",
+    label: "moto g34 5G (XT2363-1)",
     props: {
       "ro.product.device": "fogos",
       "ro.product.model": "XT2363-1",
@@ -162,7 +162,7 @@ const SIMULADOS: Simulated[] = [
     // baja un nivel y SI puede decir cual es. Un producto que se negara aqui
     // estaria dejando trabajo hecho.
     id: "redmi-7a",
-    label: "Redmi 8 (Xiaomi)",
+    label: "Redmi 8 (M1908C3IC)",
     props: {
       "ro.product.device": "Mi439",
       "ro.product.model": "M1908C3IC",
@@ -191,7 +191,7 @@ const SIMULADOS: Simulated[] = [
     // numeros de modelo de la variante `devon`, que es la que el generador dejo
     // con el folio RTIMOXT22-3427. No se inventaron props para que cuadraran.
     id: "moto-g32-ift",
-    label: "moto g32 (con folio del IFT)",
+    label: "moto g32 (XT2235-1)",
     props: {
       "ro.product.device": "devon",
       "ro.product.model": "XT2235-1",
@@ -236,7 +236,7 @@ const SIMULADOS: Simulated[] = [
     // eleccion se hace en la confirmacion manual, que es un acto explicito y
     // queda anotado de quien fue.
     id: "moto-z2-ambiguo",
-    label: "moto z2 force (placa ambigua)",
+    label: "moto z2 force (XT1789-04)",
     props: {
       "ro.product.device": "nash",
       "ro.product.model": "XT1789-04",
@@ -255,7 +255,7 @@ const SIMULADOS: Simulated[] = [
   },
   {
     id: "desconocido",
-    label: "Equipo fuera del catálogo (SM-S931B)",
+    label: "Galaxy S24 Ultra (SM-S931B)",
     fueraDelCatalogo: true,
     props: {
       "ro.product.device": "e1s",
