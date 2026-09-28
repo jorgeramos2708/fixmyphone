@@ -196,8 +196,6 @@ function StatusBar({
 
       {connected ? (
         <>
-          <span className="truncate text-text-muted">{device.serial}</span>
-
           {device.battery ? (
             <span className="tabular-nums">
               {device.battery.levelPct}%{device.battery.charging ? " ⚡" : ""}
@@ -223,6 +221,17 @@ function StatusBar({
       ) : null}
 
       <span className="text-text-faint/60">v{version}</span>
+
+      {/* La identidad del equipo vive en la esquina inferior derecha, junto
+          al resto del estado. Antes estaba en la barra superior y el serial
+          se repetía dos veces (arriba y abajo a la izquierda); ahora queda
+          una sola instancia, en la esquina que pide este barrido. */}
+      {device ? (
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-caption text-text-faint">Equipo</span>
+          <span className="truncate font-mono text-small text-text-muted">{device.serial}</span>
+        </span>
+      ) : null}
     </footer>
   );
 }
@@ -286,16 +295,6 @@ export function AppShell({
         </div>
 
         <div className="flex-1" />
-
-        {/* Estado del equipo, resumido. Repite lo de la barra inferior a
-            propósito: la barra superior es la que se ve cuando la ventana
-            queda tapada por el equipo que se está reparando. */}
-        {device ? (
-          <div className="flex items-center gap-2">
-            <span className="text-caption text-text-faint">Equipo</span>
-            <span className="font-mono text-small text-text-muted">{device.serial}</span>
-          </div>
-        ) : null}
 
         <Badge tone={license.tier === "premium" ? "brand" : "neutral"}>
           {license.tier === "premium" ? "Premium" : "Gratis"}
