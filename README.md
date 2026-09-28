@@ -123,11 +123,16 @@ La unidad de medida del proyecto es `npm test`:
 
 ```bash
 npm test
-#   16  pruebas de catálogo   (la escalera, la ambigüedad, el artefacto)
-#   52  pruebas de licencia   (casi todas, ataques)
-#   15  pruebas de clon       (la CLI en un HOME vacío: lo que hace un recién bajado)
-#   22  pruebas de empaquetado (lo que se entrega de verdad)
+#   63  pruebas de catálogo    (la escalera, la ambigüedad, el artefacto)
+#  135  pruebas de IFT         (alias de marca, homologación, el cruce)
+#   52  pruebas de licencia    (casi todas, ataques)
+#   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
+#   36  pruebas de empaquetado (lo que se entrega de verdad)
 ```
+
+Estas cifras las verifica `probar-unidad-de-medida.mjs`, que corre cada suite,
+lee cuántas comprobaciones declaró y las compara con este bloque: un número
+aquí no se escribe a mano, se mide contra lo que la suite reporta.
 
 ### Procedencia por dato
 
@@ -144,9 +149,9 @@ hueco y se ve en pantalla como "no registrado", que es lo que es.
   pública de esos equipos no está accesible o no está en formato
   parseable. Cerrarlo requiere encontrar esas fuentes o aceptar que
   la herramienta es fuerte en Samsung/Motorola/Xiaomi y débil en el resto.
-- **Homologación IFT: `desconocido` en las 734.** No hay fuente pública
-  consultable. Mientras sea así, la app lo dice en pantalla en vez de
-  adivinar.
+- **Homologación IFT: 11 `homologado`, 92 `sin_verificar`, 631 `desconocido`.**
+  Se cruzan las tablas por marca (OPPO, Motorola); el padrón central no da
+  una tabla. Mientras no cambie, la app lo dice en pantalla en vez de adivinar.
 - **Fechas de lanzamiento: 698 de 734.** Las 36 restantes no tienen fecha
   porque la fuente no la trae. Rellenarlas con una fecha inventada sería
   peor que admitir que no se sabe.

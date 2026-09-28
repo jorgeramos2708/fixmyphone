@@ -585,20 +585,32 @@ if (hayReadmes) {
   const totalAlias = Number(db.prepare("SELECT COUNT(*) AS n FROM alias").get().n);
   const de = (estado) => reparto.get(estado) ?? 0;
 
-  // El renglón de la tabla del README raíz.
-  const filaIft = /^\| Homologaci[oó]n IFT \|(.+)$/m.exec(README_RAIZ);
-  if (check("el README raíz sigue declarando el estado de la homologación", filaIft !== null)) {
+  // Comprueba las tres cifras de una fila contra el cruce. Se usa para la
+  // fila de la tabla "Qué hay hoy" y para el bullet de la sección "Lo que
+  // falta": la misma mentira vivió en los dos sitios, y la guarda que solo
+  // miraba uno dejó pasar el otro durante meses.
+  const compruebaCifras = (fila, deDónde) => {
     for (const estado of ["homologado", "sin_verificar", "desconocido"]) {
       const real = de(estado);
-      const m = new RegExp("(\\d+)\\s*`?" + estado + "`?").exec(filaIft[1]);
+      const m = new RegExp("(\\d+)\\s*`?" + estado + "`?").exec(fila);
       check(
-        `el README raíz dice ${real} \`${estado}\`, y son ${real}`,
+        `${deDónde} dice ${real} \`${estado}\`, y son ${real}`,
         m !== null && Number(m[1]) === real,
         m === null
-          ? `la fila no menciona ${estado}: ${filaIft[1].trim()}`
+          ? `la fila no menciona ${estado}: ${fila.trim()}`
           : `la fila dice ${m[1]} y el cruce dio ${real}`,
       );
     }
+  };
+
+  const filaIft = /^\| Homologaci[oó]n IFT \|(.+)$/m.exec(README_RAIZ);
+  if (check("el README raíz sigue declarando el estado de la homologación", filaIft !== null)) {
+    compruebaCifras(filaIft[1], "el README raíz");
+  }
+
+  const bulletIft = /^- \*\*Homologaci[oó]n IFT: (.+)\.\*\*/m.exec(README_RAIZ);
+  if (check('y el bullet de "Lo que falta" también declara el reparto', bulletIft !== null)) {
+    compruebaCifras(bulletIft[1], "el bullet del README raíz");
   }
 
   // Las cifras de cabecera del catálogo, que también son de la base.
@@ -709,9 +721,9 @@ if (hayReadmes) {
 // (costó seis comprobaciones en silencio), asi que el total se cuenta.
 const corridas = ok + fallos - CORRIDAS_ANTES;
 check(
-  "la sección de los README corrió sus 20 comprobaciones",
-  corridas === 20,
-  `corrieron ${corridas} de 20: algo se dejó de ejecutar, y una sección que no se ` +
+  "la sección de los README corrió sus 24 comprobaciones",
+  corridas === 24,
+  `corrieron ${corridas} de 24: algo se dejó de ejecutar, y una sección que no se ` +
     "ejecuta no falla, solo desaparece. Si acabas de agregar o quitar una " +
     "comprobación en esta sección, corrige este número: es a propósito",
 );
