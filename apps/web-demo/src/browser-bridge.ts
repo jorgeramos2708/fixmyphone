@@ -117,6 +117,83 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 42, charging: false },
   },
   {
+    // Gama media de Samsung de las que encabezaron ventas en el pais durante
+    // 2020-2021. Estan en el recorte (`a52q` y `a71`) con datos reales:
+    // Snapdragon 720G y 730, y una lista de numeros de modelo que arranca con
+    // SM-A525F y SM-A715F. Se usan las variantes SM-A525M / SM-A715F porque la
+    // 'M' (Mexico) es la regional de America Latina.
+    //
+    // Su estado IFT en la base es `desconocido`: las tablas por marca de la
+    // fuente real no los listan con folio. Conviene verlos por eso: "equipo
+    // popular" no es lo mismo que "equipo con folio".
+    id: "galaxy-a52-4g",
+    label: "Galaxy A52 4G (SM-A525M)",
+    props: {
+      "ro.product.device": "a52q",
+      "ro.product.model": "SM-A525M",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-03-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/a52q/a52q:13/TP1A.220624.014/A525FXXU8CWB7:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CW10DEFG2",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 58, charging: false },
+  },
+  {
+    id: "galaxy-a71",
+    label: "Galaxy A71 (SM-A715F)",
+    props: {
+      "ro.product.device": "a71",
+      "ro.product.model": "SM-A715F",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2023-08-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/a71/a71:13/TP1A.220624.014/A715FXXUBCWE1:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R58M71J4K2L6",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 33, charging: true },
+  },
+  {
+    // La gama de entrada de Samsung que mas se vendio por 2019: a diferencia
+    // del A2x llego con bateria de 5000 mAh (dato real de la variante
+    // `m20lte`), y por eso se quedo con el publico que solo buscaba duracion.
+    // Tambien es la muestra de una entrada con Exynos 7904. Su estado IFT en
+    // la base es `desconocido`.
+    id: "galaxy-m20",
+    label: "Galaxy M20 (SM-M205M)",
+    props: {
+      "ro.product.device": "m20lte",
+      "ro.product.model": "SM-M205M",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "10",
+      "ro.build.version.security_patch": "2021-10-01",
+      "ro.build.id": "QPGS.260220.005",
+      "ro.build.fingerprint":
+        "samsung/m20lte/m20lte:10/QPGS.260220.005/M205FXXU1CUG2:user/release-keys",
+      "ro.boot.hardware": "exynos7904",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R58K91P2Q3R4",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 91, charging: false },
+  },
+  {
     // Motorola con el estado `sin_verificar`: se busco en la tabla de la marca
     // y este modelo no aparece. Es el caso que mas se confunde con "no se
     // busco", asi que conviene verlo junto al A54, que si esta sin buscar.
@@ -144,6 +221,82 @@ const SIMULADOS: Simulated[] = [
       "sys.boot_completed": "1",
     },
     battery: { levelPct: 15, charging: true },
+  },
+  {
+    // La gama de entrada de Motorola de las mas vendidas en el pais en
+    // 2025-2026: Helio G81 (dato real de la variante `lamu#1`) y 5200 mAh.
+    // Entra a proposito de un grupo: `lamu` cubre el moto g15, el g15 power y
+    // el g05, y el numero de modelo XT2521-2 pertenece solo a la placa del
+    // g15. Igual que con el Redmi 8, la escalera baja del codename ambiguo al
+    // numero de modelo y entrega una sola variante.
+    id: "moto-g15",
+    label: "moto g15 (XT2521-2)",
+    props: {
+      "ro.product.device": "lamu",
+      "ro.product.model": "XT2521-2",
+      "ro.product.manufacturer": "motorola",
+      "ro.build.version.release": "15",
+      "ro.build.version.security_patch": "2025-03-01",
+      "ro.build.id": "UBTQV8.26-171-5-4",
+      "ro.build.fingerprint":
+        "motorola/lamu/lamu:15/UBTQV8.26-171-5-4/0c1d2e3f4a5b:user/release-keys",
+      "ro.boot.hardware": "lamu",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "ZY32D34C12X",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 64, charging: true },
+  },
+  {
+    // La gama media 5G de Motorola que se vendio fuerte en el pais durante
+    // 2024-2025. Comparte codename `fogos` con el moto g34 5G (dos placas en
+    // el grupo) y se decide por el modelo XT2363-8, que solo pertenece a la
+    // variante `fogos#2`. Primer equipo simulado con 5G NR en la demo (la
+    // variante lo declara: 2G/3G/4G LTE/5G NR).
+    id: "moto-g45-5g",
+    label: "moto g45 5G (XT2363-8)",
+    props: {
+      "ro.product.device": "fogos",
+      "ro.product.model": "XT2363-8",
+      "ro.product.manufacturer": "motorola",
+      "ro.build.version.release": "14",
+      "ro.build.version.security_patch": "2025-02-01",
+      "ro.build.id": "U1TQS34.56-23-3",
+      "ro.build.fingerprint":
+        "motorola/fogos/fogos:14/U1TQS34.56-23-3/1a2b3c4d5e6f:user/release-keys",
+      "ro.boot.hardware": "sm6375",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "ZY22HG5D8KC",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 38, charging: false },
+  },
+  {
+    // Gama media de 2021 que todavia aparece en talleres: el moto g power con
+    // 5000 mAh y Snapdragon 662. A diferencia de los dos anteriores, su
+    // codename `borneo` es unico en el recorte, asi que este es el caso simple:
+    // el nivel 3 resuelve directo. En la demo conviene tener los dos extremos:
+    // el codename unico y el grupo que se decide por numero de modelo.
+    id: "moto-g-power-2021",
+    label: "moto g power 2021 (XT2117-1)",
+    props: {
+      "ro.product.device": "borneo",
+      "ro.product.model": "XT2117-1",
+      "ro.product.manufacturer": "motorola",
+      "ro.build.version.release": "11",
+      "ro.build.version.security_patch": "2023-06-01",
+      "ro.build.id": "RPS31.Q4-55-8-2",
+      "ro.build.fingerprint":
+        "motorola/borneo/borneo:11/RPS31.Q4-55-8-2/7a8b9c0d1e2f:user/release-keys",
+      "ro.boot.hardware": "sm6225",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "ZY12K7P9M2N4",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 79, charging: true },
   },
   {
     // El equipo de una tercera marca. Xiaomi es de las tres grandes del país y
@@ -179,6 +332,60 @@ const SIMULADOS: Simulated[] = [
       "sys.boot_completed": "1",
     },
     battery: { levelPct: 71, charging: false },
+  },
+  {
+    // La otra mitad del grupo `Mi439`: el Redmi 8A comparte codename con el
+    // Redmi 7A, el Redmi 8 y el Redmi 8A Dual, pero su numero de modelo
+    // M1908C3KE pertenece solo a la variante `Mi439#3`. Mismo patron que el
+    // Redmi 8 de arriba: el codename no decide, el numero de modelo si. Sirve
+    // para que se vea que el grupo tiene varias placas y que cada una llega
+    // por su numero.
+    id: "redmi-8a",
+    label: "Redmi 8A (M1908C3KE)",
+    props: {
+      "ro.product.device": "Mi439",
+      "ro.product.model": "M1908C3KE",
+      "ro.product.manufacturer": "xiaomi",
+      "ro.product.brand": "redmi",
+      "ro.build.version.release": "9",
+      "ro.build.version.security_patch": "2021-08-01",
+      "ro.build.id": "PKQ1.190319.001",
+      "ro.build.fingerprint":
+        "xiaomi/Mi439/Mi439:9/PKQ1.190319.001/V11.0.8.0.PCMMIXM:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "6d5e4f3a2b1c",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 24, charging: true },
+  },
+  {
+    // De las marcas que el catalogo conoce, OnePlus vende en Mexico por canal
+    // premium / en linea: a 2025-2026 su bandera es el 13 con Snapdragon 8
+    // Elite (dato real de la variante `dodge`). Entra para que la demo no
+    // parezca que solo existen Samsung, Motorola y Xiaomi: en ciudades grandes
+    // este se repara tanto como un gama media. Su estado IFT en la base es
+    // `desconocido`.
+    id: "oneplus-13",
+    label: "OnePlus 13 (CPH2653)",
+    props: {
+      "ro.product.device": "dodge",
+      "ro.product.model": "CPH2653",
+      "ro.product.manufacturer": "oneplus",
+      "ro.product.brand": "oneplus",
+      "ro.build.version.release": "15",
+      "ro.build.version.security_patch": "2025-09-01",
+      "ro.build.id": "AP3A.240905.015",
+      "ro.build.fingerprint":
+        "oneplus/dodge/dodge:15/AP3A.240905.015/U4J0A15B6C7D8:user/release-keys",
+      "ro.boot.hardware": "sm8750",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "OPS0D1F9B7C5A",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 74, charging: false },
   },
   {
     // El unico equipo simulado con FOLIO del IFT. Existe por una razon concreta:

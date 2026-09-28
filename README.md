@@ -124,7 +124,7 @@ La unidad de medida del proyecto es `npm test`:
 ```bash
 npm test
 #   63  pruebas de catálogo    (ambigüedad, artefacto y la copia de la escalera)
-#  135  pruebas de IFT         (alias de marca, homologación, el cruce)
+#  143  pruebas de IFT         (alias de marca, homologación, el cruce)
 #   52  pruebas de licencia    (casi todas, ataques)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
 #   42  pruebas de empaquetado (lo que se entrega de verdad)
