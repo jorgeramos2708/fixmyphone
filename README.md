@@ -25,7 +25,7 @@ comercial, y cuando hay más de una plausible **no elige por el técnico**.
 | Licencias Ed25519 offline | emitir, verificar, atar a equipo |
 | App de escritorio (Windows) | **`.exe` compilado y ejecutado** |
 | Demo web | mismo código de UI, puente simulado |
-| Homologación IFT | `desconocido` en todas las variantes (ver *Lo que falta*) |
+| Homologación IFT | **11 `homologado`** con folio, 92 `sin_verificar`, 631 `desconocido` (ver *Lo que falta*) |
 
 ### Artefactos
 

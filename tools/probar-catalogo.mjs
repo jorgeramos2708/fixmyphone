@@ -35,6 +35,12 @@ function check(nombre, condicion, detalle = "") {
     fallos++;
     console.log(`  FALLA ${nombre}${detalle ? `\n        ${detalle}` : ""}`);
   }
+  // Se devuelve la condición a propósito. Este archivo usa `if (check(...))`
+  // para agrupar comprobaciones, y una función que no devuelve nada hace que
+  // ese bloque no se ejecute nunca: la suite anuncia el número de
+  // comprobaciones que corrieron, no las que había escrito, y el hueco pasa
+  // por una suite en verde.
+  return !!condicion;
 }
 
 if (!existsSync(DB)) {
@@ -545,6 +551,170 @@ if (!existsSync(DEMO_CAT)) {
     );
   }
 }
+
+// --- Los README no afirman números que la base no tiene -------------------
+//
+// Mismo motivo que la cabecera del recorte, pero en un documento que se escribe
+// a mano. El README raíz decía que la homologación IFT estaba `desconocido` en
+// todas las variantes cuando el cruce ya había buscado 103: leído así no produce
+// ninguna falla, y por eso nadie lo notaba salvo que alguien lo comprobara
+// contra la base. Eso es lo que hacen estas pruebas.
+//
+// Lo que se comprueba es que los números del documento coincidan con la base.
+// Que estén bien hoy no dice nada de que lo estén mañana: por eso son pruebas
+// y no una corrección.
+console.log("");
+console.log("Los README no afirman números que la base no tiene");
+
+const CORRIDAS_ANTES = ok + fallos;
+const RUTA_README_RAIZ = join(RAIZ, "README.md");
+const RUTA_README_DB = join(RAIZ, "packages", "device-db", "README.md");
+const hayReadmes = check("los dos README existen", existsSync(RUTA_README_RAIZ) && existsSync(RUTA_README_DB), "falta uno de los dos");
+
+if (hayReadmes) {
+  const README_RAIZ = readFileSync(RUTA_README_RAIZ, "utf8");
+  const README_DB = readFileSync(RUTA_README_DB, "utf8");
+
+  const reparto = new Map(
+    db
+      .prepare("SELECT homologado_ift AS e, COUNT(*) AS n FROM variant GROUP BY homologado_ift")
+      .all()
+      .map((r) => [r.e, Number(r.n)]),
+  );
+  const totalBase = Number(db.prepare("SELECT COUNT(*) AS n FROM variant").get().n);
+  const totalAlias = Number(db.prepare("SELECT COUNT(*) AS n FROM alias").get().n);
+  const de = (estado) => reparto.get(estado) ?? 0;
+
+  // El renglón de la tabla del README raíz.
+  const filaIft = /^\| Homologaci[oó]n IFT \|(.+)$/m.exec(README_RAIZ);
+  if (check("el README raíz sigue declarando el estado de la homologación", filaIft !== null)) {
+    for (const estado of ["homologado", "sin_verificar", "desconocido"]) {
+      const real = de(estado);
+      const m = new RegExp("(\\d+)\\s*`?" + estado + "`?").exec(filaIft[1]);
+      check(
+        `el README raíz dice ${real} \`${estado}\`, y son ${real}`,
+        m !== null && Number(m[1]) === real,
+        m === null
+          ? `la fila no menciona ${estado}: ${filaIft[1].trim()}`
+          : `la fila dice ${m[1]} y el cruce dio ${real}`,
+      );
+    }
+  }
+
+  // Las cifras de cabecera del catálogo, que también son de la base.
+  for (const [que, real, queDice] of [
+    [/\*\*([\d,]+) variantes\*\*/, totalBase, "variantes"],
+    [/([\d,]+) alias de n[uú]mero de modelo/, totalAlias, "alias de numero de modelo"],
+  ]) {
+    const m = que.exec(README_RAIZ);
+    const dicho = m ? Number(m[1].replace(/,/g, "")) : null;
+    check(
+      `el README raíz dice ${real} ${queDice}, y son ${real}`,
+      dicho === real,
+      m === null ? `no se encontró ${queDice} en el README raíz` : `dice ${dicho} y son ${real}`,
+    );
+  }
+
+  // La tabla "Estado medido del cruce" del README de device-db, y el reparto
+  // por marca que explica por qué son esos números y no otros.
+  for (const estado of ["homologado", "sin_verificar", "desconocido"]) {
+    const real = de(estado);
+    const m = new RegExp("^\\| `" + estado + "` \\| (\\d+) \\|", "m").exec(README_DB);
+    check(
+      `el README de device-db dice ${real} \`${estado}\`, y son ${real}`,
+      m !== null && Number(m[1]) === real,
+      m === null
+        ? `no se encontró la fila de \`${estado}\` en "Estado medido del cruce"`
+        : `dice ${m[1]} y el cruce dio ${real}`,
+    );
+  }
+
+  const celdaDe = (estado) =>
+    new RegExp("^\\| `" + estado + "` \\| \\d+ \\| (.+) \\|$", "m").exec(README_DB);
+  // "84 Motorola + 8 OPPO" y "las 11 son Motorola" valen igual: la cifra y la
+  // marca pueden estar en cualquier orden y con palabras en medio. Se acepta
+  // cualquier orden dentro de una ventana corta, en vez de un orden fijo, para
+  // no fallar por la redacción y hacer que alguien reescriba la frase.
+  const nombraLaMarca = (celda, cuenta, marca) => {
+    const n = `\\b${cuenta}\\b`;
+    const m = `\\b${marca}\\b`;
+    return new RegExp(`${n}[\\s\\S]{0,40}?${m}|${m}[\\s\\S]{0,40}?${n}`, "i").test(celda);
+  };
+  for (const estado of ["sin_verificar", "homologado"]) {
+    const celda = celdaDe(estado);
+    if (!check(`el README de device-db explica el reparto de \`${estado}\``, celda !== null)) continue;
+    const porMarca = db
+      .prepare(
+        "SELECT vendor AS v, COUNT(*) AS n FROM variant WHERE homologado_ift = ? GROUP BY vendor",
+      )
+      .all(estado);
+    for (const r of porMarca) {
+      check(
+        `y dice ${r.n} de ${r.v} en \`${estado}\``,
+        nombraLaMarca(celda[1], r.n, r.v),
+        `la celda dice "${celda[1]}" y el cruce dio ${r.n} de ${r.v}`,
+      );
+    }
+  }
+
+  // Y la fecha del encabezado no puede ser anterior a la de la base que
+  // describe. Las cifras de arriba se comparan con lo que el cruce acaba de
+  // producir, así que si la tabla dice una fecha y la base se reconstruyo
+  // despues, la tabla ya no esta midiendo lo que dice medir.
+  const generada = db.prepare("SELECT value AS v FROM meta WHERE key = 'generated_at'").get();
+  const fechaBase = String(generada?.v ?? "").slice(0, 10);
+  const fechaDoc = /Estado medido del cruce \((\d{4}-\d{2}-\d{2})\)/.exec(README_DB);
+  check(
+    "el encabezado de la tabla lleva la fecha en que se midio",
+    fechaDoc !== null && fechaBase !== "",
+    `no se encontró "Estado medido del cruce (AAAA-MM-DD)"${
+      fechaBase === "" ? " y ademas la base no tiene generated_at" : ""
+    }`,
+  );
+  if (fechaDoc !== null && fechaBase !== "") {
+    check(
+      `y es la de la base que se midio (${fechaBase})`,
+      fechaDoc[1] === fechaBase,
+      `el encabezado dice ${fechaDoc[1]} y la base se genero el ${fechaBase}. ` +
+        "Las cifras pueden seguir cuadrando y aun asi estar midiendo otra base.",
+    );
+  }
+
+  // El motivo del bloqueo central cambió, y el texto que lo describía se quedó
+  // atrás. Se comprueba en las dos direcciones: que la explicación vieja ya no
+  // se afirme, y que la nueva esté escrita. Prohibir la palabra "iframe" no
+  // serviría de nada, porque el texto vigente tiene que *nombrar* el mecanismo
+  // viejo para decir que ya no es el que opera.
+  check(
+    "el README de device-db ya no afirma que el padrón viaja en un iframe",
+    !/lo tiene dentro de un iframe que apunta a/.test(README_DB),
+    "vuelve a justificar el bloqueo con un iframe a `sicet.cft.gob.mx`",
+  );
+  check(
+    "y dice que hoy la página responde y llega sin tabla",
+    /no tiene ning[uú]n iframe/.test(README_DB) && /vac[ií]o/.test(README_DB),
+    "falta la corrección: la página sí abre, lo que falta es su contenido",
+  );
+  check(
+    "y el motivo real del lado CRT queda escrito (mantenimiento, muro antibot)",
+    /portal\.crt\.gob\.mx/.test(README_DB) && /Mantenimiento|Radware/i.test(README_DB),
+    "falta decir por qué tampoco se llega por la CRT",
+  );
+}
+
+// Que la sección haya corrido *todas* sus comprobaciones, y no solo las que se
+// alcanzan a ejecutar. `if (check(...))` es un patrón cómodo para agrupar, pero
+// si `check` no devuelve nada el bloque no se ejecuta y la suite sigue en verde
+// anunciando menos comprobaciones de las escritas. Esa trampa ya se cayó aquí
+// (costó seis comprobaciones en silencio), asi que el total se cuenta.
+const corridas = ok + fallos - CORRIDAS_ANTES;
+check(
+  "la sección de los README corrió sus 20 comprobaciones",
+  corridas === 20,
+  `corrieron ${corridas} de 20: algo se dejó de ejecutar, y una sección que no se ` +
+    "ejecuta no falla, solo desaparece. Si acabas de agregar o quitar una " +
+    "comprobación en esta sección, corrige este número: es a propósito",
+);
 
 // --- El campo `variant` puede ser NULL ------------------------------------
 console.log("");

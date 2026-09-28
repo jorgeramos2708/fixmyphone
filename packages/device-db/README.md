@@ -73,11 +73,27 @@ sin que haya que acordarse.
 
 ### Homologacion IFT (`devicedb/ift.py`)
 
-El padron oficial **no se puede leer**. La pagina "Lista de Equipos Homologados"
-del IFT sigue en linea, pero lo tiene dentro de un iframe que apunta a
-`sicet.cft.gob.mx`, una aplicacion JSF en el dominio de la CFT, que fue
-disuelta en 2014 y ya no resuelve. El IFT completo es un archivo historico; la
-autoridad vigente es la CRT (`gob.mx/crt`), que no publica el padron en HTML.
+El padron oficial central **no se puede leer**, pero por un motivo distinto al
+que se creia antes. Medido el 2026-09-27:
+
+- `ift.org.mx` **responde**. Es un archivo historico, con un aviso arriba que lo
+  dice, y la pagina "Lista de Equipos Homologados" se abre en
+  `https://www.ift.org.mx/industria/lista-de-equipos-homologados`. Antes se
+  escribia que esa pagina metia el padron en un iframe a `sicet.cft.gob.mx`, una
+  aplicacion JSF de la CFT ya disuelta. **No es cierto hoy**: la pagina es HTML
+  normal de Drupal 7, no tiene ningun iframe, y su bloque de contenido llega
+  **vacio**. El mecanismo que se describia ya no existe; lo que quedo es una
+  pagina sin tabla.
+- La autoridad vigente es la CRT, y por ahi tampoco se llega. La plataforma de
+  consulta (`portal.crt.gob.mx/plataformas-de-consulta-de-las-companias-telefonicas`)
+  responde "Sitio en Mantenimiento", y tanto `portal.crt.gob.mx` como
+  `registratulinea.crt.gob.mx` quedan detras de un CAPTCHA de Radware Bot
+  Manager que pide resolverlo a mano. Eso no es un problema de JavaScript ni de
+  navegador: es un muro antibot, y un script no lo cruza.
+
+Ninguna de las dos rutas da el padron, asi que **no se cambia el diseno**: sigue
+entrando lo que publica cada marca. La diferencia es que ahora se sabe por que,
+y cuando alguien vuelva a intentar se pierde el rato en el sitio equivocado.
 
 Lo que si se lee son las tablas que publica cada marca. Es fuente secundaria, no
 oficial: cubren solo los equipos que la marca vende hoy en Mexico, y lo que no
@@ -91,6 +107,10 @@ omision no es "no homologado".
 | `desconocido` | valor por omision | No hay tabla accesible para esa marca, **no se busco**. |
 | `no_soportado` | **solo una persona**, en `override.yml` | El equipo esta fuera del alcance. El cruce nunca lo pone. |
 
+Estas dos tablas se releen y se comproban, no se cachean a ciegas. El 2026-09-27
+OPPO tenia 51 modelos con 51 folios y Motorola 28, los mismos numeros que la
+cache que usa el pipeline.
+
 `sin_verificar` y `desconocido` estan separados a proposito y la prueba lo
 verifica: si fueran el mismo estado, el tooltip "no encontrado en el padron
 IFT" seria falso para 631 variantes a las que nadie busco.
@@ -102,7 +122,7 @@ modelos** (OPPO publica `JUOPCP26-007492` para el A6t y el A6k). Por eso el
 indice es por modelo y no por folio, y por eso dos modelos con el mismo folio
 no generan aviso.
 
-### Estado medido del cruce (2026-09-26)
+### Estado medido del cruce (2026-09-27)
 
 | estado | variantes | |
 |---|---|---|
