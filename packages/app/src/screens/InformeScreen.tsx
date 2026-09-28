@@ -213,7 +213,7 @@ export function InformeScreen({
             </div>
             {skipped.length > 0 ? (
               <p className="border-t border-border px-4 py-2 text-caption text-text-faint">
-                Las pruebas omitidas no affirmaron nada. Un hueco declarado es
+                Las pruebas omitidas no afirmaron nada. Un hueco declarado es
                 información; un hueco rellenado con un valor plausible es un
                 error.
               </p>

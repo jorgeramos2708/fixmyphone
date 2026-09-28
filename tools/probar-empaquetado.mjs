@@ -219,10 +219,32 @@ seccion("El texto que la persona lee, dentro del asar");
 // nueva que no toca ninguna aguja) no invalidaba un asar viejo. Se cierra con un
 // inventario automático del texto que el fuente RENDERIZA: se extrae con el
 // parser del propio build y se exige entero en el asar, sin que nadie lo cure.
+//
+// El lado contrario —que el asar NO traiga una frase que el fuente ya no
+// renderiza— se midió y no se pudo automatizar con honestidad: extrayendo el
+// texto del bundle del renderer con el mismo parser y comparando las frases en
+// español contra las fuentes, un build SANO produce falsos positivos, porque la
+// compilación FUSIONA en runtime el texto que en el fuente está separado por
+// expresiones (`{expr}`): así, "verificar que no <resultado> clave pública" se
+// lee en el bundle como un run continuo que el fuente no tiene. Una guarda que
+// llore en verde es peor que una lista curada; por eso las frases `vieja` de
+// arriba siguen curadas a mano, y este párrafo documenta el límite en vez de
+// esconderlo.
 
+// El renderer de escritorio son estas 9 fuentes (entry-electron monta App;
+// App monta las cuatro pantallas y el shell; Shell usa primitives; Equipo
+// importa core/bridge, que lleva los tooltips de homologación). El inventario
+// tiene que cubrir TODO lo que el bundle puede renderizar: si una frase nueva
+// aparece en cualquiera de estas pantallas, el asar viejo tiene que fallar.
 const FUENTES_DE_UI = [
+  join(RAIZ, "packages", "app", "src", "entry-electron.tsx"),
+  join(RAIZ, "packages", "app", "src", "App.tsx"),
+  join(RAIZ, "packages", "app", "src", "components", "shell.tsx"),
+  join(RAIZ, "packages", "app", "src", "components", "primitives.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "EquipoScreen.tsx"),
+  join(RAIZ, "packages", "app", "src", "screens", "DiagnosticoScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "InformeScreen.tsx"),
+  join(RAIZ, "packages", "app", "src", "screens", "LicenciaScreen.tsx"),
   join(RAIZ, "packages", "core", "src", "bridge.ts"),
 ];
 
