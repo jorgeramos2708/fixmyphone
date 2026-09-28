@@ -40,6 +40,34 @@ for (const t of tablas) {
   }
   if (n > 0) console.log(`    ${t.name}: ${n}`);
 }
+
+// ---------------------------------------------------------------------------
+console.log("\nHuecos de datos: variantes sin fecha de lanzamiento");
+console.log("-".repeat(60));
+
+// `release` guarda fechas parciales ("2016-04") como texto. El hueco son las
+// cadenas vacias: ninguna fila usa NULL, el vacio es la convencion.
+const totalVar = sqlite.prepare("SELECT COUNT(*) n FROM variant").get().n;
+const sinFecha = sqlite
+  .prepare(
+    "SELECT codename, variant, vendor, marketing_name FROM variant WHERE release IS NULL OR trim(release) = '' ORDER BY vendor, codename",
+  )
+  .all();
+console.log(`  variantes sin fecha: ${sinFecha.length} de ${totalVar}`);
+
+const porVendor = new Map();
+for (const v of sinFecha) {
+  if (!porVendor.has(v.vendor)) porVendor.set(v.vendor, 0);
+  porVendor.set(v.vendor, porVendor.get(v.vendor) + 1);
+}
+for (const [vendor, n] of [...porVendor.entries()].sort((a, b) => b[1] - a[1])) {
+  console.log(`    ${vendor}: ${n}`);
+}
+for (const v of sinFecha) {
+  const variante = v.variant == null ? "" : ` (variante ${v.variant})`;
+  console.log(`      ${v.vendor}/${v.codename}${variante}: ${v.marketing_name ?? "sin nombre"}`);
+}
+
 sqlite.close();
 
 // ---------------------------------------------------------------------------
