@@ -194,6 +194,198 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 91, charging: false },
   },
   {
+    // La gama A que el catalogo alcanza a cubrir. El A14 es la entrada de
+    // Samsung que mas se vendio en el pais desde 2023 (Exynos 850, dato real
+    // de la variante `rq3a`) y es, con el A21s, uno de los dos casos de gama
+    // baja de la maqueta. La variante elegida, SM-A145M, es la regional de
+    // America Latina. En el cruce del IFT esta `desconocido`: la tabla por
+    // marca de Samsung no lo lista con folio.
+    id: "galaxy-a14",
+    label: "Galaxy A14 (SM-A145M)",
+    props: {
+      "ro.product.device": "rq3a",
+      "ro.product.model": "SM-A145M",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-06-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/rq3a/rq3a:13/TP1A.220624.014/4e5f60718293:user/release-keys",
+      "ro.boot.hardware": "exynos850",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5DZ7890T0",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 47, charging: false },
+  },
+  {
+    // El A52s 5G: la gama media que la gente confunde con el A52 normal y que
+    // en realidad es otro equipo (otra placa, `a52sxq`, y otro SoC: Snapdragon
+    // 778G 5G real). Entra para que se vea que "A52s" no se resuelve solo con
+    // "A52": el numero de modelo decide, y este se queda con su placa.
+    id: "galaxy-a52s-5g",
+    label: "Galaxy A52s 5G (SM-A528B)",
+    props: {
+      "ro.product.device": "a52sxq",
+      "ro.product.model": "SM-A528B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-03-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/a52sxq/a52sxq:13/TP1A.220624.014/5f60718293a4:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZA2345V2",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 81, charging: true },
+  },
+  {
+    // El A72: primo mayor del A52, misma familia que el A71 que ya esta en la
+    // maqueta. Entra para que la gama media de 2021 quede con sus dos pisos:
+    // A52 y A71 abajo, A72 arriba, y todos con codename propio y unico.
+    id: "galaxy-a72",
+    label: "Galaxy A72 (SM-A725M)",
+    props: {
+      "ro.product.device": "a72q",
+      "ro.product.model": "SM-A725M",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2023-09-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/a72q/a72q:13/TP1A.220624.014/718293a4b5c6:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZC0123X6",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 36, charging: false },
+  },
+  {
+    // El A73 5G con Snapdragon 778G (dato real de la variante `a73xq`). Es la
+    // gama media alta de la serie A que la base si cubre; del A53/A55/A35 en
+    // adelante la base no tiene filas, asi que aqui termina cubierta la gama A.
+    id: "galaxy-a73-5g",
+    label: "Galaxy A73 5G (SM-A736B)",
+    props: {
+      "ro.product.device": "a73xq",
+      "ro.product.model": "SM-A736B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2023-11-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/a73xq/a73xq:13/TP1A.220624.014/60718293a4b5:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZB6789W4",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 29, charging: true },
+  },
+  {
+    // La gama S de 2022 que el catalogo cubre. Como los tres comparten placa
+    // base (Exynos 2200, dato real), el codigo distinguidor es el numero de
+    // modelo: SM-S901B, SM-S906B y SM-S908B en sus tres variantes `r0s`, `g0s`
+    // y `b0s`. En la pantalla "cerca" se ve que cada uno baja a su placa.
+    id: "galaxy-s22",
+    label: "Galaxy S22 (SM-S901B)",
+    props: {
+      "ro.product.device": "r0s",
+      "ro.product.model": "SM-S901B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-02-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/r0s/r0s:13/TP1A.220624.014/0a1b2c3d4e5f:user/release-keys",
+      "ro.boot.hardware": "exynos2200",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CYD1234K2",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 82, charging: false },
+  },
+  {
+    id: "galaxy-s22-plus",
+    label: "Galaxy S22+ (SM-S906B)",
+    props: {
+      "ro.product.device": "g0s",
+      "ro.product.model": "SM-S906B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-02-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/g0s/g0s:13/TP1A.220624.014/1b2c3d4e5f60:user/release-keys",
+      "ro.boot.hardware": "exynos2200",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CYE5678M4",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 66, charging: true },
+  },
+  {
+    id: "galaxy-s22-ultra",
+    label: "Galaxy S22 Ultra (SM-S908B)",
+    props: {
+      "ro.product.device": "b0s",
+      "ro.product.model": "SM-S908B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "13",
+      "ro.build.version.security_patch": "2024-02-01",
+      "ro.build.id": "TP1A.220624.014",
+      "ro.build.fingerprint":
+        "samsung/b0s/b0s:13/TP1A.220624.014/2c3d4e5f6071:user/release-keys",
+      "ro.boot.hardware": "exynos2200",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CYF9012P6",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 53, charging: false },
+  },
+  {
+    // Y el S23. Ojo: aqui termina lo que la base cubre de la gama S reciente.
+    // S23+ y S23 Ultra no tienen filas en el catalogo, y S24/S25 tampoco: fuentes
+    // reales para esas placas aun no estan en la base. Un simulado de uno de
+    // esos no podria resolver sin inventarse una fila, asi que no se mete.
+    id: "galaxy-s23",
+    label: "Galaxy S23 (SM-S911B)",
+    props: {
+      "ro.product.device": "dm1q",
+      "ro.product.model": "SM-S911B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "14",
+      "ro.build.version.security_patch": "2025-02-01",
+      "ro.build.id": "UP1A.231005.007",
+      "ro.build.fingerprint":
+        "samsung/dm1q/dm1q:14/UP1A.231005.007/3d4e5f607182:user/release-keys",
+      "ro.boot.hardware": "qcom",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZG3456R8",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 61, charging: true },
+  },
+  {
     // Motorola con el estado `sin_verificar`: se busco en la tabla de la marca
     // y este modelo no aparece. Es el caso que mas se confunde con "no se
     // busco", asi que conviene verlo junto al A54, que si esta sin buscar.
