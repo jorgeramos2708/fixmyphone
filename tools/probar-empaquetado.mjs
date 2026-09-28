@@ -192,6 +192,227 @@ seccion("El renderer carga un bundle y una hoja de estilo");
 }
 
 // ---------------------------------------------------------------------------
+seccion("El texto que la persona lee, dentro del asar");
+// ---------------------------------------------------------------------------
+// Que el codigo compile no dice nada de lo que se LEE. El bundle va minificado y
+// los identificadores se renombran, asi que buscar `resolveLocal` en el asar no
+// demuestra nada: solo que el archivo se copio. Lo que importa es que el texto
+// viaje entero, con sus acentos, y sobre todo que NO viaje la frase que el
+// producto dejo de decir.
+//
+// Por eso se buscan CADENAS DE UI, y cada una se cruza contra el fuente antes
+// de buscarla en el asar. Si una cadena que el asar deberia traer no esta en el
+// fuente, el fallo es de esta prueba y no del empaquetado, y se reporta como tal
+// en vez de disfrazarse de "falta texto en el asar".
+
+const FUENTES_DE_UI = [
+  join(RAIZ, "packages", "app", "src", "screens", "EquipoScreen.tsx"),
+  join(RAIZ, "packages", "app", "src", "screens", "InformeScreen.tsx"),
+  join(RAIZ, "packages", "core", "src", "bridge.ts"),
+];
+
+const CADENAS_DE_UI = [
+  {
+    aguja: "placas posibles y no vamos a elegir una",
+    fuente: "EquipoScreen.tsx",
+    porQue: "el encabezado del caso ambiguo",
+  },
+  {
+    aguja: "placas posibles, ninguna elegida",
+    fuente: "EquipoScreen.tsx",
+    porQue: "el subtitulo del panel en el caso ambiguo",
+  },
+  {
+    aguja: "dicen cuál de las ",
+    fuente: "EquipoScreen.tsx",
+    porQue: "el parrafo honesto, que ya no le atribuye un conteo al codename",
+  },
+  {
+    aguja: "No vamos a adivinar",
+    fuente: "EquipoScreen.tsx",
+    porQue: "el cierre del parrafo",
+  },
+  {
+    aguja: "ninguna variante con esos datos",
+    fuente: "EquipoScreen.tsx",
+    porQue: "el texto honesto del caso que no aplica",
+  },
+  {
+    aguja: "No reconocimos este equipo",
+    fuente: "EquipoScreen.tsx",
+    porQue: "el mensaje de equipo desconocido, que sigue existiendo aparte",
+  },
+  {
+    aguja: "Variantes candidatas",
+    fuente: "InformeScreen.tsx",
+    porQue: "la fila del informe",
+  },
+  {
+    aguja: "sin elegir",
+    fuente: "InformeScreen.tsx",
+    porQue: "el sufijo de la fila cuando hay candidatas",
+  },
+  // Frases viejas. No deben viajar ni en el fuente ni en el asar.
+  {
+    aguja: "variantes de placa distintas",
+    vieja: true,
+    porQue: "frase del parrafo viejo que atribuia el conteo al codename",
+  },
+  {
+    aguja: "no hay una variante que coincida",
+    vieja: true,
+    porQue: "frase vieja que era falsa cuando hay candidatas",
+  },
+  {
+    aguja: "ex Servidores",
+    vieja: true,
+    porQue: "residuo del comentario viejo de Resolution.alternatives",
+  },
+  {
+    aguja: "cuando hubo que adivinar",
+    vieja: true,
+    porQue: "la otra mitad de ese comentario viejo",
+  },
+];
+
+/**
+ * Devuelve la lista de problemas del asar. Vacia = el texto de UI esta entero y
+ * es el que la persona va a leer.
+ */
+function problemasDeTextoDeUi(asar, fuentePorNombre) {
+  const texto = asar.toString("utf8");
+  const problemas = [];
+
+  for (const { aguja, fuente, vieja, porQue } of CADENAS_DE_UI) {
+    const esta = texto.includes(aguja);
+
+    if (vieja) {
+      // Una frase que quiero ausente. Si sigue en el FUENTE, la pantalla la
+      // sigue diciendo y el asar solo la acompana: el defecto esta antes.
+      const enFuente = Object.entries(fuentePorNombre)
+        .filter(([, t]) => t.includes(aguja))
+        .map(([n]) => n);
+      if (enFuente.length > 0) {
+        problemas.push(
+          `${porQue}: sigue presente en ${enFuente.join(", ")}`,
+        );
+      } else if (esta) {
+        problemas.push(`${porQue}: viaja en el asar sin estar en el fuente`);
+      }
+      continue;
+    }
+
+    if (!fuentePorNombre[fuente]?.includes(aguja)) {
+      problemas.push(
+        `LA PRUEBA: la cadena que busco no existe en ${fuente}: ${JSON.stringify(aguja)}`,
+      );
+      continue;
+    }
+    if (!esta) problemas.push(`falta en el asar: ${porQue}`);
+  }
+
+  // Cuantas veces aparece el encabezado del caso ambiguo. Una vez es lo
+  // correcto: si aparece dos, la rama ambigua y la de "no reconocimos" estan
+  // mostrando el mismo texto, que es el defecto.
+  const veces = texto.split("placas posibles y no vamos a elegir una").length - 1;
+  if (veces !== 1) {
+    problemas.push(`el encabezado del caso ambiguo aparece ${veces} veces, y tiene que aparecer 1`);
+  }
+
+  // El asar NO debe llevar la maqueta web: el ejecutable usa la base completa.
+  for (const pesa of ["SIMULADOS", "browser-bridge", "web-demo"]) {
+    if (texto.includes(pesa)) {
+      problemas.push(`el asar del ejecutable trae la maqueta web (${pesa})`);
+    }
+  }
+
+  return problemas;
+}
+
+{
+  const fuentePorNombre = {};
+  for (const ruta of FUENTES_DE_UI) {
+    fuentePorNombre[ruta.split(/[\\/]/).pop()] = readFileSync(ruta, "utf8");
+  }
+
+  // Un paquete de mentira con el texto que SI tiene que estar. No describe el
+  // asar real: sirve de base para mutarlo y ver si la guarda se da cuenta.
+  const limpio = Buffer.from(
+    CADENAS_DE_UI.filter((c) => !c.vieja)
+      .map((c) => c.aguja)
+      .join(" "),
+    "utf8",
+  );
+
+  check(
+    "La guarda de texto de UI no reporta nada con un paquete que si trae el texto",
+    problemasDeTextoDeUi(limpio, fuentePorNombre).length === 0,
+    problemasDeTextoDeUi(limpio, fuentePorNombre).join("; "),
+  );
+
+  // Y ahora al reves: seis mutaciones, un defecto cada una. Una guarda que no
+  // se rompe con esto no esta mirando lo que dice mirar.
+  const TITULO = "placas posibles y no vamos a elegir una";
+  const mutaciones = [
+    {
+      nombre: "se borra el encabezado del caso ambiguo",
+      datos: limpio.toString().replace(TITULO, "placas posibles, elegimos una"),
+      espera: "falta en el asar: el encabezado del caso ambiguo",
+    },
+    {
+      nombre: "vuelve la frase vieja que atribuia el conteo al codename",
+      datos: limpio
+        .toString()
+        .replace(
+          "dicen cuál de las ",
+          "ese nombre interno cubre 7 variantes de placa distintas, ",
+        ),
+      espera: "viaja en el asar sin estar en el fuente",
+    },
+    {
+      nombre: "vuelve el comentario viejo de Resolution.alternatives",
+      datos: limpio
+        .toString()
+        .replace("Variantes candidatas", "Variantes candidatas /* Apple's ex Servidores */"),
+      espera: "viaja en el asar sin estar en el fuente",
+    },
+    {
+      nombre: "se duplica el encabezado: dos ramas con el mismo texto",
+      datos: limpio.toString().replace(TITULO, `${TITULO} ${TITULO}`),
+      espera: "aparece 2 veces",
+    },
+    {
+      nombre: "entra la maqueta web en el asar del ejecutable",
+      datos: limpio
+        .toString()
+        .replace("Variantes candidatas", "Variantes candidatas SIMULADOS web-demo browser-bridge"),
+      espera: "trae la maqueta web",
+    },
+    {
+      nombre: "el cierre pasa a una promesa que el producto no cumple",
+      datos: limpio
+        .toString()
+        .replace("No vamos a adivinar", "Vamos a adivinar la mas probable"),
+      espera: "falta en el asar: el cierre del parrafo",
+    },
+  ];
+
+  for (const { nombre, datos, espera } of mutaciones) {
+    check(
+      `La guarda de texto de UI detecta si ${nombre}`,
+      datos !== limpio.toString(),
+      "la mutacion no cambio nada: la prueba no probaria nada",
+    );
+    const p = problemasDeTextoDeUi(Buffer.from(datos, "utf8"), fuentePorNombre);
+    check(
+      `La guarda de texto de UI detecta si ${nombre} (motivo)`,
+      p.some((x) => x.includes(espera)),
+      `esperaba algo como "${espera}" y salio: ${p.join("; ") || "nada, que es peor"}`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 seccion("El paquete empaquetado");
 // ---------------------------------------------------------------------------
 
@@ -203,6 +424,23 @@ if (!existsSync(UNPACKED)) {
   const db = join(catalogDir, "fixmyphone_device_db.sqlite");
 
   check("Esta resources/app.asar", existsSync(join(res, "app.asar")));
+
+  // La misma guarda de arriba, ahora sobre el asar de verdad. Lo que se revisa
+  // aqui no es que el archivo este, sino lo que DICE: que el texto de la pantalla
+  // viaje entero y que no viaje la frase vieja.
+  const asar = join(res, "app.asar");
+  if (existsSync(asar)) {
+    const fuentePorNombre = {};
+    for (const ruta of FUENTES_DE_UI) {
+      fuentePorNombre[ruta.split(/[\\/]/).pop()] = readFileSync(ruta, "utf8");
+    }
+    const problemas = problemasDeTextoDeUi(readFileSync(asar), fuentePorNombre);
+    check(
+      "El asar trae el texto de UI nuevo y no el viejo",
+      problemas.length === 0,
+      problemas.join("; "),
+    );
+  }
 
   // El catalogo tiene que viajar DENTRO de resources/, no en el asar: son
   // 12 MB de datos que no cambian entre versiones y que se pueden inspeccionar
