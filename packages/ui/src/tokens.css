@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Tailwind v4 detecta el contenido automáticamente desde la raíz del paquete
+   donde corre Vite (apps/web-demo o apps/desktop). En este monorepo las clases
+   viven en packages/app/src, que está FUERA de ambas raíces: el dev server de
+   la demo solo generaba las utilidades usadas por apps/web-demo/src y el UI
+   del producto se renderizaba sin estilos (distorsionado). Estas rutas se
+   declaran explícitamente porque son relativas al paquete de UI. */
+@source "../../app/src";
+
 /* ============================================================================
    FIXMYPHONE — Tokens de diseño
    ----------------------------------------------------------------------------

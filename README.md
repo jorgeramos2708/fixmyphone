@@ -127,7 +127,7 @@ npm test
 #  135  pruebas de IFT         (alias de marca, homologación, el cruce)
 #   52  pruebas de licencia    (casi todas, ataques)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
-#   39  pruebas de empaquetado (lo que se entrega de verdad)
+#   42  pruebas de empaquetado (lo que se entrega de verdad)
 #   27  pruebas de resolutor   (el resolutor real de platform.ts contra la base real)
 ```
 

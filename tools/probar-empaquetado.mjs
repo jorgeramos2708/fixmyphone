@@ -171,6 +171,32 @@ seccion("El preload no usa nada que el modo sandbox no pueda");
 }
 
 // ---------------------------------------------------------------------------
+// Utilidades del UI DEL PRODUCTO que el CSS empaquetado tiene que traer.
+// ---------------------------------------------------------------------------
+// Tailwind v4 detecta el contenido de forma automatica desde la raiz del
+// paquete donde corre el build. El UI vive en packages/app/src, FUERA de
+// apps/desktop y apps/web-demo: si el escaneo deja de verlo (regresion de
+// monorepo), el CSS se entrega sin las utilidades de las pantallas y la
+// interfaz se ve distorsionada —el shell abierto en fila en vez de columna,
+// los paneles sin fondo ni columnas, los textos con el tamano del navegador—
+// sin que ninguna comprobacion de texto lo note. Estas utilidades son
+// obligatorias para que la herramienta se vea como herramienta; si una deja de
+// viajar, esta prueba dice cual.
+const UTILIDADES_DEL_UI = [
+  ".flex-col{",
+  ".h-screen{",
+  ".bg-surface{",
+  ".h-11{",
+  ".text-body{",
+  ".w-\\[200px\\]{",
+  ".grid-cols-",
+];
+
+function utilidadesFaltantes(textoCss) {
+  return UTILIDADES_DEL_UI.filter((u) => !textoCss.includes(u));
+}
+
+// ---------------------------------------------------------------------------
 seccion("El renderer carga un bundle y una hoja de estilo");
 // ---------------------------------------------------------------------------
 {
@@ -180,6 +206,20 @@ seccion("El renderer carga un bundle y una hoja de estilo");
 
   check("El html referencia un bundle de JS", js !== null);
   check("El html referencia una hoja de estilos", css !== null);
+
+  // La guarda de utilidades primero sobre texto fabricado: que reporta nada
+  // cuando el css las trae, y que acusa cuando falta una. Si la primera se
+  // rompiera, la segunda seguiria avisando (y al reves).
+  check(
+    "La guarda de utilidades no reporta nada con un css que las trae",
+    utilidadesFaltantes(UTILIDADES_DEL_UI.join(" ")).length === 0,
+    `marca como faltantes: ${utilidadesFaltantes(UTILIDADES_DEL_UI.join(" ")).join(", ") || "ninguna, mal"}`,
+  );
+  check(
+    "y detecta si una utilidad del producto falta en el css",
+    utilidadesFaltantes(".flex-col{flex-direction:column;} .bg-surface{background:#131c31;}").includes(".h-screen{"),
+    "un css sin .h-screen{ deberia reportarlo",
+  );
 
   if (js) {
     const p = join(OUT, "renderer", "assets", js[1]);
@@ -192,6 +232,19 @@ seccion("El renderer carga un bundle y una hoja de estilo");
         "El bundle esta minificado",
         mb < 0.4,
         `${mb.toFixed(2)} MB; con React de desarrollo se pasa de 0.7 MB`,
+      );
+    }
+  }
+
+  if (css) {
+    const p = join(OUT, "renderer", "assets", css[1]);
+    if (existsSync(p)) {
+      const textoCss = readFileSync(p, "utf8");
+      const faltantes = utilidadesFaltantes(textoCss);
+      check(
+        "El CSS empaquetado trae las utilidades de las pantallas",
+        faltantes.length === 0,
+        faltantes.length > 0 ? `faltan: ${faltantes.join(", ")}` : "",
       );
     }
   }
