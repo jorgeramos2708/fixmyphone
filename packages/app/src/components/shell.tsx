@@ -23,7 +23,7 @@ import {
   Settings,
   Circle,
 } from "lucide-react";
-import type { ConnectedDevice, LicenseState } from "@fixmyphone/core";
+import type { ConnectedDevice, LicenseState, TransportKind } from "@fixmyphone/core";
 import { Badge } from "./primitives";
 
 export type RouteId = "equipo" | "diagnostico" | "informe" | "licencia";
@@ -163,6 +163,16 @@ function NavRail({
 // StatusBar
 // ---------------------------------------------------------------------------
 
+// El contrato guarda el transporte como token (adb, fastboot...); lo que se ve
+// en la barra es la etiqueta en español, la misma voz que usa la escalera de
+// identificación ("Conexión ADB", "Modo fastboot").
+const TRANSPORT_LABEL: Record<TransportKind, string> = {
+  adb: "Conexión ADB",
+  fastboot: "Modo fastboot",
+  recovery: "Modo recovery",
+  simulated: "Conexión simulada",
+};
+
 function StatusBar({
   device,
   license,
@@ -190,7 +200,7 @@ function StatusBar({
           className={connected ? "fill-success text-success" : "fill-text-faint text-text-faint"}
         />
         <span className={connected ? "text-success" : ""}>
-          {device ? device.transport : "sin equipo"}
+          {device ? TRANSPORT_LABEL[device.transport] : "sin equipo"}
         </span>
       </span>
 
@@ -221,17 +231,6 @@ function StatusBar({
       ) : null}
 
       <span className="text-text-faint/60">v{version}</span>
-
-      {/* La identidad del equipo vive en la esquina inferior derecha, junto
-          al resto del estado. Antes estaba en la barra superior y el serial
-          se repetía dos veces (arriba y abajo a la izquierda); ahora queda
-          una sola instancia, en la esquina que pide este barrido. */}
-      {device ? (
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-caption text-text-faint">Equipo</span>
-          <span className="truncate font-mono text-small text-text-muted">{device.serial}</span>
-        </span>
-      ) : null}
     </footer>
   );
 }

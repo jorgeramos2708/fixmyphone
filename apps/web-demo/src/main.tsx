@@ -16,11 +16,11 @@ const bridge = createBrowserBridge();
  * necesidad de la demo.
  *
  * Se muestra como BARRA propia dentro del host de la demo, justo ENCIMA de la
- * barra de estado de la app (la que lleva "simulated", la hora y la versión):
- * el control del simulador queda entre el contenido y el pie, y la app solo
- * ocupa el alto que le queda. Antes era una tarjeta flotante que se encimaba
- * con las tarjetas del contenido. En `demo.css` se aplana la raiz de la app
- * para que el pie caiga debajo de esta barra; el producto no se toca.
+ * barra de estado de la app (la que lleva el transporte, la hora y la
+ * versión): el control del simulador queda entre el contenido y el pie, y la
+ * app solo ocupa el alto que le queda. Antes era una tarjeta flotante que se
+ * encimaba con las tarjetas del contenido. En `demo.css` se aplana la raiz de
+ * la app para que el pie caiga debajo de esta barra; el producto no se toca.
  *
  * Incluye a propósito un equipo que NO está en el catálogo, para poder ver
  * cómo se comporta la herramienta cuando no sabe. Esa es la parte honesta de
@@ -57,6 +57,14 @@ function SimPicker() {
           title={activa.note}
         >
           {activa.note}
+        </span>
+      ) : null}
+      {activa ? (
+        <span className="flex min-w-0 shrink-0 items-center gap-2">
+          <span className="shrink-0 text-caption text-text-faint">Equipo</span>
+          <span className="truncate font-mono text-small text-text-muted">
+            {activa.props["ro.serialno"] ?? activa.id}
+          </span>
         </span>
       ) : null}
     </div>
