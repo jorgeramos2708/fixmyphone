@@ -633,7 +633,12 @@ function RiskFlags({ flags }: { flags: string[] }) {
           const { base, suffix } = splitFlag(f);
           return (
             <li key={f} className="flex items-start gap-2.5">
-              <span className="tech mt-0.5 shrink-0 text-caption text-warning">{base}</span>
+              <span
+                className="tech mt-0.5 min-w-0 shrink truncate text-caption text-warning"
+                title={base}
+              >
+                {base}
+              </span>
               <span className="text-small text-text-muted">
                 {FLAG_COPY[base] ??
                   "Riesgo registrado por el catálogo. Revísalo antes de proceder."}

@@ -88,7 +88,7 @@ export function DiagnosticoScreen({
           <h1 className="text-h1 font-semibold tracking-tight">Diagnóstico</h1>
           <p className="text-caption text-text-faint">
             {probes.length === 0
-              ? "Sin pruebas definidas para este transporte"
+              ? "Ninguna prueba ejecutada todavía. Presiona Ejecutar todo."
               : `${done} de ${probes.length} ejecutadas${failed ? ` · ${failed} con falla` : ""}`}
           </p>
         </div>
@@ -103,7 +103,7 @@ export function DiagnosticoScreen({
             size="md"
             icon={<Play size={13} strokeWidth={2} />}
             onClick={onRun}
-            disabled={probes.length === 0}
+            disabled={running}
           >
             Ejecutar todo
           </Button>
@@ -115,8 +115,8 @@ export function DiagnosticoScreen({
         <Panel title="Pruebas" hint={running ? "en curso" : undefined}>
           {probes.length === 0 ? (
             <EmptyState
-              title="Este transporte no tiene sondas"
-              body="Las sondas de ADB necesitan Android encendido, y las de fastboot necesitan que el equipo esté en ese modo. Si el transporte es simulado, es lo esperado: no hay un equipo real al que preguntarle."
+              title="Todavía no hay pruebas en esta lista"
+              body="Presiona 'Ejecutar todo' para correr las sondas de este transporte. Si la lista sigue vacía después de ejecutar, el transporte no tiene sondas (por ejemplo, ADB sin un Android encendido que conteste)."
             />
           ) : (
             <ul className="p-1.5">

@@ -158,14 +158,29 @@
 }
 
 /* Fila de dato técnico. Altura fija para que la columna no "bailen"
-   los renglones al actualizarse en vivo. */
+   los renglones al actualizarse en vivo.
+   El layout usa flex con `flex-wrap` y no un grid fijo `200px 1fr`: en
+   columnas angostas el track `1fr` colapsa a 0px (medido: "Nivel | free"
+   mostraba solo la etiqueta, el valor caía a 0 de ancho) porque los 200px de
+   la etiqueta + el hueco agotan el ancho. Con wrap, si no caben en una línea,
+   el valor baja a su propia línea y siempre se ve. En columnas anchas el
+   aspecto es el mismo: etiqueta hasta 200px y valor al resto. */
 .data-row {
-  display: grid;
-  grid-template-columns: 200px 1fr;
+  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-4);
+  column-gap: var(--space-4);
+  row-gap: 2px;
   padding: var(--space-2) var(--space-4);
   min-height: 32px;
+}
+.data-row > .tech-label {
+  flex: 0 1 200px;
+  min-width: 0;
+}
+.data-row > .tech {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .data-row + .data-row {
   border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);

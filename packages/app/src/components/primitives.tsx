@@ -214,7 +214,12 @@ export function Panel({
           <div className="flex min-w-0 items-baseline gap-3">
             <h2 className="text-small font-semibold text-text">{title}</h2>
             {hint ? (
-              <span className="truncate text-caption text-text-faint">{hint}</span>
+              <span
+                className="truncate text-caption text-text-faint"
+                title={typeof hint === "string" ? hint : undefined}
+              >
+                {hint}
+              </span>
             ) : null}
           </div>
           {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}

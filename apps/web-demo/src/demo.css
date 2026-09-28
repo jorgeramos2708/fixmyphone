@@ -40,5 +40,36 @@ body {
   height: 100%;
 }
 
+/* El panel de esta demo (800x535) es MAS CHICO que la ventana minima de la
+   app (1120x720, ver apps/desktop/src/main/index.ts) y la app no fue hecha
+   para ese tamano: a 800 de ancho la columna izquierda de Licencia mide
+   ~150px y los valores de datos colapsan a 0; por debajo de 720 de alto las
+   tarjetas de Equipo se aplastan hasta quedar invisibles. La app se presenta
+   al 85%: el texto sigue siendo legible (~12px), las columnas entran en el
+   rango que el producto soporta y en ninguna pantalla las lineas de datos se
+   aprietan a cero. */
+.demo-app-host {
+  zoom: 0.85;
+}
+
+/* Y como incluso al 85% hay pantallas mas altas que el marco (Equipo con
+   equipo identificado: identificacion + riesgos + escalera), el area de
+   trabajo scrollea en vertical. Nada queda cortado ni fuera de alcance; la
+   barra del simulador esta fuera de `main` y no se mueve. */
+.demo-app-host main {
+  overflow-y: auto;
+}
+
+/* Las pantallas de dos columnas (Equipo y Licencia) usan grids con `h-full`
+   que, con menos alto del necesario, aplastan las tarjetas hasta hacerlas
+   invisibles (Identificacion quedo en 1px y la escalera de evidencias fuera
+   de la vista). Con altura natural cada tarjeta mide su contenido y el scroll
+   de `main` las alcanza todas. Solo afecta a los grids raiz de pantalla; los
+   flex de Diagnostico e Informe no cambian. */
+.demo-app-host main > .grid {
+  height: auto;
+  min-height: 100%;
+}
+
 /* Fuentes. Se usan las del sistema porque la demo tiene que cargar sin red;
    la app de escritorio empaqueta Inter y JetBrains Mono como archivos. */

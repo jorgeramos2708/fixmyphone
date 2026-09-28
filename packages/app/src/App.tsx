@@ -39,7 +39,6 @@ const FREE_TIER: LicenseState = {
 
 export function App({ bridge }: { bridge: FmpBridge }) {
   const [route, setRoute] = useState<RouteId>("equipo");
-  const [device, setDevice] = useState<ConnectedDevice | null>(null);
   const [devices, setDevices] = useState<ConnectedDevice[]>([]);
   const [resolution, setResolution] = useState<Resolution | null>(null);
   const [probes, setProbes] = useState<ProbeResult[]>([]);
@@ -69,7 +68,6 @@ export function App({ bridge }: { bridge: FmpBridge }) {
       const list = await bridge.listDevices();
       setDevices(list);
       const d = list[0] ?? null;
-      setDevice(d);
       if (d) {
         setResolution(await bridge.resolve(d.props, d.transport));
       }
@@ -152,9 +150,9 @@ export function App({ bridge }: { bridge: FmpBridge }) {
 
   // --- Informe -------------------------------------------------------------
   const draft: ReportDraft | null =
-    device && probes.length > 0
+    active && probes.length > 0
       ? {
-          device,
+          device: active,
           resolution: resolution ?? { match: null, ladder: [], alternatives: [] },
           probes,
           license,
