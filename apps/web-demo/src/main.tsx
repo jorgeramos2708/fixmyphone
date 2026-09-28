@@ -52,15 +52,7 @@ function SimPicker() {
         ))}
       </select>
       {activa ? (
-        <span
-          className="min-w-0 flex-1 truncate text-caption text-text-faint"
-          title={activa.note}
-        >
-          {activa.note}
-        </span>
-      ) : null}
-      {activa ? (
-        <span className="flex min-w-0 shrink-0 items-center gap-2">
+        <span className="ml-auto flex min-w-0 shrink-0 items-center gap-2">
           <span className="shrink-0 text-caption text-text-faint">Equipo</span>
           <span className="truncate font-mono text-small text-text-muted">
             {activa.props["ro.serialno"] ?? activa.id}

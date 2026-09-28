@@ -42,8 +42,6 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 interface Simulated {
   id: string;
   label: string;
-  /** Nota que se explica en la interfaz. */
-  note: string;
   props: RawDeviceProps;
   battery: { levelPct: number; charging: boolean };
   /**
@@ -64,7 +62,6 @@ const SIMULADOS: Simulated[] = [
   {
     id: "a54-5g",
     label: "Galaxy A54 5G (Exynos 1380)",
-    note: "El caso más común en un taller mexicano de 2026. Variante con SoC.",
     props: {
       "ro.product.device": "rq3q",
       "ro.product.vendor.device": "qcom",
@@ -102,7 +99,6 @@ const SIMULADOS: Simulated[] = [
     // tiene que decir el nombre del equipo que de verdad esta simulando.
     id: "a21s",
     label: "Galaxy A21s (Exynos 850)",
-    note: "Gama de entrada, muy voluminoso. Viene con el bootloader bloqueado de fabrica.",
     props: {
       "ro.product.device": "a21s",
       "ro.product.model": "SM-A217F",
@@ -133,7 +129,6 @@ const SIMULADOS: Simulated[] = [
     // desorienta a quien lo lee sobre lo que la herramienta afirma.
     id: "moto-g34",
     label: "moto g34 5G",
-    note: "Motorola que si se busco en la tabla del IFT y no aparecio. Contrasta con el A54, que no se ha buscado.",
     props: {
       "ro.product.device": "fogos",
       "ro.product.model": "XT2363-1",
@@ -168,7 +163,6 @@ const SIMULADOS: Simulated[] = [
     // estaria dejando trabajo hecho.
     id: "redmi-7a",
     label: "Redmi 8 (Xiaomi)",
-    note: "Gama de entrada muy voluminosa. Su codename cubre cuatro placas y el número de modelo las separa.",
     props: {
       "ro.product.device": "Mi439",
       "ro.product.model": "M1908C3IC",
@@ -198,7 +192,6 @@ const SIMULADOS: Simulated[] = [
     // con el folio RTIMOXT22-3427. No se inventaron props para que cuadraran.
     id: "moto-g32-ift",
     label: "moto g32 (con folio del IFT)",
-    note: "La homologacion del IFT ya verificada contra la tabla de la marca: aqui se ve el folio.",
     props: {
       "ro.product.device": "devon",
       "ro.product.model": "XT2235-1",
@@ -244,7 +237,6 @@ const SIMULADOS: Simulated[] = [
     // queda anotado de quien fue.
     id: "moto-z2-ambiguo",
     label: "moto z2 force (placa ambigua)",
-    note: "El número de modelo del equipo aparece en las dos placas del catálogo, así que no alcanza para decidir.",
     props: {
       "ro.product.device": "nash",
       "ro.product.model": "XT1789-04",
@@ -264,7 +256,6 @@ const SIMULADOS: Simulated[] = [
   {
     id: "desconocido",
     label: "Equipo fuera del catálogo (SM-S931B)",
-    note: "Galaxy S24 Ultra. A propósito: el catálogo no lo tiene. La app debe decirlo, no adivinar.",
     fueraDelCatalogo: true,
     props: {
       "ro.product.device": "e1s",
