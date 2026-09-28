@@ -29,7 +29,7 @@
  */
 
 import { DatabaseSync } from "node:sqlite";
-import { writeFileSync, readFileSync, existsSync } from "node:fs";
+import { writeFileSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const RAIZ = resolve(import.meta.dirname, "..");
@@ -47,6 +47,14 @@ const COLS = `codename, variant, marketing_name, vendor, vendor_nombre, soc_raw,
   homologado_ift, ift_certificado, ift_url`;
 
 const todas = db.prepare(`SELECT ${COLS} FROM variant`).all();
+
+// Lo que la cabecera del archivo generado va a decir del catalogo completo se
+// mide aqui, no se escribe a mano. Un "734 variantes" en un comentario es una
+// afirmacion sobre otro archivo, y envejece sin que nadie lo note: el dia que la
+// base tenga 800, el comentario seguira diciendo 734 y nadie lo va a leer como lo
+// que es, una verdad que dejo de serlo.
+const TOTAL_FUENTE = todas.length;
+const MB_FUENTE = statSync(DB).size / 1024 / 1024;
 
 /** Cuantas variantes de placa tiene cada codename. */
 const porCodename = new Map();
@@ -435,6 +443,24 @@ const cuerpo = elegidas
   })
   .join(",\n  ");
 
+// En la cabecera no hay ni un numero escrito a mano. El total y el peso del
+// catalogo se miden; los cupos se leen de CUPOS; y el total del recorte es el
+// que salio, no el que se queria. La prosa que decia "los 48 con mejor
+// puntaje" y "26 directas" era una segunda copia de LIMITE y CUPOS: dos cifras
+// del mismo dato, y las dos certainas de desincronizarse. La unica fuente es la
+// de arriba.
+// La nota empieza con un salto de linea y no con " *": pegada a la linea
+// anterior salia "variantes. *" y el bloque de comentario se rompia a la vista,
+// que es justo lo que un archivo generado no puede hacer.
+const DESVIACION =
+  elegidas.length === LIMITE
+    ? ""
+    : `
+ * NOTA: el tope de este recorte son ${LIMITE} variantes y aqui hay
+ * ${elegidas.length}. Los codenames de la maqueta que no cabian en su cupo
+ * entraron a la fuerza y se paso el tope. Es el mismo aviso que sale por
+ * consola, escrito donde se lee: en el archivo.`;
+
 const CABECERA = `/**
  * Subconjunto del catalogo para la demostracion web.
  * ===========================================================================
@@ -447,22 +473,23 @@ const CABECERA = `/**
  *
  * POR QUE EXISTE
  * --------------
- * La app de escritorio abre el SQLite completo: 734 variantes, 12 MB. El
+ * La app de escritorio abre el SQLite completo: ${TOTAL_FUENTE} variantes, ${MB_FUENTE.toFixed(0)} MB. El
  * navegador no puede abrir un SQLite sin WASM, asi que la demo web carga este
- * recorte de ${LIMITE} variantes. Los datos son REALES: si la app dice "Exynos
- * 1380" es porque el catalogo lo dice, no porque alguien lo escribio a mano.
+ * recorte de ${elegidas.length} variantes.${DESVIACION}
+ * Los datos son REALES: si la app dice "Exynos 1380" es porque el catalogo lo
+ * dice, no porque alguien lo escribio a mano.
  *
- * El recorte es por ESTRATOS con cupos fijos, no "los 48 con mejor puntaje".
+ * El recorte es por ESTRATOS con cupos fijos, no "los ${LIMITE} con mejor puntaje".
  * Un puntaje global produce casi siempre un solo estrato, y una demo que solo
  * muestra un caso no muestra nada:
  *
- *   hasta 12     codename con varias variantes de placa, y se mete el grupo
+ *   hasta ${CUPOS.ambigua}     codename con varias variantes de placa, y se mete el grupo
  *   ambiguas     COMPLETO: la herramienta NO elige por el tecnico, que es la
  *                promesa central. Se cuenta por codename y no por filas,
  *                porque la ambiguedad es del grupo: una fila sola de un
  *                codename de cuatro placas no es ambigua, es un acierto.
- *   26 directas  codename unico de marca grande: llega, resuelve, entrega.
- *   hasta 10     marca chica, maximo 2 por marca, para que la pantalla de
+ *   ${CUPOS.directa} directas  codename unico de marca grande: llega, resuelve, entrega.
+ *   hasta ${CUPOS.diversa}     marca chica, maximo 2 por marca, para que la pantalla de
  *   distintas    marca no muestre cuatro logos.
  *
  * ACENTOS
@@ -510,15 +537,19 @@ for (const r of elegidas) {
 // con acentos esa cifra no es el tamano del archivo.
 const bytes = Buffer.byteLength(texto, "utf8");
 
+const excedeElTope = elegidas.length > LIMITE;
+
 console.log("demo-catalog.ts generado");
 console.log(`  ${SALIDA}`);
 console.log(`  ${(bytes / 1024).toFixed(0)} KB, ${elegidas.length} variantes`);
-if (elegidas.length > LIMITE) {
+if (excedeElTope) {
   console.log(
     `  aviso: el recorte tiene ${elegidas.length} variantes y el tope es ${LIMITE}. ` +
       `Pasa cuando hay que meter a la fuerza varios codenames de la maqueta y los ` +
-      `grupos no caben. No rompe nada, pero el archivo ya no es del tamaño que dice ` +
-      `la cabecera; o se sube el tope a proposito o se reservan cupos antes.`,
+      `grupos no caben. El archivo se escribio igual, con la desviacion anotada en ` +
+      `su cabecera, asi que no dice una cosa y es otra; lo que no se hizo es ` +
+      `elegir por que lado seguir. O se sube LIMITE a proposito, o se reservan ` +
+      `cupos antes de que la maqueta los pida.`,
   );
 }
 console.log(`  ${conRiesgo} con riesgos, ${conSoC} con SoC`);
@@ -583,3 +614,12 @@ if (elegidas.length < cuposEsperados) {
 }
 
 db.close();
+
+// Pasarse del tope NO es un fallo de este script: el archivo se escribio y su
+// cabecera dice la verdad sobre lo que trae. Lo que no debe pasar es que la
+// decision se tome sola. Un `npm run db:demo` que sale con 0 cuando el recorte
+// va a tener mas de 48 deja constancia de que nadie decide, y asi es como la
+// demo se va creciendo sin que nadie decida que hacer con ella.
+if (excedeElTope) {
+  process.exit(1);
+}

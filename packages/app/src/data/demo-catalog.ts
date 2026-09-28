@@ -10,10 +10,11 @@
  *
  * POR QUE EXISTE
  * --------------
- * La app de escritorio abre el SQLite completo: 734 variantes, 12 MB. El
+ * La app de escritorio abre el SQLite completo: 734 variantes, 13 MB. El
  * navegador no puede abrir un SQLite sin WASM, asi que la demo web carga este
- * recorte de 48 variantes. Los datos son REALES: si la app dice "Exynos
- * 1380" es porque el catalogo lo dice, no porque alguien lo escribio a mano.
+ * recorte de 48 variantes.
+ * Los datos son REALES: si la app dice "Exynos 1380" es porque el catalogo lo
+ * dice, no porque alguien lo escribio a mano.
  *
  * El recorte es por ESTRATOS con cupos fijos, no "los 48 con mejor puntaje".
  * Un puntaje global produce casi siempre un solo estrato, y una demo que solo

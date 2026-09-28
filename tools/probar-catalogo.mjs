@@ -16,6 +16,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname, basename } from "node:path";
@@ -434,6 +435,115 @@ if (!existsSync(DEMO_CAT)) {
     `        (${gruposDemo.length} codenames ambiguos en el recorte: ` +
       `${gruposDemo.map(([cn, n]) => `${cn} x${n}`).join(", ") || "ninguno"})`,
   );
+
+  // --- La cabecera del archivo generado no afirma nada falso ---------------
+  //
+  // El archivo dice de si mismo cuantos trimmed tiene y de donde sale. Eso es
+  // una afirmacion sobre su propio contenido, y por eso se puede comprobar: se
+  // cuentan las claves y se cuentan las de la base. Una cabecera que dice 48 y
+  // trae 52 no esta "un poco desactualizada": esta mintiendo sobre el archivo
+  // que la precede, y es el unico documento que alguien va a leer para saber de
+  // donde sale la demo.
+  console.log("");
+  console.log("La cabecera del recorte no se contradice con el recorte");
+
+  const cabeceraDemo = textoDemo.slice(0, textoDemo.indexOf("export const DEMO_CATALOG"));
+  const totalBase = db.prepare("SELECT COUNT(*) AS n FROM variant").get().n;
+
+  const dice = (re) => {
+    const m = re.exec(cabeceraDemo);
+    return m ? Number(m[1]) : null;
+  };
+
+  const declaradosEnCabecera = dice(/recorte de (\d+) variantes/);
+  check(
+    "La cabecera declara cuantas variantes trae el archivo",
+    declaradosEnCabecera !== null,
+    "no se encontro 'recorte de N variantes' en la cabecera",
+  );
+  if (declaradosEnCabecera !== null) {
+    check(
+      `y ese numero es el de verdad (${clavesDemo.length})`,
+      declaradosEnCabecera === clavesDemo.length,
+      `la cabecera dice ${declaradosEnCabecera} y el archivo trae ${clavesDemo.length}`,
+    );
+  }
+
+  const fuenteEnCabecera = dice(/SQLite completo: (\d+) variantes/);
+  check(
+    "La cabecera declara cuantas variantes tiene el catalogo completo",
+    fuenteEnCabecera !== null,
+    "no se encontro 'SQLite completo: N variantes' en la cabecera",
+  );
+  if (fuenteEnCabecera !== null) {
+    check(
+      `y ese numero es el de la base (${totalBase})`,
+      fuenteEnCabecera === Number(totalBase),
+      `la cabecera dice ${fuenteEnCabecera} y la base tiene ${totalBase}`,
+    );
+  }
+
+  // El peso tambien es una afirmacion sobre otro archivo. La cabecera decia
+  // "12 MB" desde hace tiempo y el archivo pesa 13: no habria forma de notarlo
+  // leyendo, y es el mismo defecto que el conteo, con un numero que ademas
+  // depende de como se mida. Se mide con stat del archivo que la cabecera nombra.
+  const pesoEnCabecera = (() => {
+    const m = /SQLite completo: \d+ variantes, (\d+) MB/.exec(cabeceraDemo);
+    return m ? Number(m[1]) : null;
+  })();
+  const DB_REAL = join(RAIZ, "packages", "device-db", "data", "out", "fixmyphone_device_db.sqlite");
+  check(
+    "La cabecera declara el peso del catalogo completo",
+    pesoEnCabecera !== null,
+    "no se encontro 'N MB' junto al total de la cabecera",
+  );
+  if (pesoEnCabecera !== null && existsSync(DB_REAL)) {
+    const mbReal = Math.round(statSync(DB_REAL).size / 1024 / 1024);
+    check(
+      `y ese peso es el de verdad (${mbReal} MB)`,
+      pesoEnCabecera === mbReal,
+      `la cabecera dice ${pesoEnCabecera} MB y el archivo pesa ${mbReal} MB. ` +
+        "Un peso escrito a mano se queda viejo sin que nadie lo note.",
+    );
+  }
+
+  // Los cupos salen de CUPOS en el generador. Si alguien los cambia y la prosa
+  // no, el archivo describe una reparticion que no es la que se aplico.
+  const generador = readFileSync(join(RAIZ, "tools", "generar-demo-catalog.mjs"), "utf8");
+  const cupoDe = (n) => {
+    const m = new RegExp(`const CUPOS = \\{[^}]*\\b${n}: (\\d+)`).exec(generador);
+    return m ? Number(m[1]) : null;
+  };
+  for (const [nombre, n] of [["ambigua", cupoDe("ambigua")], ["directa", cupoDe("directa")], ["diversa", cupoDe("diversa")]]) {
+    if (n === null) continue;
+    check(
+      `La cabecera repite el cupo de ${nombre} (${n}) que dice el generador`,
+      cabeceraDemo.includes(`${n} `) || cabeceraDemo.includes(` ${n} `),
+      `la cabecera no menciona el ${n} de ${nombre}`,
+    );
+  }
+
+  // Y la desviacion: si el recorte se pasa del tope, la cabecera tiene que
+  // decirlo. Un archivo que se pasa del tope en silencio es el caso que la
+  // seccion de arriba no alcanza a ver, porque las pruebas de datos siguen
+  // dando bien.
+  const limite = (() => {
+    const m = /const LIMITE = (\d+)/.exec(generador);
+    return m ? Number(m[1]) : null;
+  })();
+  if (limite !== null && declaradosEnCabecera !== null) {
+    const sePasa = clavesDemo.length > limite;
+    const loDice = /tope de este recorte son \d+ variantes/.test(cabeceraDemo);
+    check(
+      sePasa
+        ? "el recorte se pasa del tope y la cabecera lo dice"
+        : "el recorte cabe en el tope y la cabecera no inventa una desviacion",
+      sePasa === loDice,
+      sePasa
+        ? `hay ${clavesDemo.length} y el tope son ${limite}, pero la cabecera no lo anota`
+        : `hay ${clavesDemo.length} y el tope son ${limite}, pero la cabecera anota una desviacion que no hay`,
+    );
+  }
 }
 
 // --- El campo `variant` puede ser NULL ------------------------------------
