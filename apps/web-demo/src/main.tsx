@@ -15,10 +15,12 @@ const bridge = createBrowserBridge();
  * verdad. Meterlo dentro de la app sería ensuciar el producto con una
  * necesidad de la demo.
  *
- * Se muestra como BARRA propia, debajo de la app, dentro del marco de la demo
- * (`demo-frame`): la app ocupa solo el alto que le queda y la barra no tapa
- * nada. Antes era una tarjeta flotante sobre el área de trabajo y se encimaba
- * con las tarjetas del contenido.
+ * Se muestra como BARRA propia dentro del host de la demo, justo ENCIMA de la
+ * barra de estado de la app (la que lleva "simulated", la hora y la versión):
+ * el control del simulador queda entre el contenido y el pie, y la app solo
+ * ocupa el alto que le queda. Antes era una tarjeta flotante que se encimaba
+ * con las tarjetas del contenido. En `demo.css` se aplana la raiz de la app
+ * para que el pie caiga debajo de esta barra; el producto no se toca.
  *
  * Incluye a propósito un equipo que NO está en el catálogo, para poder ver
  * cómo se comporta la herramienta cuando no sabe. Esa es la parte honesta de
@@ -33,7 +35,7 @@ function SimPicker() {
   const activa = SIMULADOS.find((s) => s.id === id);
 
   return (
-    <div className="flex shrink-0 items-center gap-2 border-t border-border bg-surface-2 px-3 py-2">
+    <div className="flex shrink-0 items-center gap-2 bg-surface-2 px-3 py-2">
       <span className="tech-label shrink-0">Equipo simulado</span>
       <select
         value={id}
@@ -83,8 +85,8 @@ raiz.render(
     <div className="demo-frame">
       <div className="demo-app-host">
         <App bridge={bridge} />
+        <SimPicker />
       </div>
-      <SimPicker />
     </div>
   </StrictMode>,
 );

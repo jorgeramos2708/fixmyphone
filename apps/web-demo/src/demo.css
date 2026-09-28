@@ -30,15 +30,30 @@ body {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* La raiz de la app (`.h-screen`) se aplana con display:contents: sus tres
+   filas (cabecera, cuerpo y pie) se vuelven items del flex del host y la
+   barra del simulador se cuela entre el cuerpo y el pie. Al pie se le da
+   `order: 1`, asi queda de ULTIMO — debajo de "Equipo simulado" — tal como
+   pide la barra de estado (la que lleva "simulated", la hora y la version).
+   El producto no se toca: esta regla solo existe en la demo. Si un
+   navegador ignorara display:contents, la demo degrada al orden previo
+   (pie arriba de la barra), sin romperse. */
+.demo-app-host > .h-screen {
+  display: contents;
+}
+
+.demo-app-host > .h-screen > footer {
+  order: 1;
 }
 
 /* Dentro del host, la app pide h-screen (100vh), que desbordaría el marco por
    detrás de la barra. Solo en la demo se le da el alto del host; el producto
    no se toca. Si la app deja de usar h-screen, esta regla simplemente deja de
    aplicar y la barra sigue separada. */
-.demo-app-host .h-screen {
-  height: 100%;
-}
 
 /* El panel de esta demo (800x535) es MAS CHICO que la ventana minima de la
    app (1120x720, ver apps/desktop/src/main/index.ts) y la app no fue hecha
