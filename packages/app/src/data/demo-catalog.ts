@@ -2164,156 +2164,6 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     "iftUrl": ""
   },
   {
-    "codename": "a5xelte",
-    "variant": null,
-    "key": "a5xelte",
-    "marketingName": "Galaxy A5 (2016)",
-    "vendor": "samsung",
-    "vendorNombre": "Samsung",
-    "soc": "Samsung Exynos 7580",
-    "socVendor": "exynos",
-    "platform": "universal7580",
-    "modelNumbers": [
-      "SM-A510F",
-      "SM-A510F/DS",
-      "SM-A510M",
-      "SM-A510Y",
-      "SM-A510K",
-      "SM-A510L",
-      "SM-A510S",
-      "SM-A5108"
-    ],
-    "androidVersion": 16,
-    "release": "2015-12",
-    "capabilities": [
-      "a_only",
-      "adb",
-      "battery_calibration",
-      "battery_health_read",
-      "display_pwm_test",
-      "dynamic_partitions",
-      "evidence_capture",
-      "fastboot",
-      "fastbootd",
-      "frp_owner_assisted",
-      "network_reset",
-      "odin_download",
-      "official_rom_flash",
-      "ota",
-      "recovery",
-      "sim_reset",
-      "storage_health_read",
-      "thermal_read",
-      "touch_grid_test",
-      "verified_boot"
-    ],
-    "riskFlags": [
-      "odin_requires_signed_secure_package",
-      "samsung_knox_eFuse_risk_on_unlock"
-    ],
-    "verificationGates": [
-      {
-        "id": "power_on",
-        "name": "El equipo enciende y no reinicia en 3 min",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "charging",
-        "name": "Detecta carga y aumenta el porcentaje",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "battery_report",
-        "name": "Bateria reporta capacidad real > 60% del diseño",
-        "kind": "hardware",
-        "blocking": false
-      },
-      {
-        "id": "touch_grid",
-        "name": "Rejilla de táctil sin zonas muertas",
-        "kind": "sensor",
-        "blocking": true
-      },
-      {
-        "id": "display_pwm",
-        "name": "Pantalla sin parpadeo anormal / lineas",
-        "kind": "display",
-        "blocking": true
-      },
-      {
-        "id": "audio_path",
-        "name": "Altavoz, auricular y microfonos responden",
-        "kind": "audio",
-        "blocking": true
-      },
-      {
-        "id": "cameras",
-        "name": "Todas las camaras abren imagen",
-        "kind": "camera",
-        "blocking": true
-      },
-      {
-        "id": "sensors",
-        "name": "Proximidad, huella y giroscopio responden",
-        "kind": "sensor",
-        "blocking": false
-      },
-      {
-        "id": "network_register",
-        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "data_browse",
-        "name": "Abre internet y resuelve DNS",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "call_voicemail",
-        "kind": "network",
-        "blocking": false,
-        "name": "Llamada / mensaje saliente"
-      },
-      {
-        "id": "gms",
-        "name": "Play Servicios y apps base abren",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "ota",
-        "name": "Acepta(actualizar) sin error",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "radio_ident",
-        "kind": "radio",
-        "blocking": true,
-        "name": "IMEI/ESN intactos y sin cambios"
-      },
-      {
-        "id": "verified_boot_state",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Estado de boot verificado sin alteraciones"
-      }
-    ],
-    "sources": [
-      "lineageos",
-      "seed",
-      "play",
-      "ift"
-    ],
-    "homologadoIft": "desconocido",
-    "iftCertificado": "",
-    "iftUrl": ""
-  },
-  {
     "codename": "a7xelte",
     "variant": null,
     "key": "a7xelte",
@@ -3061,20 +2911,28 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     "iftUrl": ""
   },
   {
-    "codename": "G",
+    "codename": "pa1q",
     "variant": null,
-    "key": "G",
-    "marketingName": "G",
-    "vendor": "10 or",
-    "vendorNombre": "10.or",
-    "soc": "Qualcomm MSM8953 Pro Snapdragon 626",
+    "key": "pa1q",
+    "marketingName": "Galaxy S25",
+    "vendor": "samsung",
+    "vendorNombre": "Samsung",
+    "soc": "Qualcomm SM8750 Snapdragon 8 Elite",
     "socVendor": "qualcomm",
-    "platform": "G",
+    "platform": null,
     "modelNumbers": [
-      "G"
+      "SM-S9310",
+      "SM-S931B",
+      "SM-S931B/DS",
+      "SM-S931N",
+      "SM-S931Q",
+      "SM-S931U",
+      "SM-S931U1",
+      "SM-S931W",
+      "SM-S931Z"
     ],
-    "androidVersion": 19,
-    "release": "2017-10-03",
+    "androidVersion": 15,
+    "release": "2025-02-07",
     "capabilities": [
       "a_only",
       "adb",
@@ -3098,7 +2956,8 @@ export const DEMO_CATALOG: DeviceVariant[] = [
       "verified_boot"
     ],
     "riskFlags": [
-      "edl_requires_signed_programmer"
+      "edl_requires_signed_programmer",
+      "samsung_knox_eFuse_risk_on_unlock"
     ],
     "verificationGates": [
       {
@@ -3193,9 +3052,307 @@ export const DEMO_CATALOG: DeviceVariant[] = [
       }
     ],
     "sources": [
-      "lineageos",
+      "manual",
       "seed",
-      "play",
+      "ift"
+    ],
+    "homologadoIft": "desconocido",
+    "iftCertificado": "",
+    "iftUrl": ""
+  },
+  {
+    "codename": "pa3q",
+    "variant": null,
+    "key": "pa3q",
+    "marketingName": "Galaxy S25 Ultra",
+    "vendor": "samsung",
+    "vendorNombre": "Samsung",
+    "soc": "Qualcomm SM8750 Snapdragon 8 Elite",
+    "socVendor": "qualcomm",
+    "platform": null,
+    "modelNumbers": [
+      "SM-S9380",
+      "SM-S938B",
+      "SM-S938B/DS",
+      "SM-S938N",
+      "SM-S938Q",
+      "SM-S938U",
+      "SM-S938U1",
+      "SM-S938W",
+      "SM-S938Z"
+    ],
+    "androidVersion": 15,
+    "release": "2025-02-07",
+    "capabilities": [
+      "a_only",
+      "adb",
+      "battery_calibration",
+      "battery_health_read",
+      "display_pwm_test",
+      "dynamic_partitions",
+      "edl",
+      "evidence_capture",
+      "fastboot",
+      "fastbootd",
+      "frp_owner_assisted",
+      "network_reset",
+      "official_rom_flash",
+      "ota",
+      "recovery",
+      "sim_reset",
+      "storage_health_read",
+      "thermal_read",
+      "touch_grid_test",
+      "verified_boot"
+    ],
+    "riskFlags": [
+      "edl_requires_signed_programmer",
+      "samsung_knox_eFuse_risk_on_unlock"
+    ],
+    "verificationGates": [
+      {
+        "id": "power_on",
+        "name": "El equipo enciende y no reinicia en 3 min",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "charging",
+        "name": "Detecta carga y aumenta el porcentaje",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "battery_report",
+        "name": "Bateria reporta capacidad real > 60% del diseño",
+        "kind": "hardware",
+        "blocking": false
+      },
+      {
+        "id": "touch_grid",
+        "name": "Rejilla de táctil sin zonas muertas",
+        "kind": "sensor",
+        "blocking": true
+      },
+      {
+        "id": "display_pwm",
+        "name": "Pantalla sin parpadeo anormal / lineas",
+        "kind": "display",
+        "blocking": true
+      },
+      {
+        "id": "audio_path",
+        "name": "Altavoz, auricular y microfonos responden",
+        "kind": "audio",
+        "blocking": true
+      },
+      {
+        "id": "cameras",
+        "name": "Todas las camaras abren imagen",
+        "kind": "camera",
+        "blocking": true
+      },
+      {
+        "id": "sensors",
+        "name": "Proximidad, huella y giroscopio responden",
+        "kind": "sensor",
+        "blocking": false
+      },
+      {
+        "id": "network_register",
+        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "data_browse",
+        "name": "Abre internet y resuelve DNS",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "call_voicemail",
+        "kind": "network",
+        "blocking": false,
+        "name": "Llamada / mensaje saliente"
+      },
+      {
+        "id": "gms",
+        "name": "Play Servicios y apps base abren",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "ota",
+        "name": "Acepta(actualizar) sin error",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "radio_ident",
+        "kind": "radio",
+        "blocking": true,
+        "name": "IMEI/ESN intactos y sin cambios"
+      },
+      {
+        "id": "verified_boot_state",
+        "kind": "bootchain",
+        "blocking": false,
+        "name": "Estado de boot verificado sin alteraciones"
+      }
+    ],
+    "sources": [
+      "manual",
+      "seed",
+      "ift"
+    ],
+    "homologadoIft": "desconocido",
+    "iftCertificado": "",
+    "iftUrl": ""
+  },
+  {
+    "codename": "e3q",
+    "variant": null,
+    "key": "e3q",
+    "marketingName": "Galaxy S24 Ultra",
+    "vendor": "samsung",
+    "vendorNombre": "Samsung",
+    "soc": "Qualcomm SM8650 Snapdragon 8 Gen 3",
+    "socVendor": "qualcomm",
+    "platform": null,
+    "modelNumbers": [
+      "SM-S9280",
+      "SM-S928B",
+      "SM-S928B/DS",
+      "SM-S928N",
+      "SM-S928Q",
+      "SM-S928U",
+      "SM-S928U1",
+      "SM-S928W"
+    ],
+    "androidVersion": 14,
+    "release": "2024-01-31",
+    "capabilities": [
+      "a_only",
+      "adb",
+      "battery_calibration",
+      "battery_health_read",
+      "display_pwm_test",
+      "dynamic_partitions",
+      "edl",
+      "evidence_capture",
+      "fastboot",
+      "fastbootd",
+      "frp_owner_assisted",
+      "network_reset",
+      "official_rom_flash",
+      "ota",
+      "recovery",
+      "sim_reset",
+      "storage_health_read",
+      "thermal_read",
+      "touch_grid_test",
+      "verified_boot"
+    ],
+    "riskFlags": [
+      "edl_requires_signed_programmer",
+      "samsung_knox_eFuse_risk_on_unlock"
+    ],
+    "verificationGates": [
+      {
+        "id": "power_on",
+        "name": "El equipo enciende y no reinicia en 3 min",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "charging",
+        "name": "Detecta carga y aumenta el porcentaje",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "battery_report",
+        "name": "Bateria reporta capacidad real > 60% del diseño",
+        "kind": "hardware",
+        "blocking": false
+      },
+      {
+        "id": "touch_grid",
+        "name": "Rejilla de táctil sin zonas muertas",
+        "kind": "sensor",
+        "blocking": true
+      },
+      {
+        "id": "display_pwm",
+        "name": "Pantalla sin parpadeo anormal / lineas",
+        "kind": "display",
+        "blocking": true
+      },
+      {
+        "id": "audio_path",
+        "name": "Altavoz, auricular y microfonos responden",
+        "kind": "audio",
+        "blocking": true
+      },
+      {
+        "id": "cameras",
+        "name": "Todas las camaras abren imagen",
+        "kind": "camera",
+        "blocking": true
+      },
+      {
+        "id": "sensors",
+        "name": "Proximidad, huella y giroscopio responden",
+        "kind": "sensor",
+        "blocking": false
+      },
+      {
+        "id": "network_register",
+        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "data_browse",
+        "name": "Abre internet y resuelve DNS",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "call_voicemail",
+        "kind": "network",
+        "blocking": false,
+        "name": "Llamada / mensaje saliente"
+      },
+      {
+        "id": "gms",
+        "name": "Play Servicios y apps base abren",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "ota",
+        "name": "Acepta(actualizar) sin error",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "radio_ident",
+        "kind": "radio",
+        "blocking": true,
+        "name": "IMEI/ESN intactos y sin cambios"
+      },
+      {
+        "id": "verified_boot_state",
+        "kind": "bootchain",
+        "blocking": false,
+        "name": "Estado de boot verificado sin alteraciones"
+      }
+    ],
+    "sources": [
+      "manual",
+      "seed",
       "ift"
     ],
     "homologadoIft": "desconocido",
@@ -3643,313 +3800,6 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     "sources": [
       "lineageos",
       "seed",
-      "ift"
-    ],
-    "homologadoIft": "desconocido",
-    "iftCertificado": "",
-    "iftUrl": ""
-  },
-  {
-    "codename": "pioneer",
-    "variant": null,
-    "key": "pioneer",
-    "marketingName": "Xperia XA2",
-    "vendor": "sony",
-    "vendorNombre": "Sony",
-    "soc": "Qualcomm SDM630 Snapdragon 630",
-    "socVendor": "qualcomm",
-    "platform": "sdm660",
-    "modelNumbers": [
-      "H3113",
-      "H4113",
-      "H3133",
-      "H4133",
-      "H3123"
-    ],
-    "androidVersion": 22,
-    "release": "2018-02",
-    "capabilities": [
-      "a_b_slots",
-      "adb",
-      "battery_calibration",
-      "battery_health_read",
-      "display_pwm_test",
-      "dynamic_partitions",
-      "edl",
-      "evidence_capture",
-      "fastboot",
-      "fastbootd",
-      "frp_owner_assisted",
-      "network_reset",
-      "official_rom_flash",
-      "ota",
-      "recovery",
-      "sim_reset",
-      "storage_health_read",
-      "thermal_read",
-      "touch_grid_test",
-      "verified_boot"
-    ],
-    "riskFlags": [
-      "edl_requires_signed_programmer",
-      "pre_install_required:needs_specific_android_fw",
-      "recovery_flash_target_is:boot"
-    ],
-    "verificationGates": [
-      {
-        "id": "power_on",
-        "name": "El equipo enciende y no reinicia en 3 min",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "charging",
-        "name": "Detecta carga y aumenta el porcentaje",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "battery_report",
-        "name": "Bateria reporta capacidad real > 60% del diseño",
-        "kind": "hardware",
-        "blocking": false
-      },
-      {
-        "id": "touch_grid",
-        "name": "Rejilla de táctil sin zonas muertas",
-        "kind": "sensor",
-        "blocking": true
-      },
-      {
-        "id": "display_pwm",
-        "name": "Pantalla sin parpadeo anormal / lineas",
-        "kind": "display",
-        "blocking": true
-      },
-      {
-        "id": "audio_path",
-        "name": "Altavoz, auricular y microfonos responden",
-        "kind": "audio",
-        "blocking": true
-      },
-      {
-        "id": "cameras",
-        "name": "Todas las camaras abren imagen",
-        "kind": "camera",
-        "blocking": true
-      },
-      {
-        "id": "sensors",
-        "name": "Proximidad, huella y giroscopio responden",
-        "kind": "sensor",
-        "blocking": false
-      },
-      {
-        "id": "network_register",
-        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "data_browse",
-        "name": "Abre internet y resuelve DNS",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "call_voicemail",
-        "kind": "network",
-        "blocking": false,
-        "name": "Llamada / mensaje saliente"
-      },
-      {
-        "id": "gms",
-        "name": "Play Servicios y apps base abren",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "ota",
-        "name": "Acepta(actualizar) sin error",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "radio_ident",
-        "kind": "radio",
-        "blocking": true,
-        "name": "IMEI/ESN intactos y sin cambios"
-      },
-      {
-        "id": "slot_health",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Ambos slots sanables (A/B activo y no corrupto)"
-      },
-      {
-        "id": "verified_boot_state",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Estado de boot verificado sin alteraciones"
-      }
-    ],
-    "sources": [
-      "lineageos",
-      "seed",
-      "play",
-      "ift"
-    ],
-    "homologadoIft": "desconocido",
-    "iftCertificado": "",
-    "iftUrl": ""
-  },
-  {
-    "codename": "timelm",
-    "variant": null,
-    "key": "timelm",
-    "marketingName": "V60 ThinQ",
-    "vendor": "lg",
-    "vendorNombre": "LG",
-    "soc": "Qualcomm SM8250 Snapdragon 865",
-    "socVendor": "qualcomm",
-    "platform": "sm8250",
-    "modelNumbers": [
-      "L-51A",
-      "LM-V600EA",
-      "LM-V600VM",
-      "LM-V600TM",
-      "LM-V600N"
-    ],
-    "androidVersion": 22,
-    "release": "2020-03",
-    "capabilities": [
-      "a_b_slots",
-      "adb",
-      "battery_calibration",
-      "battery_health_read",
-      "display_pwm_test",
-      "dynamic_partitions",
-      "edl",
-      "evidence_capture",
-      "fastboot",
-      "fastbootd",
-      "frp_owner_assisted",
-      "network_reset",
-      "official_rom_flash",
-      "ota",
-      "recovery",
-      "sim_reset",
-      "storage_health_read",
-      "thermal_read",
-      "touch_grid_test",
-      "verified_boot"
-    ],
-    "riskFlags": [
-      "edl_requires_signed_programmer",
-      "pre_install_required:needs_specific_android_fw"
-    ],
-    "verificationGates": [
-      {
-        "id": "power_on",
-        "name": "El equipo enciende y no reinicia en 3 min",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "charging",
-        "name": "Detecta carga y aumenta el porcentaje",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "battery_report",
-        "name": "Bateria reporta capacidad real > 60% del diseño",
-        "kind": "hardware",
-        "blocking": false
-      },
-      {
-        "id": "touch_grid",
-        "name": "Rejilla de táctil sin zonas muertas",
-        "kind": "sensor",
-        "blocking": true
-      },
-      {
-        "id": "display_pwm",
-        "name": "Pantalla sin parpadeo anormal / lineas",
-        "kind": "display",
-        "blocking": true
-      },
-      {
-        "id": "audio_path",
-        "name": "Altavoz, auricular y microfonos responden",
-        "kind": "audio",
-        "blocking": true
-      },
-      {
-        "id": "cameras",
-        "name": "Todas las camaras abren imagen",
-        "kind": "camera",
-        "blocking": true
-      },
-      {
-        "id": "sensors",
-        "name": "Proximidad, huella y giroscopio responden",
-        "kind": "sensor",
-        "blocking": false
-      },
-      {
-        "id": "network_register",
-        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "data_browse",
-        "name": "Abre internet y resuelve DNS",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "call_voicemail",
-        "kind": "network",
-        "blocking": false,
-        "name": "Llamada / mensaje saliente"
-      },
-      {
-        "id": "gms",
-        "name": "Play Servicios y apps base abren",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "ota",
-        "name": "Acepta(actualizar) sin error",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "radio_ident",
-        "kind": "radio",
-        "blocking": true,
-        "name": "IMEI/ESN intactos y sin cambios"
-      },
-      {
-        "id": "slot_health",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Ambos slots sanables (A/B activo y no corrupto)"
-      },
-      {
-        "id": "verified_boot_state",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Estado de boot verificado sin alteraciones"
-      }
-    ],
-    "sources": [
-      "lineageos",
-      "seed",
-      "play",
       "ift"
     ],
     "homologadoIft": "desconocido",
@@ -5733,6 +5583,150 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "sources": [
       "lineageos",
+      "seed",
+      "ift"
+    ],
+    "homologadoIft": "desconocido",
+    "iftCertificado": "",
+    "iftUrl": ""
+  },
+  {
+    "codename": "e1s",
+    "variant": null,
+    "key": "e1s",
+    "marketingName": "Galaxy S24",
+    "vendor": "samsung",
+    "vendorNombre": "Samsung",
+    "soc": "Samsung Exynos 2400",
+    "socVendor": "exynos",
+    "platform": null,
+    "modelNumbers": [
+      "SM-S921B",
+      "SM-S921B/DS",
+      "SM-S921N"
+    ],
+    "androidVersion": 14,
+    "release": "2024-01-31",
+    "capabilities": [
+      "a_only",
+      "adb",
+      "battery_calibration",
+      "battery_health_read",
+      "display_pwm_test",
+      "dynamic_partitions",
+      "evidence_capture",
+      "fastboot",
+      "fastbootd",
+      "frp_owner_assisted",
+      "network_reset",
+      "odin_download",
+      "official_rom_flash",
+      "ota",
+      "recovery",
+      "sim_reset",
+      "storage_health_read",
+      "thermal_read",
+      "touch_grid_test",
+      "verified_boot"
+    ],
+    "riskFlags": [
+      "odin_requires_signed_secure_package",
+      "samsung_knox_eFuse_risk_on_unlock"
+    ],
+    "verificationGates": [
+      {
+        "id": "power_on",
+        "name": "El equipo enciende y no reinicia en 3 min",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "charging",
+        "name": "Detecta carga y aumenta el porcentaje",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "battery_report",
+        "name": "Bateria reporta capacidad real > 60% del diseño",
+        "kind": "hardware",
+        "blocking": false
+      },
+      {
+        "id": "touch_grid",
+        "name": "Rejilla de táctil sin zonas muertas",
+        "kind": "sensor",
+        "blocking": true
+      },
+      {
+        "id": "display_pwm",
+        "name": "Pantalla sin parpadeo anormal / lineas",
+        "kind": "display",
+        "blocking": true
+      },
+      {
+        "id": "audio_path",
+        "name": "Altavoz, auricular y microfonos responden",
+        "kind": "audio",
+        "blocking": true
+      },
+      {
+        "id": "cameras",
+        "name": "Todas las camaras abren imagen",
+        "kind": "camera",
+        "blocking": true
+      },
+      {
+        "id": "sensors",
+        "name": "Proximidad, huella y giroscopio responden",
+        "kind": "sensor",
+        "blocking": false
+      },
+      {
+        "id": "network_register",
+        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "data_browse",
+        "name": "Abre internet y resuelve DNS",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "call_voicemail",
+        "kind": "network",
+        "blocking": false,
+        "name": "Llamada / mensaje saliente"
+      },
+      {
+        "id": "gms",
+        "name": "Play Servicios y apps base abren",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "ota",
+        "name": "Acepta(actualizar) sin error",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "radio_ident",
+        "kind": "radio",
+        "blocking": true,
+        "name": "IMEI/ESN intactos y sin cambios"
+      },
+      {
+        "id": "verified_boot_state",
+        "kind": "bootchain",
+        "blocking": false,
+        "name": "Estado de boot verificado sin alteraciones"
+      }
+    ],
+    "sources": [
+      "manual",
       "seed",
       "ift"
     ],

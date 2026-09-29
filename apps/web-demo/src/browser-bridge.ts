@@ -361,10 +361,11 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 53, charging: false },
   },
   {
-    // Y el S23. Ojo: aqui termina lo que la base cubre de la gama S reciente.
-    // S23+ y S23 Ultra no tienen filas en el catalogo, y S24/S25 tampoco: fuentes
-    // reales para esas placas aun no estan en la base. Un simulado de uno de
-    // esos no podria resolver sin inventarse una fila, asi que no se mete.
+    // El S23. Con el trabajo de ampliacion, la base ya cubre todo el arco de la
+    // gama S reciente: S23 (`dm1q`), S23+ (`dm2q`), S23 Ultra (`dm3q`),
+    // S24 (`e1s`), S24+ (`e2s`), S24 Ultra (`e3q`), S25 (`pa1q`), S25+ (`pa2q`)
+    // y S25 Ultra (`pa3q`). Abajo se simulan los cuatro que un taller ve mas
+    // seguido: S24, S24 Ultra, S25 y S25 Ultra.
     id: "galaxy-s23",
     label: "Galaxy S23 (SM-S911B)",
     props: {
@@ -384,6 +385,104 @@ const SIMULADOS: Simulated[] = [
       "sys.boot_completed": "1",
     },
     battery: { levelPct: 61, charging: true },
+  },
+  {
+    // El S24. En la mayoria de los mercados, incluido Mexico, llego con el
+    // Exynos 2400 (token `e1s` en el snapshot de Play; la placa Snapdragon
+    // `e1q` era China/EE.UU.). Fue la primera de la gama S con siete anos de
+    // actualizaciones, y por eso sigue entrando al taller con el firmware de
+    // fabrica y el bootloader cerrado.
+    id: "galaxy-s24",
+    label: "Galaxy S24 (SM-S921B)",
+    props: {
+      "ro.product.device": "e1s",
+      "ro.product.model": "SM-S921B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "14",
+      "ro.build.version.security_patch": "2025-01-01",
+      "ro.build.id": "UP1A.231005.007",
+      "ro.build.fingerprint":
+        "samsung/e1s/e1s:14/UP1A.231005.007/S921BXXU4BXN1:user/release-keys",
+      "ro.boot.hardware": "exynos2400",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZH4567S1",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 74, charging: false },
+  },
+  {
+    // El S24 Ultra: el unico de la serie con Snapdragon 8 Gen 3 en todos los
+    // mercados (`e3q`). Es el equipo con marco de titanio y pantalla plana que
+    // el taller ve como el gama premium de 2024.
+    id: "galaxy-s24-ultra",
+    label: "Galaxy S24 Ultra (SM-S928B)",
+    props: {
+      "ro.product.device": "e3q",
+      "ro.product.model": "SM-S928B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "14",
+      "ro.build.version.security_patch": "2025-01-01",
+      "ro.build.id": "UP1A.231005.007",
+      "ro.build.fingerprint":
+        "samsung/e3q/e3q:14/UP1A.231005.007/S928BXXU2BXN1:user/release-keys",
+      "ro.boot.hardware": "sm8650",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZJ8901T2",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 67, charging: true },
+  },
+  {
+    // El S25: Snapdragon 8 Elite en todos los mercados (`pa1q`), ya sin
+    // variante Exynos, y Android 15 de fabrica. Es el caso de la generacion
+    // nueva que un taller en Mexico ya recibe en el mostrador.
+    id: "galaxy-s25",
+    label: "Galaxy S25 (SM-S931B)",
+    props: {
+      "ro.product.device": "pa1q",
+      "ro.product.model": "SM-S931B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "15",
+      "ro.build.version.security_patch": "2026-01-01",
+      "ro.build.id": "AP3A.240905.015",
+      "ro.build.fingerprint":
+        "samsung/pa1q/pa1q:15/AP3A.240905.015/S931BXXU2BXN1:user/release-keys",
+      "ro.boot.hardware": "sm8750",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZK2345V3",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 58, charging: true },
+  },
+  {
+    // El S25 Ultra (`pa3q`), la bandera de 2025: Snapdragon 8 Elite, Android 15
+    // y el S Pen. Cierra el arco de la gama S en la demo: del S22 de 2022 a
+    // este, todos los flagship entran al catalogo.
+    id: "galaxy-s25-ultra",
+    label: "Galaxy S25 Ultra (SM-S938B)",
+    props: {
+      "ro.product.device": "pa3q",
+      "ro.product.model": "SM-S938B",
+      "ro.product.manufacturer": "samsung",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "15",
+      "ro.build.version.security_patch": "2026-01-01",
+      "ro.build.id": "AP3A.240905.015",
+      "ro.build.fingerprint":
+        "samsung/pa3q/pa3q:15/AP3A.240905.015/S938BXXU2BXN1:user/release-keys",
+      "ro.boot.hardware": "sm8750",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "R5CZP6789W4",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 71, charging: false },
   },
   {
     // Motorola con el estado `sin_verificar`: se busco en la tabla de la marca
@@ -653,18 +752,31 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 55, charging: false },
   },
   {
+    // El unico equipo simulado que NO esta en el catalogo, a proposito: el caso
+    // honesto de "no se que es esto". Antes era el Galaxy S25, pero ese ya
+    // entro al catalogo (`pa1q`, ver arriba), asi que el hueco se corrio al
+    // buque insignia de la generacion siguiente: el Galaxy S26.
+    //
+    // Es REAL: el codename `m1s` y el modelo SM-S942B salen del snapshot de
+    // Play (supported_devices.csv); `m1s` es la placa global (modelo B), igual
+    // que `e1s` lo es para el S24. La base aun no tiene filas para el S26, asi
+    // que la demo contesta "no reconocimos este equipo", que es justo lo que
+    // hace un taller frente a un modelo que acaba de salir.
     id: "desconocido",
-    label: "Galaxy S25 (SM-S931B)",
+    label: "Galaxy S26 (SM-S942B)",
     fueraDelCatalogo: true,
     props: {
-      "ro.product.device": "e1s",
-      "ro.product.model": "SM-S931B",
+      "ro.product.device": "m1s",
+      "ro.product.model": "SM-S942B",
       "ro.product.manufacturer": "samsung",
-      "ro.build.version.release": "15",
-      "ro.build.version.security_patch": "2025-08-01",
+      "ro.product.brand": "samsung",
+      "ro.build.version.release": "16",
+      "ro.build.version.security_patch": "2026-06-01",
+      "ro.build.id": "BU1A.260530.001",
       "ro.build.fingerprint":
-        "samsung/e1s/e1s:15/AP3A.240905.015/E1SXXU6AWF1:user/release-keys",
-      "ro.boot.hardware": "qcom",
+        "samsung/m1s/m1s:16/BU1A.260530.001/M942BXXU1AXK1:user/release-keys",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
       "ro.serialno": "R5CT99ZZZZZ9",
       "sys.boot_completed": "1",
     },
