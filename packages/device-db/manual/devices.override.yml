@@ -231,48 +231,99 @@ devices:
     evidence: "token y modelos segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); fecha y SoC segun https://en.wikipedia.org/wiki/Samsung_Galaxy_S25 (Snapdragon 8 Elite en todos los mercados, disponible 2025-02-07)"
     confidence: "manual"
 
+  a32:
+    vendor: Samsung
+    marketing_name: Galaxy A32
+    soc_raw: MediaTek Helio G80
+    model_numbers: [SM-A325F, SM-A325F/DS, SM-A325M, SM-A325M/DS, SM-A325N]
+    android_version: 11
+    is_ab_device: false
+    release: 2021-02
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token a32 y modelos SM-A325F/M/N segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Helio G80 y lanzamiento 2021-02 segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A32; placa A-only (sin slots A/B)"
+    confidence: "manual"
+
+  a22:
+    vendor: Samsung
+    marketing_name: Galaxy A22
+    soc_raw: MediaTek Helio G80
+    model_numbers: [SM-A225F, SM-A225F/DS, SM-A225M, SM-A225M/DS]
+    android_version: 11
+    is_ab_device: false
+    release: 2021-06
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token a22 y modelos SM-A225F/M segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Helio G80 y lanzamiento 2021-06 segun https://en.wikipedia.org/wiki/Samsung_Galaxy_A22; placa A-only (sin slots A/B)"
+    confidence: "manual"
+
+  m31s:
+    vendor: Samsung
+    marketing_name: Galaxy M31s
+    soc_raw: Samsung Exynos 9611
+    model_numbers: [SM-M317F, SM-M317F/DS]
+    android_version: 10
+    is_ab_device: false
+    release: 2020-08
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token m31s y modelo SM-M317F segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Exynos 9611 y lanzamiento 2020-08 segun https://en.wikipedia.org/wiki/Samsung_Galaxy_M31s; placa A-only (sin slots A/B)"
+    confidence: "manual"
+
+  tapas:
+    vendor: Xiaomi
+    marketing_name: Redmi Note 12 (4G)
+    soc_raw: Qualcomm SM6225 Snapdragon 685
+    model_numbers: [23021RAAEG, 23027RAD4I, 23028RA60L]
+    android_version: 13
+    is_ab_device: true
+    release: 2023-03
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token tapas y modelos 23021RAAEG/23027RAD4I/23028RA60L segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); el modelo indio 23021RAA2Y usa el token topaz, NO tapas; SoC Snapdragon 685 y lanzamiento 2023-03 segun https://en.wikipedia.org/wiki/Redmi_Note_12; Redmi modernos son A/B con super"
+    confidence: "manual"
+
+  dandelion:
+    vendor: Xiaomi
+    marketing_name: Redmi 9A
+    soc_raw: MediaTek Helio G25
+    model_numbers: [220233L2G, M2006C3LC, M2006C3LG, M2006C3LI, M2006C3LVG]
+    android_version: 10
+    is_ab_device: false
+    release: 2020-06
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token dandelion y modelos M2006C3* segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Helio G25 y lanzamiento 2020-06 segun https://en.wikipedia.org/wiki/Redmi_9A; placa A-only MediaTek (por eso el flasheo exige scatter completo via BROM)"
+    confidence: "manual"
+
+  lancelot:
+    vendor: Xiaomi
+    marketing_name: Redmi 9
+    model_numbers: [M2004J19C, M2004J19G, M2004J19I]
+    is_ab_device: false
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token lancelot y modelos M2004J19C/G/I segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); Redmi 9 ya existia en la base via LineageOS (https://wiki.lineageos.org/devices/lancelot); placa A-only MediaTek"
+    confidence: "manual"
+
+  hanoip:
+    vendor: Motorola
+    marketing_name: moto g(60)
+    soc_raw: Qualcomm SM7150 Snapdragon 732G
+    model_numbers: [XT2135-1, XT2135-2, XT2147-1]
+    android_version: 11
+    is_ab_device: true
+    release: 2021-04
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token hanoip segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Snapdragon 732G, Android 11 y lanzamiento 2021-04 segun https://www.gsmarena.com/motorola_moto_g60-10861.php; modelos XT2135-1/2 (g60) y XT2147-1 (rebrand G40 Fusion) sobre la placa hanoip segun https://phonedb.net/index.php?m=device&id=18981; A/B con super segun patron de la epoca (todos los Motorola 2019+ en la base)"
+    confidence: "manual"
+
 # ---------------------------------------------------------------------------
 # Cola de curacion priorizada (generada por el reporte de brechas del pipeline).
 # Formato: codename | modelo | por que importa en Mexico | fuente sugerida
 # ---------------------------------------------------------------------------
+# Curadas el 2026-09-28: a32 (Galaxy A32, token a32), a22 (Galaxy A22, token a22),
+# m31s (Galaxy M31s, token m31s), tapas (Redmi Note 12 4G, token tapas),
+# dandelion (Redmi 9A; el codename 'spes' de la semilla era incorrecto),
+# lancelot (Redmi 9; el codename 'loki' de la semilla era incorrecto) y
+# hanoip (moto g(60); el codename 'xmail' de la semilla era incorrecto).
 TODO:
-  - codename: a32q
-    modelo: Galaxy A32
-    prioridad: alta
-    motivo: "volumen de ventas en Mexico; base de la familia A3x"
-    fuente_sugerida: "kernel repo Samsung OSS por modelo (SM-A325F)"
-  - codename: e225f
-    modelo: Galaxy A22
-    prioridad: alta
-    motivo: "gama baja media, muy comun en taller"
-    fuente_sugerida: "SM-A225F kernel source"
-  - codename: m31s
-    modelo: Galaxy M31s
-    prioridad: media
-    motivo: "mercado popular, SoC Exynos 9611"
-    fuente_sugerida: "SM-M317F kernel source"
-  - codename: tapas
-    modelo: Redmi Note 12 (4G)
-    prioridad: alta
-    motivo: "importado, muy pedido"
-    fuente_sugerida: "MiCode tapas-t"
-  - codename: spes
-    modelo: Redmi 9A
-    prioridad: alta
-    motivo: "volumen, SoC MediaTek (via BROM)"
-    fuente_sugerida: "MiCode spes"
-  - codename: loki
-    modelo: Redmi 9
-    prioridad: media
-    motivo: "volumen, Helio (via BROM)"
-    fuente_sugerida: "MiCode loki"
-  - codename: xmail
-    modelo: moto g(60)
-    prioridad: alta
-    motivo: "gama media MX, SoC 732G, A-only"
-    fuente_sugerida: "kernel source Motorola"
   - codename: lemon
     modelo: moto g(70)
     prioridad: media
-    motivo: "gama baja media MX, A-only + BROM"
-    fuente_sugerida: "kernel source Motorola"
+    motivo: "gama media-baja MX. Queda pendiente a proposito: no aparece en el catalogo GMS de Play (snapshot b49a26c6162e223a3a896485.bin), asi que no hay token verificable y crear una variante seria inventar su ro.product.device"
+    fuente_sugerida: "dump ro.product.device de una unidad real (Mexico); padron IFT con folio de homologacion"

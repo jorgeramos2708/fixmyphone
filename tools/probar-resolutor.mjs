@@ -188,7 +188,7 @@ check(
   } catch {
     variantes = 0;
   }
-  check("La base real abre y trae las 750 variantes", variantes === 750, `trajo ${variantes}`);
+  check("La base real abre y trae las 756 variantes", variantes === 756, `trajo ${variantes}`);
 
   const datos = join(dirTemp, "datos");
   const platform = new Platform({ catalog, dataDir: datos });
@@ -440,7 +440,7 @@ check(
   );
 
   // -------------------------------------------------------------------------
-  seccion("El barrido de las 750");
+  seccion("El barrido de las 756");
   // -------------------------------------------------------------------------
 
   // Cada codename de la base, con nada más que ese codename. Los únicos

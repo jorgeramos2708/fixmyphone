@@ -1,22 +1,22 @@
 # FixMyPhone - device-db run report
 
-Generado: 2026-09-28T20:34:45+00:00
+Generado: 2026-09-29T03:22:32+00:00
 
 ## Resumen
 
-- **Variantes (codename+variante)**: 750
+- **Variantes (codename+variante)**: 756
 
-- **Codenames unicos**: 621
+- **Codenames unicos**: 627
 
 - **Filas catalogo Play (GMS)**: 53994
 
 - **Tokens de runtime (ro.product.device)**: 37109
 
-- **Tokens Play sin equivalente LineageOS**: 36681
+- **Tokens Play sin equivalente LineageOS**: 36674
 
 - **Fabricantes con SoC identificado**: 9
 
-- **Brechas abiertas**: 902
+- **Brechas abiertas**: 908
 
 - **Conflictos**: 2
 
@@ -37,7 +37,7 @@ Generado: 2026-09-28T20:34:45+00:00
 |---|---|---|---|---|
 | lineageos | LineageOS wiki (_data/devices/*.yml) | https://github.com/LineageOS/lineage_wiki | CC BY-SA 3.0 | 732 |
 | play | Google Play certified devices (supported_devices.csv) | https://storage.googleapis.com/play_public/supported_devices.csv | Google public dataset | 53994 |
-| seed | FixMyPhone curated repair knowledge | internal | Proprietary (FixMyPhone) | 621 |
+| seed | FixMyPhone curated repair knowledge | internal | Proprietary (FixMyPhone) | 627 |
 | ift_oppo | Certificados IFT publicados por oppo (Mexico) | https://www.oppo.com/mx/ift/ | Fuente secundaria de la marca | 51 |
 | ift_motorola | Certificados IFT publicados por motorola (Mexico) | https://www.motorola.com.mx/ift/ | Fuente secundaria de la marca | 28 |
 
@@ -87,13 +87,13 @@ Generado: 2026-09-28T20:34:45+00:00
 
 | marca | en_lineageos | en_play | como_la_escribia_play |
 |---|---|---|---|
-| Samsung | 133 | 3426 | - |
+| Samsung | 136 | 3426 | - |
 | ZTE | 4 | 1805 | - |
 | Huawei | 9 | 1550 | - |
 | Alcatel | 0 | 1395 | TCT (Alcatel) |
 | LG | 60 | 1366 | LGE, LG_Electronics |
 | Vivo | 0 | 917 | Vivo, vivo |
-| Motorola | 95 | 898 | - |
+| Motorola | 96 | 898 | - |
 | Lenovo | 13 | 852 | - |
 | OPPO | 8 | 822 | - |
 | Hisense | 0 | 807 | Hisense |
@@ -107,7 +107,7 @@ Generado: 2026-09-28T20:34:45+00:00
 | ASUS | 17 | 406 | - |
 | Redmi | 0 | 367 | - |
 | Acer | 0 | 366 | Acer |
-| Xiaomi | 138 | 358 | - |
+| Xiaomi | 140 | 358 | - |
 | Archos | 0 | 352 | Archos |
 | Doogee | 0 | 351 | Doogee |
 | Oukitel | 0 | 348 | Oukitel |
@@ -136,8 +136,8 @@ Se leyeron 79 certificados de 2 marcas. Las demas no tienen una tabla de certifi
 | estado | variantes | que significa |
 |---|---|---|
 | homologado | 11 | Homologado por el IFT. Folio encontrado en la tabla de certificados de la marca. |
-| sin_verificar | 92 | No esta en el padron del IFT. Se busco en la tabla de certificados de la marca y el modelo no aparece; eso no significa  |
-| desconocido | 647 | No se ha buscado. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se consulto nada. No es |
+| sin_verificar | 93 | No esta en el padron del IFT. Se busco en la tabla de certificados de la marca y el modelo no aparece; eso no significa  |
+| desconocido | 652 | No se ha buscado. No hay una tabla de certificados del IFT accesible para esta marca, asi que no se consulto nada. No es |
 | no_soportado | 0 | Marcado como no soportado por confirmacion manual. Este equipo esta fuera del alcance de la herramienta. |
 
 
@@ -169,30 +169,29 @@ Variantes con folio encontrado:
 | rq3q | Galaxy A54 5G | OK | 1 | Samsung Exynos 1380 | A/B | True | recovery | top de ventas MX |
 | rq3a | Galaxy A14 | OK | 1 | Samsung Exynos 850 | A/B | True | recovery | top de ventas MX, muy barato de refaccionar |
 | a52q | Galaxy A52 | OK | 1 | Qualcomm SM7125 Snapdragon 720G | ? | True | recovery | muy comun en el mercado de reventa |
-| a32q | Galaxy A32 | FALTA | 0 | - | ? | - | - | volumen |
-| e225f | Galaxy A22 | FALTA | 0 | - | ? | - | - | gama baja media |
-| m31s | Galaxy M31s | FALTA | 0 | - | ? | - | - | mercado popular |
-| tapas | Redmi Note 12 | FALTA | 0 | - | ? | - | - | importado |
-| spes | Redmi 9A | FALTA | 0 | - | ? | - | - | muy voluminoso |
-| loki | Redmi 9 | FALTA | 0 | - | ? | - | - | muy voluminoso |
+| a32 | Galaxy A32 | OK | 1 | MediaTek Helio G80 | A-only | True | recovery | volumen |
+| a22 | Galaxy A22 | OK | 1 | MediaTek Helio G80 | A-only | True | recovery | gama baja media |
+| m31s | Galaxy M31s | OK | 1 | Samsung Exynos 9611 | A-only | None | recovery | mercado popular |
+| tapas | Redmi Note 12 (4G) | OK | 1 | Qualcomm SM6225 Snapdragon 685 | A/B | True | recovery | importado |
+| dandelion | Redmi 9A | OK | 1 | MediaTek Helio G25 | A-only | None | recovery | muy voluminoso |
+| lancelot | Redmi 9 | OK | 1 | Mediatek Helio G80 | A-only | True | recovery | muy voluminoso |
 | sweet | Redmi Note 9 Pro | OK | 3 | Qualcomm SM7150-AC Snapdragon 732G | ? | True | recovery | popular |
 | lavender | Redmi Note 9 | OK | 1 | Qualcomm SDM660 Snapdragon 660 | ? | True | recovery | popular |
-| capri | Redmi 9A (2020) | OK | 3 | Qualcomm SM4250 Snapdragon 460 | A/B | True | boot | volumen |
 | gauguin | Redmi Note 9 Pro (5G) | OK | 3 | Qualcomm SM7225 Snapdragon 750G 5G | ? | True | recovery | importado |
-| xmail | moto g(60) | FALTA | 0 | - | ? | - | - | gama media MX |
+| hanoip | moto g(60) | OK | 1 | Qualcomm SM7150 Snapdragon 732G | A/B | True | recovery | gama media MX |
 | lemon | moto g(70) | FALTA | 0 | - | ? | - | - | popular |
 | rhode | moto g(30) | OK | 1 | Qualcomm SM6225 Snapdragon 680 4G | A/B | True | boot | popular |
-| denver | moto g(9) play | OK | 1 | Qualcomm SM4350 Snapdragon 480 | A/B | True | boot | gama baja, muy comun |
+| guamp | moto g9 play | OK | 3 | Qualcomm SM6115 Snapdragon 662 | A/B | True | recovery | gama baja, muy comun |
 
 
 ## Brechas por tipo (que falta curar a mano)
 
 | tipo | casos |
 |---|---|
-| ab_desconocido | 468 |
-| sin_model_numbers | 243 |
-| dynamic_partitions_desconocido | 173 |
-| sin_recovery_partition | 18 |
+| ab_desconocido | 467 |
+| sin_model_numbers | 242 |
+| dynamic_partitions_desconocido | 175 |
+| sin_recovery_partition | 24 |
 
 
 ## Muestra de variantes (10 aleatorias deterministicas)

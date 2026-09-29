@@ -4,7 +4,7 @@
  *
  * POR QUE EXISTE ESTE SCRIPT
  * --------------------------
- * La app de escritorio abre el SQLite completo: 750 variantes, 12 MB. El
+ * La app de escritorio abre el SQLite completo: 756 variantes, 12 MB. El
  * navegador no puede abrir un SQLite sin WASM, asi que la demo web necesita una
  * copia en TypeScript. Ese archivo antes se generaba a mano, una sola vez, y por
  * eso termino con caracteres rotos en los acentos de la cabecera y sin forma de
