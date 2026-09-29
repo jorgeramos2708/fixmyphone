@@ -59,7 +59,7 @@ const nFuentes = db.prepare("SELECT COUNT(*) AS n FROM source").get();
 
 console.log("");
 console.log("Contenido de la base");
-check("756 variantes", Number(n.n) === 756, `hay ${n.n}`);
+check("763 variantes", Number(n.n) === 763, `hay ${n.n}`);
 check("alias registrados", Number(nAlias.n) > 40000, `hay ${nAlias.n}`);
 check("fuentes registradas", Number(nFuentes.n) >= 3, `hay ${nFuentes.n}`);
 
@@ -357,7 +357,7 @@ check(
 
 // --- El recorte de la maqueta no puede fabricar certeza ---------------------
 //
-// La maqueta web carga un recorte de 48 variantes en vez de las 756 de la base.
+// La maqueta web carga un recorte de 48 variantes en vez de las 763 de la base.
 // Ese recorte es un archivo generado, y hay una forma facil de corromperlo en la
 // que nada se rompe visiblemente: quedarse con UNA sola fila de un codename que
 // en la base tiene cuatro placas.
@@ -735,8 +735,8 @@ const sinVariante = db
   .prepare("SELECT COUNT(*) AS n FROM variant WHERE variant IS NULL OR variant = ''")
   .get();
 check(
-  "Hay variantes sin sufijo (540 de 756)",
-  Number(sinVariante.n) === 540,
+  "Hay variantes sin sufijo (547 de 763)",
+  Number(sinVariante.n) === 547,
   `hay ${sinVariante.n}`,
 );
 
@@ -776,7 +776,7 @@ check(
   noFechas.length === 0,
   `malos: ${noFechas.slice(0, 4).map((r) => JSON.stringify(r.release)).join(", ")}`,
 );
-// 720 de 756 tienen fecha. Las 36 restantes NO tienen fecha, y esa es la
+// 727 de 763 tienen fecha. Las 36 restantes NO tienen fecha, y esa es la
 // respuesta honesta: la fuente no la trae. Antes de la normalizacion, 32 de
 // esas 36 tenian algo en la columna que no era una fecha (el `repr` de un
 // diccionario, o un mes sin cero). Rellenarlas con una fecha inventada seria
@@ -784,7 +784,7 @@ check(
 const conFecha = db
   .prepare("SELECT COUNT(*) AS n FROM variant WHERE release IS NOT NULL AND release != ''")
   .get();
-check("720 de 756 variantes con fecha de lanzamiento", Number(conFecha.n) === 720, `hay ${conFecha.n}`);
+check("727 de 763 variantes con fecha de lanzamiento", Number(conFecha.n) === 727, `hay ${conFecha.n}`);
 
 db.close();
 

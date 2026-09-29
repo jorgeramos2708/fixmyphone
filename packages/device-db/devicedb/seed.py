@@ -196,6 +196,14 @@ MX_PRIORITY_DEVICES = [
     ("lemon", "Motorola", "moto g(70)", "popular"),
     ("rhode", "Motorola", "moto g(30)", "popular"),
     ("guamp", "Motorola", "moto g9 play", "gama baja, muy comun"),
+    # --- Primer lote realme/tecno (curado 2026-09-28) ---
+    ("RE58C2", "realme", "realme C53", "gama baja, volumen MX"),
+    ("RE58CE", "realme", "realme C53", "gama baja, volumen MX"),
+    ("REE2ADL1", "realme", "realme C55", "gama de entrada MX"),
+    ("RE5C91L1", "realme", "realme C67", "gama media MX"),
+    ("TECNO-KJ5", "Tecno", "TECNO Spark 20", "gama de entrada MX"),
+    ("TECNO-KJ5n", "Tecno", "TECNO Spark 20", "gama de entrada MX"),
+    ("TECNO-KJ5s", "Tecno", "TECNO Spark 20", "gama de entrada MX"),
 ]
 
 # Known-safe knowledge for a handful of flagship families where the repair

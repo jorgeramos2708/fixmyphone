@@ -113,7 +113,7 @@ cache que usa el pipeline.
 
 `sin_verificar` y `desconocido` estan separados a proposito y la prueba lo
 verifica: si fueran el mismo estado, el tooltip "no encontrado en el padron
-IFT" seria falso para 652 variantes a las que nadie busco.
+IFT" seria falso para 659 variantes a las que nadie busco.
 
 Un detalle del formato: **el numero de certificado es distinto en cada marca**
 (`JUOPCP26-00023609` en OPPO, `MOMOXT22-16676` en Motorola), el prefijo `IFT `
@@ -128,7 +128,7 @@ no generan aviso.
 |---|---|---|
 | `homologado` | 11 | las 11 son Motorola, con folio verificado contra la pagina |
 | `sin_verificar` | 93 | 85 Motorola + 8 OPPO: se buscaron, no aparecen |
-| `desconocido` | 652 | marcas sin tabla de certificados accesible |
+| `desconocido` | 659 | marcas sin tabla de certificados accesible |
 
 **OPPO da 0 de 8 y no es un bug.** LineageOS documenta el OPPO "International"
 con codigos internos (`f1f`, `R8106`, `R7Plus`, `X9077`), no con numeros CPH, y
@@ -179,8 +179,8 @@ Por cada variante:
 ## Estado real medido (corrida 2026-09-29)
 
 ```
-VARIANTES: 756    CODENAMES: 627    PLAY: 53,994    TOKENS: 37,109
-SoC por familia: qualcomm 594 | exynos 67 | nvidia 23 | mediatek 19 | amlogic 17 | tensor 16 | ti 13 | hisilicon 4 | intel 3
+VARIANTES: 763    CODENAMES: 634    PLAY: 53,994    TOKENS: 37,109
+SoC por familia: qualcomm 595 | exynos 67 | mediatek 23 | nvidia 23 | amlogic 17 | tensor 16 | ti 13 | hisilicon 4 | intel 3 | unisoc 2
 ```
 
 ### La brecha que queda, en numeros
@@ -192,7 +192,10 @@ SoC por familia: qualcomm 594 | exynos 67 | nvidia 23 | mediatek 19 | amlogic 17
 | Sony | 44 | 534 | 8% |
 | Huawei | 9 | 1,550 | 0.6% |
 | ZTE | 4 | 1,805 | 0.2% |
-| Oppo / Vivo / Realme / Tecno | 0 | 822 / 740 / 470 | **0%** |
+| OPPO | 8 | 822 | cubierta por Play, sin LineageOS |
+| Realme | 11 (4 curadas 2026-09-28) | 424 | C53, C55 y C67 curadas a mano |
+| Tecno | 3 (curadas 2026-09-28) | 485 | Spark 20 (KJ5/KJ5n/KJ5s) curadas a mano |
+| Vivo | 0 | 917 | **0%** |
 
 Conclusion honesta: **las fuentes publicas cubren profundidad en ~600 modelos
 (flagship y gama media-alta) y amplitud de ~37,000 tokens sin SoC.** El hueco

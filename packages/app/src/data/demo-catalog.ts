@@ -10,7 +10,7 @@
  *
  * POR QUE EXISTE
  * --------------
- * La app de escritorio abre el SQLite completo: 756 variantes, 14 MB. El
+ * La app de escritorio abre el SQLite completo: 763 variantes, 14 MB. El
  * navegador no puede abrir un SQLite sin WASM, asi que la demo web carga este
  * recorte de 48 variantes.
  * Los datos son REALES: si la app dice "Exynos 1380" es porque el catalogo lo

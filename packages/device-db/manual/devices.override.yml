@@ -312,6 +312,102 @@ devices:
     evidence: "token hanoip segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Snapdragon 732G, Android 11 y lanzamiento 2021-04 segun https://www.gsmarena.com/motorola_moto_g60-10861.php; modelos XT2135-1/2 (g60) y XT2147-1 (rebrand G40 Fusion) sobre la placa hanoip segun https://phonedb.net/index.php?m=device&id=18981; A/B con super segun patron de la epoca (todos los Motorola 2019+ en la base)"
     confidence: "manual"
 
+  # --- Primer lote realme/tecno (curado 2026-09-28): cierra la brecha de
+  # cobertura MX de estas dos marcas. Clave = token GMS (ro.product.device).
+  # Nota: RMX3761 es el narzo N53 (token RE58C6), NO el C53; no mezclar.
+  RE58C2:
+    vendor: realme
+    marketing_name: realme C53
+    soc_raw: Unisoc Tiger T612
+    model_numbers: [RMX3760]
+    device_tokens: [RE58C2]
+    android_version: 13
+    is_ab_device: true
+    recovery_partition_name: vendor_boot
+    release: 2023-05-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token RE58C2 y modelo RMX3760 segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Unisoc Tiger T612, Android 13 Realme UI T y lanzamiento 2023-05-31 segun https://www.gsmarena.com/realme_c53-12310.php; A/B real (no virtual simulada) con recovery dentro de vendor_boot segun https://github.com/Gopartner/twrp-rmx3760 (README: 'Slots: A/B', flash vendor_boot_a/vendor_boot_b, build realme/RMX3760/RE58C2)"
+    confidence: "manual"
+
+  RE58CE:
+    vendor: realme
+    marketing_name: realme C53
+    soc_raw: Unisoc Tiger T612
+    model_numbers: [RMX3762]
+    device_tokens: [RE58CE]
+    android_version: 13
+    is_ab_device: true
+    recovery_partition_name: vendor_boot
+    release: 2023-05-31
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token RE58CE y modelo RMX3762 segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); misma placa que RE58C2 (realme C53, Unisoc T612) segun https://www.gsmarena.com/realme_c53-12310.php; A/B y recovery en vendor_boot identicas a la hermana RE58C2 (ver evidencia de RE58C2; RMX3762 es la variante de mercado de la misma placa)"
+    confidence: "manual"
+
+  REE2ADL1:
+    vendor: realme
+    marketing_name: realme C55
+    soc_raw: MediaTek MT6769H Helio G88
+    model_numbers: [RMX3710]
+    device_tokens: [REE2ADL1]
+    android_version: 13
+    is_ab_device: true
+    release: 2023-03-08
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token REE2ADL1 y modelo RMX3710 segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC MediaTek MT6769H Helio G88, Android 13 Realme UI 4.0 y lanzamiento 2023-03-08 segun https://www.gsmarena.com/realme_c55-12159.php; A/B con particiones dinamicas realme_dynamic_partitions segun https://raw.githubusercontent.com/Ridhoardhiansyah7/twrp_device_realme_c55/crypto-12.1/Partitions.mk (AB_OTA_UPDATER := true, vendor_boot en AB_OTA_PARTITIONS, TARGET_NO_RECOVERY + BOARD_USES_RECOVERY_AS_BOOT)"
+    confidence: "manual"
+
+  RE5C91L1:
+    vendor: realme
+    marketing_name: realme C67
+    soc_raw: Qualcomm SM6225 Snapdragon 685
+    model_numbers: [RMX3890]
+    device_tokens: [RE5C91L1]
+    android_version: 14
+    is_ab_device: true
+    release: 2023-12-19
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token RE5C91L1 y modelo RMX3890 segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC Qualcomm SM6225 Snapdragon 685, Android 14 Realme UI y lanzamiento 2023-12-19 segun https://www.gsmarena.com/realme_c67_4g-12741.php; A/B con super segun https://raw.githubusercontent.com/twrpdtgen/android_device_realme_RE5C91L1/RMX3890-user-14-UKQ1.230917.001-U.R4T2.202312082156-release-keys/BoardConfig.mk (AB_OTA_UPDATER := true, BOARD_USES_RECOVERY_AS_BOOT := true, header v4)"
+    confidence: "manual"
+
+  TECNO-KJ5:
+    vendor: Tecno
+    marketing_name: TECNO Spark 20
+    soc_raw: MediaTek MT6769Z Helio G85
+    model_numbers: [TECNO KJ5]
+    device_tokens: [TECNO-KJ5]
+    android_version: 13
+    is_ab_device: true
+    release: 2023-12-01
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token TECNO-KJ5 y modelo 'TECNO KJ5' segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); SoC MediaTek MT6769Z Helio G85, Android 13 HiOS 13 y anuncio 2023-12-01 segun https://www.gsmarena.com/tecno_spark_20-12722.php; A/B con super y recovery-as-boot segun https://raw.githubusercontent.com/twrpdtgen/android_device_tecno_TECNO-KJ5/vnd_kj5_h6931-user-12-SP1A.210812.016-927824-release-keys/BoardConfig.mk (AB_OTA_UPDATER := true, board boot header v4, BOARD_USES_RECOVERY_AS_BOOT := true)"
+    confidence: "manual"
+
+  TECNO-KJ5n:
+    vendor: Tecno
+    marketing_name: TECNO Spark 20
+    soc_raw: MediaTek MT6769Z Helio G85
+    model_numbers: [TECNO KJ5n]
+    device_tokens: [TECNO-KJ5n]
+    android_version: 13
+    is_ab_device: true
+    release: 2023-12-01
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token TECNO-KJ5n y modelo 'TECNO KJ5n' segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin); KSJ5n esta listada como modelo del TECNO Spark 20 por https://www.gsmarena.com/tecno_spark_20-12722.php; misma placa que TECNO-KJ5 (Helio G85, Android 13 HiOS), A/B identico segun el tree de TECNO-KJ5 citado en la evidencia de KJ5"
+    confidence: "manual"
+
+  TECNO-KJ5s:
+    vendor: Tecno
+    marketing_name: TECNO Spark 20
+    soc_raw: MediaTek MT6769Z Helio G85
+    model_numbers: [TECNO KJ5s]
+    device_tokens: [TECNO-KJ5s]
+    android_version: 13
+    is_ab_device: true
+    release: 2023-12-01
+    verified_by: "curacion@fixmyphone 2026-09-28"
+    evidence: "token TECNO-KJ5s y modelo 'TECNO KJ5s' segun catalogo GMS de Google Play (https://storage.googleapis.com/play_public/supported_devices.csv, snapshot b49a26c6162e223a3a896485.bin; variante regional del Spark 20 que GSMArena no lista por separado); misma placa que TECNO-KJ5 (Helio G85, Android 13 HiOS), A/B identico segun el tree de TECNO-KJ5 citado en la evidencia de KJ5"
+    confidence: "manual"
+
 # ---------------------------------------------------------------------------
 # Cola de curacion priorizada (generada por el reporte de brechas del pipeline).
 # Formato: codename | modelo | por que importa en Mexico | fuente sugerida
@@ -321,6 +417,11 @@ devices:
 # dandelion (Redmi 9A; el codename 'spes' de la semilla era incorrecto),
 # lancelot (Redmi 9; el codename 'loki' de la semilla era incorrecto) y
 # hanoip (moto g(60); el codename 'xmail' de la semilla era incorrecto).
+# Primer lote realme/tecno: RE58C2, RE58CE (realme C53), REE2ADL1 (realme C55),
+# RE5C91L1 (realme C67) y TECNO-KJ5/KJ5n/KJ5s (TECNO Spark 20).
+# Sigue faltando cobertura MX de: honor (0 variantes), vivo (0), infinix (0),
+# itel (0). OPPO A17 quedo fuera del lote: su unica evidencia A/B son guias
+# TWRP comunitarias sin contenido citable.
 TODO:
   - codename: lemon
     modelo: moto g(70)
@@ -340,3 +441,65 @@ TODO:
       Con esas props se redacta la entrada igual que a32/a22/hanoip (con
       verified_by + evidence citando la unidad) y se borra este item del TODO.
       Sin la unidad, NO se cura: falta el codename y seria inventarlo.
+  - codename: HNLLY-Q
+    modelo: Honor X8b
+    prioridad: alta
+    motivo: "Honor es marca con volumen MX y hoy tiene 0 variantes. El token GMS existe (HNLLY-Q; modelos LLY-LX1/LX2/LX3) pero NO hay arbol twrpdtgen ni dump A/B citable en el snapshot, y sin is_ab_device verificado subiria ab_desconocido"
+    fuente_sugerida: "https://www.gsmarena.com/honor_x8b-12748.php (SD680, A13, 2023-12-22) + arbol de recuperacion o dump ro.boot.slotsuffix de una unidad real"
+    como_curarla: |-
+      Conseguir A/B citable: bootloader de un Honor X8b real y leer
+      'ro.boot.slotsuffix'; o un arbol twrpdtgen/android_device_honor_HNLLY-Q.
+      Con A/B confirmado se copia la entrada de RE58C2 (mismo patrón:
+      valor comercial A13, release 2023-12-22, soc_raw Snapdragon 680,
+      model_numbers [LLY-LX1, LLY-LX2, LLY-LX3], device_tokens [HNLLY-Q]).
+  - codename: HNRMO-Q
+    modelo: Honor X9a 5G / Magic5 Lite
+    prioridad: media
+    motivo: "RMO-NX1 (X9a 5G) y RMO-NX3 (Magic5 Lite) comparten token HNRMO-Q. Token GMS listo; falta A/B citable (Honor 0 variantes)"
+    fuente_sugerida: "https://www.gsmarena.com/honor_x9a-12075.php (SD695, A12->13, 2023-01-06) + arbol de recuperacion o dump real"
+    como_curarla: |-
+      Igual que HNLLY-Q: confirmar A/B (ro.boot.slotsuffix o arbol twrpdtgen).
+      model_numbers [RMO-NX1, RMO-NX3]; soc_raw Snapdragon 695;
+      release 2023-01-06.
+  - codename: HNCLK-Q
+    modelo: Honor X7b
+    prioridad: media
+    motivo: "Token GMS listo (HNCLK-Q; CLK-LX1/LX2/LX3). Falta A/B citable (Honor 0 variantes)"
+    fuente_sugerida: "https://www.gsmarena.com/honor_x7b-12721.php (SD680, A13, 2023-12-01) + arbol de recuperacion o dump real"
+    como_curarla: |-
+      Igual que HNLLY-Q: confirmar A/B. model_numbers [CLK-LX1, CLK-LX2,
+      CLK-LX3]; soc_raw Snapdragon 680; release 2023-12-01.
+  - codename: HNREA
+    modelo: Honor 90
+    prioridad: media
+    motivo: "Token GMS listo (HNREA; REA-NX9). Falta A/B citable (Honor 0 variantes)"
+    fuente_sugerida: "https://www.gsmarena.com/honor_90-12297.php (Snapdragon 7 Gen 1, A13, 2023-06-07) + arbol de recuperacion o dump real"
+    como_curarla: |-
+      Igual que HNLLY-Q: confirmar A/B. model_numbers [REA-NX9];
+      soc_raw Snapdragon 7 Gen 1; release 2023-06-07.
+  - codename: V2247
+    modelo: vivo Y36
+    prioridad: media
+    motivo: "vivo tiene 0 variantes en la base. Token GMS listo (V2247) pero sin A/B citable"
+    fuente_sugerida: "https://www.gsmarena.com/vivo_y36-12374.php (SD680, A13, 2023-05-27) + arbol de recuperacion o dump real"
+    como_curarla: |-
+      Igual que HNLLY-Q: confirmar A/B. model_numbers [V2247]; soc_raw
+      Snapdragon 680; release 2023-05-27.
+  - codename: OP56F5
+    modelo: OPPO A17 / A17k
+    prioridad: media
+    motivo: "Quedo fuera del lote realme/tecno: la unica evidencia A/B (recovery_a/recovery_b) viene de guias TWRP comunitarias de contenido debil, no verificable en el snapshot"
+    fuente_sugerida: "https://www.gsmarena.com/oppo_a17-11902.php (Helio G35, A12, 2022-09-26) + dump real ro.boot.slotsuffix de CPH2477 (A17) / CPH2471 (A17k)"
+    como_curarla: |-
+      Confirmar A/B con una unidad real antes de curar: ro.boot.slotsuffix
+      no vacio => is_ab_device: true. model_numbers [CPH2477, CPH2471];
+      soc_raw MediaTek Helio G35; release 2022-09-26.
+  - codename: FALTA
+    modelo: Infinix / itel (cobertura 0)
+    prioridad: baja
+    motivo: "Infinix e itel (grupo Transsion) no tienen ninguna variante en la base y son marcas crecientes en gama baja MX"
+    fuente_sugerida: "catalogo GMS de Play (buscar tokens tipo Infinix-* / itel-* en el snapshot b49a26c6162e223a3a896485.bin) + dump real del modelo de venta"
+    como_curarla: |-
+      Localizar los tokens GMS de los modelos de venta MX (ej. Infinix Hot 40,
+      itel A70) en el snapshot; confirmar SoC y A/B con GSMArena + arbol de
+      recuperacion o dump real; redactar entradas igual que TECNO-KJ5.
