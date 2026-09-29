@@ -7,6 +7,7 @@
  *   fmp-license keygen
  *   fmp-license issue --tier premium --subject "Taller Pérez" --days 365 --out t.fmp
  *   fmp-license verify t.fmp
+ *   fmp-license verify-informe informe.txt --clave <huella> --emisor
  *   fmp-license machine-id
  *   fmp-license public-key
  *   fmp-license demo --out demo-premium.fmp
@@ -38,6 +39,7 @@ import {
   type LicenseTier,
 } from "./index.ts";
 import { machineIdParts } from "./machine.ts";
+import { verifyReport } from "./report-signature.ts";
 
 const FMP_DIR = join(homedir(), ".fixmyphone");
 const KEY_PATH = join(FMP_DIR, "issuer.key");
@@ -402,6 +404,169 @@ function cmdDemo(flags: Map<string, string>): void {
   info(`  Get-Content ${out} -Raw | Set-Clipboard`);
 }
 
+/**
+ * Verifica la firma de un INFORME exportado.
+ *
+ * Esto es lo que hace real la promesa del producto. La app promete que el
+ * informe del premium va firmado y que cualquiera puede comprobar que no lo
+ * tocaron; este comando es el "cualquiera", y tiene que servir para las dos
+ * preguntas que se le van a hacer, que no son la misma:
+ *
+ *   1. ¿El archivo está intacto?         → se responde siempre, y no prueba
+ *                                          quién lo firmó.
+ *   2. ¿Lo firmó el taller que dice?     → hace falta una clave de FUERA del
+ *                                          archivo: la huella o la clave
+ *                                          pública que da el taller.
+ *
+ * La distinción es el punto entero del comando. Un verificador que saca la
+ * clave del propio archivo dice "válido" de cualquier informe, incluido uno
+ * fabricado a mano con una clave generada en un minuto. Por eso aquí, cuando
+ * no se pasó `--clave`, se dice con todas las letras que la atribución no está
+ * comprobada. Es incomodo leerlo y es la verdad: el técnico que se lleva este
+ * "válido" a una disputa necesita saber qué prueba y de qué.
+ */
+function cmdVerifyInforme(positional: string[], flags: Map<string, string>): void {
+  const archivo = positional[0];
+  if (!archivo) die("Uso: fmp-license verify-informe <informe.txt>");
+  if (!existsSync(archivo)) die(`No existe el archivo ${archivo}`);
+
+  const texto = readFileSync(archivo, "utf8");
+  head(`Verificación del informe ${archivo}`);
+
+  // --- Qué clave se espera ------------------------------------------------
+  //
+  // Se aceptan las dos formas porque son las dos que el técnico tiene a la
+  // mano: la huella de 32 hex, que es lo que va impreso en la factura y en la
+  // pantalla de licencia, y la clave en base64url, que es lo que se copia del
+  // bloque de la firma o de un archivo de texto.
+  const pedida = flags.get("clave")?.trim();
+  let esperada: Buffer | null = null;
+  let kidEsperada: string | null = null;
+
+  if (pedida) {
+    if (/^[0-9A-F]{32}$/i.test(pedida)) {
+      kidEsperada = pedida.toUpperCase();
+    } else if (/^[A-Za-z0-9_-]{43}$/.test(pedida)) {
+      esperada = Buffer.from(pedida, "base64url");
+      if (esperada.length !== 32) die(`La clave de --clave no son 32 bytes: ${esperada.length}.`);
+    } else {
+      die(
+        `--clave debe ser la huella (32 hex, como 4F3A9C…) o la clave pública\n` +
+          `  en base64url (43 caracteres).\n` +
+          `  recibido: ${pedida}`,
+      );
+    }
+  }
+
+  const r = verifyReport(texto, esperada ? { publicKey: esperada } : {});
+
+  // Una huella esperada no es una clave: no se puede verificar contra ella, se
+  // compara. La huella es el SHA-256 de la clave, así que si coincide, la clave
+  // del archivo es la esperada y verificar contra ella es lo mismo. Si no
+  // coincide, se dice cuál es la de cada lado, que es justo lo que sirve para
+  // detectar que se está mirando el informe de otro taller.
+  if (kidEsperada) {
+    const kidDelArchivo = r.meta?.kid ?? "";
+    if (kidDelArchivo !== kidEsperada) {
+      err("Lo firmó otra clave.");
+      info(`  esperada   ${kidEsperada}`);
+      info(`  en archivo ${kidDelArchivo || "(no se pudo leer)"}`);
+      info("");
+      info("O el informe no es del taller que te dijeron, o la huella que");
+      info("te pasaron está mal. Pide el archivo original y la huella otra vez.");
+      process.exitCode = 1;
+      return;
+    }
+    info("Huella esperada: coincide con la del archivo.");
+  }
+
+  /**
+   * Si se puede atribuir.
+   *
+   * `verifyReport` solo sabe que se le pasó una clave o que no. Cuando lo que
+   * se pasó fue una HUELLA y coincidió, la atribución también vale —la huella
+   * es el SHA-256 de la clave, así que si coincide la clave del archivo es la
+   * esperada—, pero `verifyReport` no tiene cómo saberlo. Decirle al técnico
+   * que su informe no se puede atribuir cuando acaba de comparar la huella
+   * sería el mismo error de antes, escondido en una palabra.
+   */
+  const atribuible = Boolean(esperada) || Boolean(kidEsperada);
+
+  if (r.meta) {
+    console.log(`  Herramienta  ${r.meta.tool}`);
+    console.log(`  Firmado      ${new Date(r.meta.signed_at).toLocaleString("es-MX")}`);
+    console.log(`  Licencia     ${r.meta.license ? `${r.meta.license.id} (${r.meta.license.tier} - ${r.meta.license.subject})` : "ninguna: plan gratuito"}`);
+  }
+
+  if (!r.ok) {
+    err(`Inválido: ${r.message}`);
+    if (r.problem === "reescrito" && r.intactoTrasReescribir) {
+      console.log("");
+      info("El CONTENIDO sí es el que se firmó: lo que cambió fueron los bytes de");
+      info("fin de archivo. Abrirlo y guardarlo otra vez lo rompió. Vuelve a pedir");
+      info("el informe al taller y no lo reescribas.");
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  ok(`Firma válida · huella ${r.meta?.kid ?? "(sin leer)"}`);
+
+  if (!atribuible) {
+    console.log("");
+    warn("Esto prueba que el archivo no fue alterado. NO prueba quién lo firmó.");
+    info("La clave se sacó del propio archivo, así que cualquiera que genere un");
+    info("par de claves obtiene el mismo \"válido\" con un informe inventado.");
+    info("");
+    info("Para comprobar el quién, pásale la huella que te da el taller:");
+    info(`  fmp-license verify-informe "${archivo}" --clave ${r.meta?.kid ?? "<huella>"}`);
+  } else {
+    console.log("");
+    ok("Y lo firmó la clave que indicaste: sí se puede atribuir a ese taller.");
+  }
+
+  // --- La cadena: ¿la licencia la firmó FixMyPhone? ----------------------
+  //
+  // El informe lo firmó la instalación, y eso solo prueba integridad. Lo que
+  // ata el archivo a una licencia que EMITIÓ FixMyPhone es el sobre que viaja
+  // dentro del propio bloque de firma, firmado con la clave del fabricante.
+  // Sin este paso, un informe firmado por un taller sin licencia es
+  // indistinguible de uno con licencia.
+  if (flags.get("emisor") !== undefined) {
+    console.log("");
+    if (!r.meta?.license) {
+      err("No hay licencia dentro de la firma: no hay cadena que comprobar.");
+      info("El informe se generó sin licencia (plan gratuito).");
+      process.exitCode = 1;
+      return;
+    }
+
+    const claveEmisor = publicKeyDeLaApp() ?? publicKeyOfIssuer(flags);
+    const contraLaApp = publicKeyDeLaApp() !== null;
+    if (!contraLaApp) {
+      warn("No se encontró public-key.ts: se usa la clave local del emisor.");
+      info("Eso solo prueba que la firma cuadra con esta clave, no con la de la app.");
+    }
+
+    const lic = verifyLicense({
+      envelope: r.meta.license.envelope,
+      publicKey: claveEmisor,
+      // Sin atadura: el informe se puede abrir desde cualquier equipo, y una
+      // comprobación que exigiera el id de esta máquina rechazaría el informe
+      // en el taller del cliente sin que eso diga nada sobre la licencia.
+    });
+    if (lic.ok) {
+      ok("Cadena completa: esa licencia la firmó FixMyPhone.");
+      console.log(`  Titular  ${lic.payload!.subject}`);
+      console.log(`  Nivel    ${lic.payload!.tier}`);
+      console.log(`  Vence    ${new Date(lic.payload!.exp * 1000).toLocaleDateString("es-MX")}`);
+    } else {
+      err(`La licencia dentro del informe NO verifica: ${lic.message}`);
+      process.exitCode = 1;
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Utilidades internas
 // ---------------------------------------------------------------------------
@@ -494,6 +659,15 @@ fmp-license — licencias de FixMyPhone
       contra la clave local del emisor y eso solo prueba que la firma es
       coherente consigo misma.
 
+  fmp-license verify-informe informe.txt
+      Comprueba la firma de un informe exportado.
+      Sin banderas solo prueba que el archivo no fue alterado: la clave se
+      saca del propio informe, así que eso NO dice quién lo firmó.
+      Con --clave <huella-32-hex> o --clave <clave-base64url> sí comprueba
+      quién lo firmó, comparando contra una clave de fuera.
+      Con --emisor además comprueba, contra la clave de FixMyPhone, la
+      licencia que va dentro de la propia firma.
+
   fmp-license machine-id
       Imprime el identificador de ESTE equipo, para atar una licencia.
       El técnico lo lee en la pantalla de licencia de la app y te lo dicta.
@@ -549,6 +723,9 @@ try {
       break;
     case "verify":
       cmdVerify(positional.slice(1), flags);
+      break;
+    case "verify-informe":
+      cmdVerifyInforme(positional.slice(1), flags);
       break;
     case "machine-id":
       cmdMachineId();

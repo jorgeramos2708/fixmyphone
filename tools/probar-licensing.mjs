@@ -32,6 +32,14 @@ import {
   licenseId,
   verifyLicense,
 } from "../packages/licensing/src/index.ts";
+import {
+  SIGNATURE_BEGIN,
+  SIGNATURE_END,
+  keyFingerprint,
+  reportLicense,
+  signReport,
+  verifyReport,
+} from "../packages/licensing/src/report-signature.ts";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 
@@ -267,6 +275,331 @@ check("Free trae marca de agua", TIER_FEATURES.free.includes("report_watermark")
 check("Free NO trae informe firmado", !TIER_FEATURES.free.includes("report_signature"));
 check("Premium trae informe firmado", TIER_FEATURES.premium.includes("report_signature"));
 check("Premium NO trae tope diario", !TIER_FEATURES.premium.includes("diagnostics_daily_limit"));
+// Esta lista se escribe DENTRO de la licencia que recibe el cliente. Un nombre
+// aqui es una promesa de venta, no una nota interna: por eso la lista se
+// compara contra lo que de verdad existe en el codigo y el fallo sale a la vista si
+// alguien agrega una feature sin implementarla.
+check(
+  "Las funciones premium son exactamente las que existen",
+  JSON.stringify(TIER_FEATURES.premium) ===
+    JSON.stringify(["diagnostics_unlimited", "report_signature"]),
+  `declaradas: ${TIER_FEATURES.premium.join(", ")}`,
+);
+check(
+  "Ningun nivel declara una funcion del otro",
+  !TIER_FEATURES.free.some((f) => TIER_FEATURES.premium.includes(f)),
+  `free: ${TIER_FEATURES.free.join(", ")} | premium: ${TIER_FEATURES.premium.join(", ")}`,
+);
+
+// ---------------------------------------------------------------------------
+console.log("\nFirma del informe: el camino feliz");
+// ---------------------------------------------------------------------------
+// El informe premium se firma con la clave de la INSTALACION, no con la del
+// fabricante. No es un detalle: una clave del fabricante dentro de un `.exe` que
+// se reparte la puede extraer cualquiera y firmar informes falsos, y entonces
+// la firma no prueba nada. La cadena que si se puede probar entera es:
+// FixMyPhone firmo la licencia, la licencia va dentro del informe, y el
+// informe lo firmo el taller.
+const par = generateKeyPair();
+const kid = keyFingerprint(par.publicKey);
+
+const cuerpo = [
+  "FIXMYPHONE - Informe de identificacion y diagnostico",
+  "=".repeat(66),
+  "  Equipo          realme C53 (realme)",
+  "  Numero de serie  ABCD1234",
+  "  Licencia        premium - Taller Perez - Guadalajara",
+  "",
+  "Fin del informe.",
+  "",
+].join("\n");
+
+const firmado = signReport(cuerpo, {
+  privateKey: par.privateKey,
+  tool: "FixMyPhone 0.1.0",
+  signedAt: new Date("2026-01-02T03:04:05.000Z"),
+  license: reportLicense(premium, "premium", "Taller Perez - Guadalajara"),
+});
+
+const rF1 = verifyReport(firmado);
+check("El informe firmado verifica", rF1.ok, rF1.message);
+check("Sin clave esperada la atribucion NO esta comprobada", rF1.clave === "propia", rF1.clave ?? "");
+check(
+  "Y el mensaje lo dice con palabras, no lo deja pasar",
+  /no (dice|sirve)/i.test(rF1.message) && /firma v/i.test(rF1.message),
+  rF1.message,
+);
+
+const rF2 = verifyReport(firmado, { publicKey: par.publicKey });
+check("Con la clave esperada si verifica", rF2.ok, rF2.message);
+check("Y ahora si se puede atribuir", rF2.clave === "esperada", rF2.clave ?? "");
+
+const rF3 = verifyReport(firmado, { publicKey: otra.publicKey });
+check("Con la clave de OTRO taller NO verifica", !rF3.ok, `devolvio ok=${rF3.ok}`);
+check("El motivo dice que es otra clave", rF3.problem === "clave_distinta", rF3.problem ?? "");
+
+// La huella es el SHA-256 de la clave publica, tal cual. Se recalcula aqui a
+// mano con la misma formula que el id de equipo, para que un cambio en la
+// formula no se note por cambiar el codigo y la prueba a la vez: si la huella
+// dejara de ser el hash de la clave, el tecnico publicaria un numero que no
+// corresponde a nada y el cliente no podria comprobar nunca.
+check(
+  "La huella es el SHA-256 de la clave publica",
+  kid === createHash("sha256").update(par.publicKey).digest("hex").slice(0, 32).toUpperCase(),
+  kid,
+);
+check("Son 32 hex en mayuscula", /^[0-9A-F]{32}$/.test(kid), kid);
+check("La huella del bloque es esa", rF1.meta?.kid === kid, rF1.meta?.kid ?? "");
+check("Dos claves distintas, huellas distintas", kid !== keyFingerprint(otra.publicKey));
+
+// El cuerpo firmado es EXACTO: si el archivo trae un byte de mas, la firma se
+// cae. Es lo que hace que "no se altero" sea una afirmacion y no un deseo.
+check(
+  "El contenido firmado esta dentro del archivo",
+  firmado.startsWith(cuerpo) &&
+    firmado.includes(SIGNATURE_BEGIN) &&
+    firmado.trimEnd().endsWith(SIGNATURE_END),
+);
+
+// Firmar dos veces lo mismo da el mismo archivo. Sin esta propiedad no se
+// puede demostrar nada sobre el archivo: se podria "volver a firmar" un
+// informe alterado sin que nadie notara el cambio.
+const firmado2 = signReport(cuerpo, {
+  privateKey: par.privateKey,
+  tool: "FixMyPhone 0.1.0",
+  signedAt: new Date("2026-01-02T03:04:05.000Z"),
+  license: reportLicense(premium, "premium", "Taller Perez - Guadalajara"),
+});
+check("Firmar dos veces lo mismo da el mismo archivo", firmado === firmado2);
+
+// --- La licencia viaja dentro de la firma ---------------------------------
+check("La licencia va dentro del bloque de firma", rF1.meta?.license !== null);
+check(
+  "Y es la MISMA licencia, con su sobre intacto",
+  rF1.meta?.license?.envelope.payload === premium.payload &&
+    rF1.meta?.license?.envelope.signature === premium.signature,
+);
+check("Su id es el licenseId del sobre", rF1.meta?.license?.id === licenseId(premium));
+check(
+  "La licencia embebida verifica contra la clave del emisor",
+  verifyLicense({ envelope: rF1.meta.license.envelope, publicKey: mia.publicKey }).ok,
+  "si esto falla, el informe firmado no prueba que el taller tenga licencia",
+);
+check(
+  "Y NO verifica contra otra clave de emisor",
+  !verifyLicense({ envelope: rF1.meta.license.envelope, publicKey: otra.publicKey }).ok,
+);
+
+// Sin licencia (plan gratuito) el bloque se firma igual y lo dice, en vez de
+// fingir que hay una. El premium es el unico que se firma, pero el bloque tiene
+// que poder decir la verdad en los dos casos.
+const firmadoGratis = signReport(cuerpo, {
+  privateKey: par.privateKey,
+  tool: "FixMyPhone 0.1.0",
+  signedAt: new Date("2026-01-02T03:04:05.000Z"),
+});
+check("Sin licencia el bloque dice que no hay", firmadoGratis.includes("ninguna: plan gratuito"));
+check("Y el metadato va en null, no inventado", verifyReport(firmadoGratis).meta?.license === null);
+
+// ---------------------------------------------------------------------------
+console.log("\nAtaque 5: editar el contenido del informe");
+// ---------------------------------------------------------------------------
+// Es el ataque de siempre y el que la firma existe para parar: el informe es
+// texto plano, se abre con el bloc de notas, y cambiar una linea por otra es
+// cuestion de un segundo.
+{
+  const editado = firmado.replace(
+    "  Licencia        premium - Taller Perez - Guadalajara",
+    "  Licencia        premium - Taller Robado",
+  );
+  const r = verifyReport(editado);
+  check("El contenido editado NO verifica", !r.ok, `devolvio ok=${r.ok}`);
+  check("El motivo es la firma, no otra cosa", r.problem === "firma_invalida", r.problem ?? "");
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nAtaque 6: cambiar lo que el bloque AFIRMA");
+// ---------------------------------------------------------------------------
+// El cuerpo se puede dejar intacto y cambiar los metadatos. Si la huella, el
+// id de licencia o la fecha vivieran FUERA de la firma, esto pasaria
+// desapercibido: bastaria editar el JSON y el verificador lo aceptaria.
+for (const [nombre, busqueda, reemplazo] of [
+  ["la huella", `"kid":"${kid}"`, '"kid":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"'],
+  ["el id de licencia", `"id":"${licenseId(premium)}"`, '"id":"0000000000000000"'],
+  [
+    "la fecha de firma",
+    '"signed_at":"2026-01-02T03:04:05.000Z"',
+    '"signed_at":"2030-01-02T03:04:05.000Z"',
+  ],
+  ["la version de la herramienta", '"tool":"FixMyPhone 0.1.0"', '"tool":"FixMyPhone 9.9.9"'],
+]) {
+  const alterado = firmado.replace(busqueda, reemplazo);
+  const r = verifyReport(alterado);
+  check(
+    `Cambiar ${nombre} en el bloque lo invalida`,
+    alterado !== firmado && !r.ok,
+    `cambio=${alterado !== firmado} ok=${r.ok}`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nAtaque 7: un informe entero hecho por otro");
+// ---------------------------------------------------------------------------
+// El atacante tiene su propio par de claves, escribe un informe FALSO y lo
+// firma con su clave. La autocomprobacion da verde, porque la firma es
+// coherente consigo misma: eso es inevitable en cualquier firma, y por eso la
+// comprobacion tiene que poder recibir una clave de fuera.
+{
+  const atacante = generateKeyPair();
+  const falso = signReport(cuerpo.replace("realme C53", "iPhone 15 Pro Max"), {
+    privateKey: atacante.privateKey,
+    tool: "FixMyPhone 0.1.0",
+    signedAt: new Date("2026-01-02T03:04:05.000Z"),
+  });
+  const r = verifyReport(falso);
+  check("El informe del atacante verifica contra su propia clave", r.ok, r.message);
+  check("Pero NO contra la del taller", !verifyReport(falso, { publicKey: par.publicKey }).ok);
+  check("Y la huella delata que es otra", r.meta.kid !== kid, r.meta.kid);
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nAtaque 8: pegar una firma encima de un informe ajeno");
+// ---------------------------------------------------------------------------
+// El ataque que combina los dos: se toma un informe CONocido y bien formado y
+// se le pega encima un bloque de firma. Si el verificador se quedara con el
+// ultimo bloque, el cuerpo del informe quedaria sin cubrir.
+{
+  const ajeno = signReport("informe de otro taller\n", {
+    privateKey: otra.privateKey,
+    tool: "FixMyPhone 0.1.0",
+    signedAt: new Date("2026-01-02T03:04:05.000Z"),
+  });
+  const conDos = firmado + ajeno.slice(ajeno.indexOf(SIGNATURE_BEGIN));
+  const r = verifyReport(conDos);
+  check("Dos bloques de firma se detectan", !r.ok && r.problem === "varios_bloques", r.problem ?? "");
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nAtaque 9: texto pegado despues de la firma");
+// ---------------------------------------------------------------------------
+// La firma cubre hasta la linea de cierre. Lo que venga despues no esta
+// firmado, asi que pegarle al final "reparacion autorizada por el usuario" es
+// gratis. Tiene que quedar dicho, no aceptados en silencio.
+{
+  const conCola = firmado + "\n\nLa reparacion incluye cambio de pantalla. Autorizado.\n";
+  const r = verifyReport(conCola);
+  check(
+    "Texto despues del bloque se detecta",
+    !r.ok && r.problem === "contenido_despues",
+    r.problem ?? "",
+  );
+}
+{
+  const conEspacios = firmado + "\n\n   \n";
+  const r = verifyReport(conEspacios);
+  check("Espacios en blanco al final no se toman por contenido", r.ok, r.problem ?? "");
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nFalsos positivos: el informe roto NO es el informe falso");
+// ---------------------------------------------------------------------------
+// Guardar el informe en el bloc de notas de Windows y volver a guardarlo mete
+// BOM y pasa los saltos de linea a CRLF. El contenido es identico y la firma se
+// cae. Decirle al tecnico que su informe es falso cuando lo unico que paso fue
+// que lo reabrio es un costo que se paga con la credibilidad del producto.
+{
+  const reescrito = "﻿" + firmado.replace(/\n/g, "\r\n");
+  const r = verifyReport(reescrito);
+  check(
+    "El archivo reescrito se detecta como reescrito",
+    !r.ok && r.problem === "reescrito",
+    r.problem ?? "",
+  );
+  check("Y se dice que el contenido si esta intacto", r.intactoTrasReescribir === true);
+  check("No se acepta como valido de todos modos", r.ok === false);
+}
+{
+  // El caso inverso: alterado Y reescrito a la vez. Si aqui se dijera
+  // "reescrito, el contenido esta intacto", se estaria mandando un informe
+  // manipulado como si fuera un problema de formato.
+  const trucado = firmado.replace("realme C53", "iPhone 15") + "\n";
+  const r = verifyReport("﻿" + trucado.replace(/\n/g, "\r\n"));
+  check(
+    "Alterado y reescrito a la vez NO sale como intacto",
+    r.intactoTrasReescribir !== true,
+    r.problem ?? "",
+  );
+  check("Y el problema es la firma, no el formato", r.problem === "firma_invalida", r.problem ?? "");
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nUn informe sin firma se dice que no la tiene");
+// ---------------------------------------------------------------------------
+{
+  const r = verifyReport(cuerpo);
+  check("Un informe normal no tiene bloque", !r.ok && r.problem === "sin_firma", r.problem ?? "");
+  check("Y el motivo distingue los dos casos", /plan gratuito/i.test(r.message), r.message);
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nEl bloque roto no revienta la herramienta");
+// ---------------------------------------------------------------------------
+// La verificacion la va a usar alguien, con un archivo que puede estar danado,
+// copiado a medias o editado a mano. Un crash con una excepcion de JSON es
+// peor que un rechazo: el tecnico ve una pantalla en blanco y no sabe si el
+// informe es falso o si el programa esta roto.
+for (const [nombre, texto] of [
+  ["sin linea de cierre", firmado.replace(SIGNATURE_END, "")],
+  ["json que no es json", firmado.replace(/"v":1,/, "{ esto no es json,")],
+  ["json truncado", firmado.slice(0, firmado.indexOf(SIGNATURE_BEGIN) + 40)],
+  ["firma de largo raro", firmado.replace(/"sig":"[A-Za-z0-9_-]+"/, '"sig":"AAAA"')],
+  ["clave de largo raro", firmado.replace(/"key":"[A-Za-z0-9_-]+"/, '"key":"AAAA"')],
+  ["version desconocida", firmado.replace('"v":1', '"v":99')],
+  ["algoritmo desconocido", firmado.replace('"alg":"ed25519"', '"alg":"rot13"')],
+  [
+    "bloque vacio",
+    firmado.slice(0, firmado.indexOf(SIGNATURE_BEGIN) + SIGNATURE_BEGIN.length) +
+      "\n" +
+      SIGNATURE_END +
+      "\n",
+  ],
+  ["archivo vacio", ""],
+]) {
+  let r = null;
+  let limpio = true;
+  try {
+    r = verifyReport(texto);
+  } catch (e) {
+    limpio = false;
+    console.log(`        lanzo: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  check(
+    `${nombre} se rechaza sin lanzar excepcion`,
+    limpio && r !== null && r.ok === false && typeof r.message === "string",
+    limpio ? `ok=${r.ok} problema=${r.problem}` : "lanzo",
+  );
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nLa firma aguanta el viaje por disco");
+// ---------------------------------------------------------------------------
+{
+  const tmpFirma = mkdtempSync(join(tmpdir(), "fmp-firma-"));
+  try {
+    const ruta = join(tmpFirma, "informe.txt");
+    writeFileSync(ruta, firmado, "utf8");
+    check(
+      "El archivo se relee y sigue verificando",
+      verifyReport(readFileSync(ruta, "utf8")).ok,
+    );
+    check(
+      "Y con la clave del taller tambien",
+      verifyReport(readFileSync(ruta, "utf8"), { publicKey: par.publicKey }).ok,
+    );
+  } finally {
+    rmSync(tmpFirma, { recursive: true, force: true });
+  }
+}
 
 // ---------------------------------------------------------------------------
 console.log("\nPersistencia: el archivo se lee tal cual se escribio");

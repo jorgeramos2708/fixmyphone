@@ -286,6 +286,27 @@ export function buildReport(input: ReportInput): string {
     "  reemplaza la prueba final del tecnico. Las listas de verificacion",
     "  de arriba son esa prueba final.",
   );
+  // La firma se dice en condicional, y no como una promesa, porque cuando se
+  // escriben estas líneas todavía no se sabe: la decisión de firmar se toma
+  // DESPUÉS de armar el texto, en el proceso principal. Lo que sí se puede
+  // afirmar —y es lo único que importa dentro de cinco años, cuando nadie
+  // recuerde cómo se generó— es cómo se comprueba un archivo con firma y qué
+  // significa un archivo sin ella. Describe el mecanismo, no promete un
+  // resultado que este código todavía no ha decidido.
+  partes.push(
+    "",
+    "  FIRMA DIGITAL. Si este archivo termina en un bloque que empieza con",
+    "  -----BEGIN FIXMYPHONE REPORT SIGNATURE-----, esa firma demuestra que",
+    "  el contenido no fue alterado despues de generarse, y se comprueba con:",
+    "",
+    "      fmp-license verify-informe <este-archivo>",
+    "",
+    "  Si el archivo NO termina en ese bloque, este informe no esta firmado y",
+    "  no hay forma de comprobar que nadie lo modifico. La firma la pone la",
+    "  instalacion de FixMyPhone de este taller, no el fabricante: por eso la",
+    "  huella la tiene que dar el taller, y comparar esa huella con la del",
+    "  bloque es lo que dice quien lo genero.",
+  );
   partes.push(
     "",
     "  FixMyPhone no escribe el IMEI ni el ESN, no quita el bloqueo de",

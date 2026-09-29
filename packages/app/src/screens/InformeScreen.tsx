@@ -11,17 +11,26 @@
  * rellena el hueco con un valor plausible.
  */
 
-import { Printer, ShieldCheck, AlertTriangle } from "lucide-react";
-import type { ReportDraft, LicenseState } from "@fixmyphone/core";
+import { Printer, ShieldCheck, AlertTriangle, CircleCheck, CircleX } from "lucide-react";
+import type {
+  ReportDraft,
+  LicenseState,
+  InstallKeyInfo,
+  SaveReportResult,
+} from "@fixmyphone/core";
 import { Button, Badge, Panel, DataRow, EmptyState } from "../components/primitives";
 
 export function InformeScreen({
   draft,
   license,
+  installKey,
+  exportado,
   onExport,
 }: {
   draft: ReportDraft | null;
   license: LicenseState;
+  installKey: InstallKeyInfo | null;
+  exportado: SaveReportResult | null;
   onExport: () => void;
 }) {
   if (!draft) {
@@ -38,6 +47,7 @@ export function InformeScreen({
   const variant = resolution.match;
   const failed = probes.filter((p) => p.state === "fail");
   const skipped = probes.filter((p) => p.state === "skip");
+  const premium = license.tier === "premium" && license.valid;
 
   return (
     <div className="flex h-full flex-col gap-4 p-4">
@@ -58,6 +68,13 @@ export function InformeScreen({
           Exportar
         </Button>
       </header>
+
+      {/* Lo que pasó al exportar. Va arriba de todo, y no dentro de un panel
+          lateral, por una razón concreta: el técnico acaba de apretar
+          "Exportar" y va a entregar el archivo. Un aviso de "se guardó SIN
+          firma" en una columna de 340 px, a la derecha de una pantalla
+          ancha, es un aviso que no se lee. */}
+      {exportado ? <ResultadoExportacion r={exportado} /> : null}
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_340px] gap-4">
         {/* --- Cuerpo del informe ---------------------------------------- */}
@@ -147,21 +164,69 @@ export function InformeScreen({
             <div className="p-4">
               <div className="flex items-start gap-2.5">
                 <ShieldCheck size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-success" />
-                <p className="text-small text-text-muted">
-                  {license.tier === "premium" ? (
+                <div className="min-w-0 flex-1 space-y-2">
+                  {premium ? (
                     <>
-                      Este informe se firma con Ed25519 al exportarlo. Cualquier
-                      persona podrá verificar que no fue alterado con la clave
-                      pública del fabricante.
+                      {/* Este texto antes decía "se firma con Ed25519 al
+                          exportarlo. Cualquier persona podrá verificar que no
+                          fue alterado con la clave pública del fabricante", y
+                          las dos mitades eran mentira: la app no firmaba
+                          nada, y la clave del fabricante no puede estar en un
+                          `.exe` que se distribuye sin que cualquiera que lo
+                          tenga firme informes falsos. Ahora dice lo que
+                          pasa: firma esta instalación, y la huella es del
+                          taller. */}
+                      <p className="text-small text-text-muted">
+                        Al exportar, este informe se firma con Ed25519 con la
+                        clave de{" "}
+                        <strong className="font-medium text-text">esta instalación</strong>.
+                        La firma comprueba que el archivo no fue alterado
+                        después de generarse.
+                      </p>
+                      <p className="text-small text-text-muted">
+                        Lo que{" "}
+                        <strong className="font-medium text-text">no</strong>{" "}
+                        comprueba es que lo haya hecho FixMyPhone: la clave
+                        privada nunca sale de este equipo. Para saber quién lo
+                        firmó hay que comparar la huella de abajo con la que
+                        dé el taller.
+                      </p>
+
+                      {installKey?.existe ? (
+                        <div className="pt-1">
+                          <DataRow label="Huella del taller">{installKey.kid}</DataRow>
+                          <p className="tech mt-1.5 text-caption text-text-faint">
+                            fmp-license verify-informe informe.txt --clave {installKey.kid}
+                          </p>
+                        </div>
+                      ) : installKey && !installKey.canSign ? (
+                        <p className="text-caption text-warning">
+                          {installKey.motivo}
+                        </p>
+                      ) : (
+                        <p className="text-caption text-text-faint">
+                          Todavía no hay clave de firma. Se crea sola en la
+                          primera exportación; la huella de arriba aparece
+                          cuando exista.
+                        </p>
+                      )}
                     </>
                   ) : (
                     <>
-                      La firma digital requiere licencia Premium. En el plan
-                      gratuito el informe se exporta sin firma y marcado como
-                      evaluación.
+                      <p className="text-small text-text-muted">
+                        El plan gratuito exporta el informe{" "}
+                        <strong className="font-medium text-text">sin firma</strong>{" "}
+                        y con marca de evaluación.
+                      </p>
+                      <p className="text-small text-text-muted">
+                        Un archivo sin firma no se puede comprobar: cualquiera
+                        puede editarlo y no queda rastro. La firma es lo que
+                        convierte el informe en evidencia, y es la diferencia
+                        entre entregar un papel y entregar una prueba.
+                      </p>
                     </>
                   )}
-                </p>
+                </div>
               </div>
             </div>
           </Panel>
@@ -230,4 +295,67 @@ function maskImei(imei: string | undefined): string {
   if (!imei) return "—";
   if (imei.length < 8) return "****";
   return `${imei.slice(0, 6)}••••••${imei.slice(-4)}`;
+}
+
+/**
+ * Lo que devolvió el último guardado.
+ *
+ * Se distinguen tres casos y cada uno dice una cosa distinta, porque son tres
+ * noticias distintas para el técnico:
+ *
+ *   - Se guardó y firmó: puede entregarlo.
+ *   - Se guardó SIN firma: puede entregarlo, pero tiene que decirlo, porque un
+ *     informe sin firma no se puede comprobar. Esto ocurre de verdad cuando la
+ *     clave de firma de la máquina está dañada, y ocultarlo sería mandar al
+ *     cliente un archivo que él da por verificado.
+ *   - No se guardó: hay que volver a intentarlo.
+ *
+ * Antes de esto, el resultado del guardado no se mostraba en ninguna parte.
+ */
+function ResultadoExportacion({ r }: { r: SaveReportResult }) {
+  if (r.cancelado) return null;
+
+  if (!r.ok) {
+    return (
+      <div className="flex shrink-0 items-start gap-2.5 rounded-md border border-danger/40 bg-danger-subtle px-4 py-2.5">
+        <CircleX size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-danger" />
+        <p className="text-small text-danger">
+          No se guardó el informe: {r.motivo ?? "motivo desconocido."}
+        </p>
+      </div>
+    );
+  }
+
+  if (r.aviso) {
+    return (
+      <div className="flex shrink-0 items-start gap-2.5 rounded-md border border-warning/40 bg-warning-subtle px-4 py-2.5">
+        <AlertTriangle size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
+        <p className="text-small text-warning">{r.aviso}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex shrink-0 items-start gap-2.5 rounded-md border border-success/30 bg-success-subtle px-4 py-2.5">
+      <CircleCheck size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-success" />
+      <p className="text-small text-text-muted">
+        Informe guardado
+        {r.firmado ? (
+          <>
+            {" "}
+            y <strong className="font-medium text-text">firmado</strong>. Para
+            comprobarlo:
+          </>
+        ) : (
+          "."
+        )}
+        {r.firmado ? (
+          <span className="tech ml-1 text-caption text-text-faint">
+            fmp-license verify-informe "{r.path ?? "informe.txt"}"
+            {r.kid ? ` --clave ${r.kid}` : ""}
+          </span>
+        ) : null}
+      </p>
+    </div>
+  );
 }

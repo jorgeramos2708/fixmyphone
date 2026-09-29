@@ -27,10 +27,11 @@ import type {
   Resolution,
   TransportKind,
 } from "@fixmyphone/core";
-import { FREE_DAILY_LIMIT, verifyLicense } from "@fixmyphone/licensing";
+import { FREE_DAILY_LIMIT, verifyLicense, type KeyPair } from "@fixmyphone/licensing";
 import { machineIdParts } from "@fixmyphone/licensing/machine";
 import { Catalog, type CatalogUnavailable } from "./catalog.js";
 import { ISSUER_PUBLIC_KEY } from "./public-key.js";
+import { loadOrCreateSigningKey, signingKeyInfo, type SigningKeyInfo } from "./signing-key.js";
 
 // ---------------------------------------------------------------------------
 // Estado del proceso
@@ -350,6 +351,65 @@ export class Platform {
   licenseFromDisk(): LicenseState {
     this.licencia = null;
     return this.licenseCurrent();
+  }
+
+  /**
+   * El sobre de la licencia que está en disco, si verifica.
+   *
+   * Devuelve el sobre tal cual, con la firma del fabricante, para que el
+   * informe pueda llevarlo dentro de su propio bloque de firma. Con eso la
+   * cadena se cierra entera sin servidor: la licencia la firmó el
+   * fabricante, el informe lo firmó la instalación, y el archivo no se ha
+   * tocado. Sin este sobre, la firma del informe solo probaría integridad y
+   * no que el taller tuviera una licencia legítima.
+   *
+   * Se vuelve a VERIFICAR aquí, aunque `licenseCurrent()` ya lo haya hecho al
+   * leerlo. Es una llamada por cada exportación, no un ciclo, y el sobre que
+   * va a quedar archivado como evidencia no debería depender de que el valor
+   * en caché siga fresco. Si algo no cuadra, se devuelve `null` y el informe
+   * sale sin licencia: un informe sin licencia declarada es un informe
+   * declarado, no uno que presume una.
+   */
+  licenseEnvelope(): LicenseEnvelope | null {
+    if (!existsSync(this.licensePath)) return null;
+
+    let envelope: LicenseEnvelope;
+    try {
+      const crudo = readFileSync(this.licensePath, "utf8").replace(/^﻿/, "");
+      envelope = JSON.parse(crudo) as LicenseEnvelope;
+    } catch {
+      return null;
+    }
+
+    const r = verifyLicense({
+      envelope,
+      publicKey: ISSUER_PUBLIC_KEY,
+      machineId: machineIdParts().id,
+    });
+    return r.ok ? envelope : null;
+  }
+
+  /**
+   * Identidad de firma de esta instalación. Solo lectura: no crea la clave.
+   *
+   * Va por aquí y no por el handler de IPC porque `dataDir` es privado del
+   * proceso principal, y porque la clave tiene que salir siempre del mismo
+   * lugar del que sale al firmar. Dos rutas al mismo archivo, un día, dan dos
+   * huellas.
+   */
+  signingKey(): SigningKeyInfo {
+    return signingKeyInfo(this.dataDir);
+  }
+
+  /**
+   * El par de firma, creándolo si es la primera vez.
+   *
+   * Aparte de `signingKey()` a propósito: esto SÍ escribe en disco, y solo se
+   * llama cuando de verdad se va a firmar un informe. Mostrar la huella en
+   * pantalla no puede crear una clave.
+   */
+  signingKeyPair(): KeyPair {
+    return loadOrCreateSigningKey(this.dataDir);
   }
 
   // -------------------------------------------------------------------------

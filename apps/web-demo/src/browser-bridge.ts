@@ -22,6 +22,7 @@ import type {
   DeviceVariant,
   FmpBridge,
   IdentityLadder,
+  InstallKeyInfo,
   LicenseEnvelope,
   LicenseState,
   ProbeResult,
@@ -1223,7 +1224,24 @@ export function createBrowserBridge(): FmpBridge & { setSim(id: string): void } 
       a.download = `fixmyphone-${draft.device.serial}.txt`;
       a.click();
       URL.revokeObjectURL(url);
-      return { ok: true, path: a.download };
+      // `firmado: false` explícito, no omitido. La demo web no tiene clave de
+      // firma y no se puede tener una: una clave que viaja en el código del
+      // navegador es pública para todo el que abra las herramientas de
+      // desarrollo, y una clave de la que todos saben el valor no firma nada.
+      // Por eso aquí no hay atajo: lo que se exporta sale sin firmar y la
+      // pantalla lo dice.
+      return { ok: true, path: a.download, firmado: false, kid: "" };
+    },
+
+    async installKey(): Promise<InstallKeyInfo> {
+      return {
+        kid: "",
+        publicKey: "",
+        existe: false,
+        canSign: false,
+        motivo:
+          "La demo web no firma informes. La clave tendría que ir en el código que se descarga, y una clave pública para todos no es una clave. Exporta el informe desde la app de escritorio.",
+      };
     },
 
     async reveal() {

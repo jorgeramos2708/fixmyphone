@@ -29,6 +29,7 @@ const CH = {
   licenseActivate: "fmp:license-activate",
   licenseFromDisk: "fmp:license-from-disk",
   saveReport: "fmp:save-report",
+  installKey: "fmp:install-key",
   reveal: "fmp:reveal",
 } as const;
 
@@ -65,6 +66,7 @@ const bridge: FmpBridge = {
   },
 
   saveReport: (draft) => ipcRenderer.invoke(CH.saveReport, draft),
+  installKey: () => ipcRenderer.invoke(CH.installKey),
   reveal: (path) => ipcRenderer.invoke(CH.reveal, path),
 };
 

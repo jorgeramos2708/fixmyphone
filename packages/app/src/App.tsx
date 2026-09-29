@@ -16,7 +16,9 @@ import type {
   LicenseState,
   LicenseEnvelope,
   ReportDraft,
+  SaveReportResult,
   FmpBridge,
+  InstallKeyInfo,
 } from "@fixmyphone/core";
 import { AppShell, type RouteId } from "./components/shell";
 import { EquipoScreen } from "./screens/EquipoScreen";
@@ -45,10 +47,25 @@ export function App({ bridge }: { bridge: FmpBridge }) {
   const [license, setLicense] = useState<LicenseState>(FREE_TIER);
   const [scanning, setScanning] = useState(false);
   const [running, setRunning] = useState(false);
+  /**
+   * Identidad de firma de la instalación, y lo que pasó al último exportar.
+   *
+   * Se cargan aquí y no dentro de la pantalla de informe porque las dos las
+   * necesitan: la huella se lee en la pantalla de licencia (antes de
+   * exportar) y el resultado de la exportación se lee en la de informe
+   * (después). Y vive en el padre, y no en la pantalla, porque un mensaje de
+   * "se guardó sin firmar" que desaparece al cambiar de pestaña es un mensaje
+   * que el técnico no va a ver: la advertencia existe para que la lea ANTES
+   * de entregarle el archivo al cliente, y eso no puede depender de dónde esté
+   * parado.
+   */
+  const [installKey, setInstallKey] = useState<InstallKeyInfo | null>(null);
+  const [exportado, setExportado] = useState<SaveReportResult | null>(null);
 
   // --- Carga inicial -------------------------------------------------------
   useEffect(() => {
     void bridge.license.current().then(setLicense);
+    void bridge.installKey().then(setInstallKey);
     void bridge.listDevices().then(setDevices);
     return bridge.onDevice(setDevices);
   }, [bridge]);
@@ -160,8 +177,17 @@ export function App({ bridge }: { bridge: FmpBridge }) {
         }
       : null;
 
-  const exportReport = useCallback(() => {
-    if (draft) void bridge.saveReport(draft);
+  const exportReport = useCallback(async () => {
+    if (!draft) return;
+    // Se guarda el resultado COMPLETO, con `firmado` y el motivo. La versión
+    // anterior lo descartaba con un `void`: el proceso principal ya decidía si
+    // firma o no, se lo devolvía, y nadie lo leía. Un `ok: true` que no dice
+    // si firmó es un informe que el técnico entrega creyendo que va firmado.
+    const r = await bridge.saveReport(draft);
+    setExportado(r);
+    // La huella puede acabar de crearse con esta primera exportación, así que
+    // se vuelve a leer. Esta consulta no crea nada: solo informa de lo que hay.
+    void bridge.installKey().then(setInstallKey);
   }, [bridge, draft]);
 
   return (
@@ -188,12 +214,19 @@ export function App({ bridge }: { bridge: FmpBridge }) {
       ) : null}
 
       {route === "informe" ? (
-        <InformeScreen draft={draft} license={license} onExport={exportReport} />
+        <InformeScreen
+          draft={draft}
+          license={license}
+          installKey={installKey}
+          exportado={exportado}
+          onExport={exportReport}
+        />
       ) : null}
 
       {route === "licencia" ? (
         <LicenciaScreen
           license={license}
+          installKey={installKey}
           onActivate={activate}
           onLoadFromDisk={loadFromDisk}
           cliHint={['fmp-license issue --tier premium \\', '  --subject "Taller Pérez" \\', '  --days 365 --out taller-perez.fmp']}

@@ -376,8 +376,65 @@ export interface ReportDraft {
   resolution: Resolution;
   probes: ProbeResult[];
   license: LicenseState;
-  /** Marca de agua si la licencia no alcanza. */
+  /**
+   * Marca de agua si la licencia no alcanza.
+   *
+   * OJO: el proceso principal IGNORA este valor y lo recalcula con el estado
+   * de licencia que tiene en disco. Se queda en el tipo porque la vista lo
+   * usa para pintar la previsualización, y porque es el mismo dato que ve el
+   * técnico. Lo que no puede ser es la fuente de verdad: `watermarked` viene
+   * de código que se puede editar, y una marca de agua que se puede apagar
+   * desde las herramientas de desarrollo no es una marca de agua.
+   */
   watermarked: boolean;
+}
+
+/** Lo que contesta el guardado del informe. */
+export interface SaveReportResult {
+  ok: boolean;
+  /** Dónde quedó, si se guardó. */
+  path?: string;
+  /** El usuario cerró el diálogo sin guardar. */
+  cancelado?: boolean;
+  /** Por qué no se pudo guardar o no se pudo firmar. */
+  motivo?: string;
+  /**
+   * Si el archivo que se escribió lleva el bloque de firma.
+   *
+   * Va explícito y no se deduce de `ok`: hay un caso real en que se guarda el
+   * informe y no se firma (una clave de firma dañada en el equipo), y en ese
+   * caso el técnico tiene que enterarse antes de entregarlo. Un `ok: true`
+   * sin más deja pensar que salió firmado.
+   */
+  firmado?: boolean;
+  /** Huella de la clave que firmó, si firmó. */
+  kid?: string;
+  /** Aviso para el técnico, si algo salió mal pero el archivo se guardó. */
+  aviso?: string;
+}
+
+/**
+ * Identidad de firma de ESTA instalación.
+ *
+ * La app genera un par Ed25519 la primera vez que firma un informe, no al
+ * arrancar. La parte privada nunca sale de la máquina; la pública va dentro de
+ * cada informe para que el cliente pueda comprobar la firma por su cuenta.
+ *
+ * Por qué no firma el fabricante: una clave privada dentro de un `.exe` que se
+ * distribuye no es privada, y con ella cualquiera fabricaría informes
+ * "firmados". Ver `packages/licensing/src/report-signature.ts`.
+ */
+export interface InstallKeyInfo {
+  /** Huella de la clave, 32 hex en mayúscula. Vacía si todavía no hay clave. */
+  kid: string;
+  /** Clave pública en base64url. Es pública: se puede publicar. */
+  publicKey: string;
+  /** Si ya se generó la clave. */
+  existe: boolean;
+  /** Si esta plataforma puede firmar. En el navegador, no. */
+  canSign: boolean;
+  /** Por qué no, cuando no puede. */
+  motivo?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -424,8 +481,21 @@ export interface FmpBridge {
   /**
    * Guarda el informe. En Electron abre un diálogo nativo; en el navegador
    * dispara una descarga.
+   *
+   * Solo el premium sale firmado, y la firma la pone el proceso principal: el
+   * renderer no decide si se firma, no decide la marca de agua y no decide el
+   * nivel de licencia. Todos esos son controles de cobro, y un control que
+   * vive en la interfaz es una sugerencia.
    */
-  saveReport(draft: ReportDraft): Promise<{ ok: boolean; path?: string }>;
+  saveReport(draft: ReportDraft): Promise<SaveReportResult>;
+
+  /**
+   * Identidad de firma de esta instalación.
+   *
+   * Solo lectura: consultarla no crea la clave. La crea el primer informe que
+   * se firma, que es el único momento en que hace falta.
+   */
+  installKey(): Promise<InstallKeyInfo>;
 
   /** Abre una carpeta o URL. Útil para "ver evidencia". */
   reveal(path: string): Promise<void>;

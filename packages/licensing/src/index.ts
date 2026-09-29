@@ -60,16 +60,30 @@ import {
 
 export type LicenseTier = "free" | "premium";
 
-/** Lo que distingue a un nivel de otro. Explícito, no implícito. */
+/**
+ * Lo que distingue a un nivel de otro. Explícito, no implícito.
+ *
+ * OJO CON ESTA LISTA
+ * ------------------
+ * Este arreglo se escribe DENTRO de la licencia que se entrega al cliente
+ * (`LicensePayload.features`). No es un catálogo interno: es lo que el taller
+ * compró, literal, en un archivo que puede abrir con el bloc de notas. Por eso
+ * solo puede listar cosas que EXISTEN.
+ *
+ * Se quitaron `evidence_export`, `history` y `catalog_full`: estaban declaradas
+ * aquí y no implementadas en ninguna parte. El botón de Historial está
+ * deshabilitado, no hay ni orden ni historial que guardar, y no hay filtro de
+ * catálogo. Una licencia que promete cinco funciones y cumple dos es un
+ * problema de soporte y un reembolso, y el arreglo más barato es no prometer.
+ *
+ * Cuando se implementen, se vuelven a agregar AQUÍ y en el mismo commit que las
+ * haga funcionar. La prueba de tools/probar-licensing.mjs que compara esta
+ * lista con la de las funciones que existen falla si se agrega un nombre sin
+ * hacerlo, que es la unica forma de que esta promesa no crezca sola.
+ */
 export const TIER_FEATURES: Record<LicenseTier, string[]> = {
   free: ["diagnostics_daily_limit", "report_watermark"],
-  premium: [
-    "diagnostics_unlimited",
-    "report_signature",
-    "evidence_export",
-    "history",
-    "catalog_full",
-  ],
+  premium: ["diagnostics_unlimited", "report_signature"],
 };
 
 /** Tope del plan gratuito. No negociable desde la app. */

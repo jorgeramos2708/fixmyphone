@@ -484,6 +484,91 @@ check(
   db.close();
 }
 
+// ---------------------------------------------------------------------------
+seccion("La clave de firma de la instalación");
+// ---------------------------------------------------------------------------
+// El informe premium sale firmado con una clave que vive en la carpeta de
+// datos del usuario, NO con la del fabricante. Estas pruebas van contra el
+// `Platform` real, y las tres propiedades que importan son:
+//
+//   1. Preguntar por la huella NO crea el archivo. Si lo creara, el técnico
+//      vería una huella nueva cada vez que abre la app y no significaría nada.
+//   2. Firmar dos veces da la MISMA huella. Si cambiara, el taller no podría
+//      demostrar que dos informes suyos son suyos.
+//   3. Un archivo dañado no se regenera en silencio. Regenerarlo cambiaría la
+//      huella del taller sin que nadie se entere, que es la forma más difícil
+//      de descubrir de que algo salió mal.
+{
+  const datosFirma = join(dirTemp, "datos-firma");
+  const platform = new Platform({ catalog: new Catalog(), dataDir: datosFirma });
+
+  const antes = platform.signingKey();
+  check("Sin clave, la pantalla ve que no hay", antes.existe === false && antes.kid === "");
+  check(
+    "Y preguntarlo NO crea el archivo en disco",
+    !existsSync(join(datosFirma, "signing.key")),
+    "una lectura que escribe es una escritura escondida",
+  );
+
+  const p1 = platform.signingKeyPair();
+  const info1 = platform.signingKey();
+  check("Firmar por primera vez crea la clave", info1.existe === true && info1.kid.length === 32);
+  check("La huella son 32 hex en mayúscula", /^[0-9A-F]{32}$/.test(info1.kid), info1.kid);
+  check(
+    "La clave pública son 32 bytes en base64url",
+    Buffer.from(info1.publicKey, "base64url").length === 32,
+  );
+  check(
+    "La clave privada NO se expone por la pantalla",
+    !JSON.stringify(info1).includes(p1.privateKey.toString("base64url")),
+    "la parte privada en la respuesta del IPC sería filtrable desde el renderer",
+  );
+
+  const p2 = platform.signingKeyPair();
+  const info2 = platform.signingKey();
+  check("Firmar de nuevo da la MISMA huella", info2.kid === info1.kid, `${info1.kid} -> ${info2.kid}`);
+  check("Y la misma clave privada", p2.privateKey.equals(p1.privateKey));
+
+  // El archivo se puede abrir y anotar a mano (para un respaldo en papel). Lo
+  // que NO puede pasar es que un CRLF de Windows lo convierta en basura en
+  // silencio: el base64url no lleva espacios, así que se quitan todos.
+  const rutaKey = join(datosFirma, "signing.key");
+  writeFileSync(rutaKey, `# respaldo del taller\n${p1.privateKey.toString("base64url")}\n`, "utf8");
+  check("Con comentarios y salto de linea la clave sigue valiendo", platform.signingKey().kid === info1.kid);
+  writeFileSync(rutaKey, `${p1.privateKey.toString("base64url")}\r\n`, "utf8");
+  check("Y con CRLF de Windows tambien", platform.signingKey().kid === info1.kid);
+
+  // Daño: se declara, no se tapa. Un archivo regenerado en silencio le cambia
+  // la huella al taller y rompe la cadena con los informes ya entregados.
+  writeFileSync(rutaKey, "esto no es una semilla\n", "utf8");
+  const infoDanio = platform.signingKey();
+  check("Un archivo dañado se declara como 'no hay clave'", infoDanio.existe === false);
+  let lanzo = null;
+  let parDanio = null;
+  try {
+    parDanio = platform.signingKeyPair();
+  } catch (e) {
+    lanzo = e;
+  }
+  check("Y al firmar LANZA en vez de regenerar", lanzo !== null, "se regeneró una clave nueva en silencio");
+  check(
+    "El motivo dice que no se regenera",
+    /no se regenera/i.test(String(lanzo?.message ?? "")),
+    String(lanzo?.message ?? "no lanzó"),
+  );
+  check("El motivo menciona la huella", /huella/i.test(String(lanzo?.message ?? "")));
+  check(
+    "Y el archivo dañado sigue en su sitio",
+    existsSync(rutaKey) && readFileSync(rutaKey, "utf8") === "esto no es una semilla\n",
+  );
+  check("No salió ninguna clave nueva", parDanio === null);
+
+  // Sin licencia no hay sobre que embebir, y eso se dice con un null y no con
+  // un sobre vacío: un LicenseEnvelope sin firma pasa por un type, pero es una
+  // promesa de licencia que nadie firmó.
+  check("Sin licencia en disco, el sobre es null", platform.licenseEnvelope() === null);
+}
+
 rmSync(dirTemp, { recursive: true, force: true });
 
 // ---------------------------------------------------------------------------

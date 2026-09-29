@@ -170,9 +170,12 @@ Por cada variante:
   `ift_not_homologated_rf_risk`.
 - **`verification_gates`**: las comprobaciones obligatorias de post-reparacion
   (power_on, charging, touch_grid, display_pwm, audio_path, cameras,
-  network_register, data_browse, radio_ident, slot_health...). El workflow
-  engine no deja cerrar la orden si alguna bloqueante falla. Esta es la razon de
-  ser del producto: mata el re-trabajo.
+  network_register, data_browse, radio_ident, slot_health...). Hoy son **dato,
+  no motor**: salen impresos en el informe exportado y son la lista que el
+  tecnico va tachando a mano. **No existe** el workflow engine que impide
+  cerrar un trabajo con una bloqueante en rojo, porque tampoco existe la orden
+  que se cerraria. Es la razon de ser del producto y es el hueco mas grande que
+  queda: matar el re-trabajo es automatizar la lista, no imprimirla.
 - **`mx_operator`**: Telcel / AT&T Mexico / Movistar / MVNO con bandas LTE y 5G,
   incluida la banda 28 (700 MHz APT) que define la cobertura interior en Mexico.
 
@@ -200,9 +203,17 @@ SoC por familia: qualcomm 595 | exynos 67 | mediatek 23 | nvidia 23 | amlogic 17
 Conclusion honesta: **las fuentes publicas cubren profundidad en ~600 modelos
 (flagship y gama media-alta) y amplitud de ~37,000 tokens sin SoC.** El hueco
 no es un problema de codigo, es de contenido, y se cierra con curacion humana
-(la cola ya esta priorizada en `manual/devices.override.yml`) y con el
-**camino de auto-identificacion en runtime**: cuando un equipo no esta en la
-base, la app lee su SoC/plataforma del propio dispositivo y propone el registro.
+(la cola ya esta priorizada en `manual/devices.override.yml`).
+
+El otro camino seria la **auto-identificacion en runtime, y todavia no existe**:
+la idea es que, cuando un equipo no esta en la base, la app lea su SoC y su
+plataforma del propio dispositivo (`ro.board.platform`, `ro.soc.model`), busque
+las variantes que usan ese SoC y proponga un alta con lo que leyo, para que la
+curacion humana empiece de un borrador en vez de cero. Hoy la escalera se
+detiene en L6 declarando que no se pudo resolver: ni lee esas propiedades, ni
+busca por SoC, ni propone nada. Lo que si esta listo es el lado de la base
+(`soc_raw`, `soc_vendor` y `platform` en las 763 variantes), que es la mitad
+facil de ese trabajo.
 
 Brechas abiertoas (con linea base, para que la regresion sea visible):
 `sin_model_numbers 242`, `ab_desconocido 467`, `dynamic_desconocido 175`.

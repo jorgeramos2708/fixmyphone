@@ -22,17 +22,19 @@
  */
 
 import { useState } from "react";
-import { KeyRound, Check, X, Copy, Terminal, AlertTriangle } from "lucide-react";
-import type { LicenseState } from "@fixmyphone/core";
+import { KeyRound, Check, X, Copy, Terminal, AlertTriangle, PenLine } from "lucide-react";
+import type { LicenseState, InstallKeyInfo } from "@fixmyphone/core";
 import { Button, Badge, Panel, DataRow, useCopiar } from "../components/primitives";
 
 export function LicenciaScreen({
   license,
+  installKey,
   onActivate,
   onLoadFromDisk,
   cliHint,
 }: {
   license: LicenseState;
+  installKey: InstallKeyInfo | null;
   onActivate: (raw: string) => Promise<LicenseState>;
   onLoadFromDisk: () => Promise<LicenseState>;
   cliHint: string[];
@@ -186,6 +188,79 @@ export function LicenciaScreen({
                 <Button onClick={onLoadFromDisk}>Buscar licencia en disco</Button>
               </div>
             ) : null}
+          </div>
+        </Panel>
+
+        {/* --- Identidad de firma ------------------------------------------
+            Va en su propia columna y no dentro del panel de plan porque son
+            dos cosas distintas: la licencia dice qué compró el taller, esto
+            dice con qué clave firma los informes que entrega. Se separa
+            porque se dan de manera distinta —la licencia se compra, la
+            huella se publica— y porque un técnico que no sabe que tiene una
+            identidad de firma propia no puede ni siquiera usarla para defenderse. */}
+        <Panel
+          title="Firma de los informes"
+          hint="la clave de este equipo"
+          actions={
+            installKey?.existe ? (
+              <Badge tone="success">{installKey.kid.slice(0, 8)}</Badge>
+            ) : undefined
+          }
+        >
+          <div className="p-4">
+            {installKey && !installKey.canSign ? (
+              <p className="text-small text-text-muted">{installKey.motivo}</p>
+            ) : installKey?.existe ? (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-caption text-text-muted">
+                    Huella de firma de este taller
+                  </span>
+                  <button
+                    onClick={() => copiar(installKey.kid)}
+                    className="text-text-faint transition-colors hover:text-text"
+                    aria-label={
+                      copia?.estado === "ok"
+                        ? "Huella de firma copiada"
+                        : copia?.estado === "error"
+                          ? "Huella de firma: no se pudo copiar"
+                          : "Copiar la huella de firma"
+                    }
+                  >
+                    {copia?.estado === "ok" ? (
+                      <Check size={12} strokeWidth={2.5} className="text-success" />
+                    ) : copia?.estado === "error" ? (
+                      <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
+                    ) : (
+                      <Copy size={12} strokeWidth={1.75} />
+                    )}
+                  </button>
+                </div>
+                <p className="tech mt-1.5 text-body text-text">{installKey.kid}</p>
+                <p className="mt-3 text-caption text-text-faint">
+                  <PenLine size={11} strokeWidth={1.75} className="mr-1 inline align-[-1px]" />
+                  Ponla en la factura y en el recibo. Es lo que le permite al
+                  cliente comprobar que el informe lo firmó este taller y no
+                  otro:
+                </p>
+                <p className="tech mt-1.5 text-caption text-text-muted">
+                  fmp-license verify-informe informe.txt --clave {installKey.kid}
+                </p>
+                <p className="mt-2 text-caption text-text-faint">
+                  La firma la pone este equipo, no FixMyPhone. Eso es a
+                  propósito: una clave del fabricante dentro del programa
+                  permitiría firmar informes falsos a cualquiera que tuviera el
+                  programa. La firma demuestra que el archivo no se alteró
+                  después de generarse; la huella es lo que dice que lo firmó
+                  este taller y no otro.
+                </p>
+              </>
+            ) : (
+              <p className="text-small text-text-muted">
+                Todavía no hay clave de firma. Se genera sola, en esta máquina,
+                la primera vez que se exporta un informe con licencia premium.
+              </p>
+            )}
           </div>
         </Panel>
 

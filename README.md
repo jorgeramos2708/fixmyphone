@@ -125,10 +125,10 @@ La unidad de medida del proyecto es `npm test`:
 npm test
 #   63  pruebas de catálogo    (ambigüedad, artefacto y la copia de la escalera)
 #  155  pruebas de IFT         (alias de marca, homologación, el cruce)
-#   52  pruebas de licencia    (casi todas, ataques)
+#  104  pruebas de licencia    (casi todas, ataques: firma, emisión, activación)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
 #   42  pruebas de empaquetado (lo que se entrega de verdad)
-#   27  pruebas de resolutor   (el resolutor real de platform.ts contra la base real)
+#   44  pruebas de resolutor   (el resolutor real de platform.ts contra la base real, y la clave de firma)
 ```
 
 Estas cifras las verifica `probar-unidad-de-medida.mjs`, que corre cada suite,
@@ -144,12 +144,17 @@ hueco y se ve en pantalla como "no registrado", que es lo que es.
 
 ### Lo que falta
 
-- **Cobertura desigual.** Samsung 133 de 3,426 referencias de LineageOS;
-  Motorola 95 de 898; Huawei 9 de 1,550; ZTE 4 de 1,805. Oppo, Vivo y Tecno
-  no tienen ninguna variante. No es un bug del pipeline: es que la fuente
-  pública de esos equipos no está accesible o no está en formato
-  parseable. Cerrarlo requiere encontrar esas fuentes o aceptar que
-  la herramienta es fuerte en Samsung/Motorola/Xiaomi y débil en el resto.
+- **Cobertura desigual.** Samsung 136 de 3,426 referencias de Play; Motorola 96
+  de 898; Huawei 9 de 1,550; ZTE 4 de 1,805. Realme (11) y Tecno (3) se
+  agregaron a mano el 2026-09-28, una variante cada una con su evidencia, y
+  OPPO tiene 8 de 822. **Vivo sigue en 0 de 917, y Honor, Infinix e Itel en
+  0.** No es un bug del pipeline: es que esas fuentes no están accesibles o no
+  están en formato parseable, y una variante escrita a mano sin fuente de
+  kernel ni de particiones es un dato inventado, que es peor que un hueco.
+  Cerrarlo requiere encontrar esas fuentes o aceptar que la herramienta es
+  fuerte en Samsung/Motorola/Xiaomi y débil en el resto. La cola de lo que
+  falta, con los tokens reales ya identificados, está en
+  `packages/device-db/manual/devices.override.yml`.
 - **Homologación IFT: 11 `homologado`, 93 `sin_verificar`, 659 `desconocido`.**
   Se cruzan las tablas por marca (OPPO, Motorola); el padrón central no da
   una tabla. Mientras no cambie, la app lo dice en pantalla en vez de adivinar.
@@ -241,7 +246,57 @@ demo dejan de aceptarse, que es lo correcto.
 **El tope se comprueba en el proceso principal, nunca en la interfaz.** La
 interfaz puede mentir; el proceso principal no. Un `.fmp` editado a mano
 (cambiar `free` por `premium`, alargar la vigencia) se rechaza porque la firma
-no cuadra, y hay 52 pruebas que lo comprueban.
+no cuadra, y hay 104 pruebas que lo comprueban.
+
+### Quién firma el informe, y qué prueba la firma
+
+El informe premium sale **firmado con Ed25519**. La firma va pegada al final del
+archivo, entre dos marcas `-----BEGIN/END FIXMYPHONE REPORT SIGNATURE-----`, y
+cubre **todo** lo que está antes de la marca de apertura.
+
+Lo firma **la instalación, no el fabricante**, y es deliberado: una clave
+privada dentro de un `.exe` que se reparte no es privada, y con ella cualquiera
+firmaría informes falsos tan válidos como los nuestros. La app genera un par la
+primera vez que firma, guarda la parte privada en la carpeta de datos del
+usuario y publica la huella (32 hex) en la pantalla de licencia, que es lo que
+el taller pone en la factura.
+
+Lo que la firma prueba, y lo que no:
+
+| Afirmación | ¿La prueba la firma? |
+|---|---|
+| El archivo no fue alterado desde que se generó | sí |
+| Lo firmó este taller | sí, comparando la huella con la suya (`--clave`) |
+| Lo firmó FixMyPhone | **no** |
+| El equipo quedó bien reparado | **no**, y el propio informe lo dice |
+
+### Verificar un informe
+
+La segunda fila tiene una trampa que tiene cualquier firma: si el verificador
+saca la clave pública **del mismo archivo que está verificando**, da "válido"
+también para un informe fabricado a mano con una clave generada en un minuto.
+Por eso el comando distingue los dos casos y lo dice en pantalla:
+
+```bash
+# solo integridad: NO dice quién lo firmó
+node packages/licensing/src/cli.ts verify-informe informe.txt
+
+# atribución: el taller pasa la huella que tiene anotada
+node packages/licensing/src/cli.ts verify-informe informe.txt --clave 4F3A9C...
+
+# cadena entera: además comprueba, contra la clave de FixMyPhone, la licencia
+# que va dentro de la propia firma
+node packages/licensing/src/cli.ts verify-informe informe.txt --clave 4F3A9C... --emisor
+```
+
+El tercer caso es el que cierra el círculo sin servidor: FixMyPhone firmó la
+licencia, la licencia viaja dentro del bloque de firma, el taller firmó el
+informe. Las dos claves privadas se quedan en la máquina que las generó.
+
+Un detalle que importa en la práctica: **abrir el informe en el bloc de notas y
+volver a guardarlo rompe la firma** (mete BOM y cambia los saltos de línea a
+CRLF). El contenido queda idéntico, y el verificador distingue ese caso del
+informe manipulado en vez de acusar al taller de haberlo alterado.
 
 ### Sobre la atadura a equipo
 
