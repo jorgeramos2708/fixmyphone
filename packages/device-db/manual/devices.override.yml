@@ -327,3 +327,16 @@ TODO:
     prioridad: media
     motivo: "gama media-baja MX. Queda pendiente a proposito: no aparece en el catalogo GMS de Play (snapshot b49a26c6162e223a3a896485.bin), asi que no hay token verificable y crear una variante seria inventar su ro.product.device"
     fuente_sugerida: "dump ro.product.device de una unidad real (Mexico); padron IFT con folio de homologacion"
+    como_curarla: |-
+      Con la unidad real en mano (adb shell getprop o una app de diagnostico),
+      capturar 5 props y mapearlas 1:1 al override:
+        1. ro.product.device        -> clave/codename de la variante
+        2. ro.product.model         -> model_numbers (lista, aunque sea 1)
+        3. ro.build.product         -> si difiere de device, apuntarlo en evidence
+        4. ro.board.platform        -> soc_raw (p.ej. 'bengal' = Qualcomm SM6115)
+        5. ro.build.version.release -> android_version
+      A/B: si 'ro.boot.slotsuffix' NO esta vacio (p.ej. '_a'), is_ab_device: true;
+      si no, A-only.
+      Con esas props se redacta la entrada igual que a32/a22/hanoip (con
+      verified_by + evidence citando la unidad) y se borra este item del TODO.
+      Sin la unidad, NO se cura: falta el codename y seria inventarlo.
