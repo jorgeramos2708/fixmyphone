@@ -19,10 +19,13 @@ import type {
   SaveReportResult,
   FmpBridge,
   InstallKeyInfo,
+  GateChecks,
+  GateEstado,
 } from "@fixmyphone/core";
 import { AppShell, type RouteId } from "./components/shell";
 import { EquipoScreen } from "./screens/EquipoScreen";
 import { DiagnosticoScreen } from "./screens/DiagnosticoScreen";
+import { EntregaScreen } from "./screens/EntregaScreen";
 import { InformeScreen } from "./screens/InformeScreen";
 import { LicenciaScreen } from "./screens/LicenciaScreen";
 
@@ -61,6 +64,26 @@ export function App({ bridge }: { bridge: FmpBridge }) {
    */
   const [installKey, setInstallKey] = useState<InstallKeyInfo | null>(null);
   const [exportado, setExportado] = useState<SaveReportResult | null>(null);
+
+  /**
+   * Las comprobaciones de entrega, por variante y por puerta.
+   *
+   * Vive en el padre, y no dentro de la pantalla, por una razón práctica: las
+   * pantallas se desmontan al cambiar de pestaña, así que un `useState` dentro
+   * de `EntregaScreen` perdería las marcas en cuanto el técnico va al informe a
+   * exportar y regresa. Una lista que se borra sola al cambiar de vista es una
+   * lista que nadie usa dos veces.
+   *
+   * Se indexa por clave de variante y no por dispositivo. Dos equipos del
+   * mismo taller no comparten lista: cada placa tiene la suya, y mezclarlas
+   * haría que el técnico marcara en el Galaxy lo que comprobó en el Xiaomi.
+   *
+   * NO se persiste a disco, y es deliberado. Una casilla es una declaración, no
+   * una medición, y guardarla sería crear un registro que nadie puede auditar
+   * sin el modelo de orden de trabajo, que es lo que decide qué se guarda y con
+   * qué valor. Ver `GateChecks` en `packages/core/src/bridge.ts`.
+   */
+  const [gates, setGates] = useState<Record<string, GateChecks>>({});
 
   // --- Carga inicial -------------------------------------------------------
   useEffect(() => {
@@ -141,6 +164,25 @@ export function App({ bridge }: { bridge: FmpBridge }) {
     setRunning(false);
   }, []);
 
+  // --- Comprobaciones de entrega ------------------------------------------
+  //
+  // Se guardan por variante y solo se copia el objeto cuando hay un cambio real
+  // (mismo estado que ya estaba): el estado de React es por referencia, y
+  // devolver el mismo objeto evita un repintado de la lista entera de 16 filas.
+  const marcarGate = useCallback(
+    (variante: string, gateId: string, estado: GateEstado | null) => {
+      setGates((prev) => {
+        const deEsta = prev[variante] ?? {};
+        if (deEsta[gateId] === (estado ?? undefined)) return prev;
+        const n = { ...deEsta };
+        if (estado === null) delete n[gateId];
+        else n[gateId] = estado;
+        return { ...prev, [variante]: n };
+      });
+    },
+    [],
+  );
+
   // --- Licencia ------------------------------------------------------------
   const activate = useCallback(
     async (raw: string): Promise<LicenseState> => {
@@ -210,6 +252,19 @@ export function App({ bridge }: { bridge: FmpBridge }) {
           running={running}
           onRun={runProbes}
           onStop={stopProbes}
+        />
+      ) : null}
+
+      {route === "entrega" ? (
+        <EntregaScreen
+          device={active}
+          resolution={resolution}
+          probes={probes}
+          checks={(resolution?.match ? gates[resolution.match.key] : undefined) ?? {}}
+          onMarcar={(gateId, estado) => {
+            const variante = resolution?.match?.key;
+            if (variante) marcarGate(variante, gateId, estado);
+          }}
         />
       ) : null}
 

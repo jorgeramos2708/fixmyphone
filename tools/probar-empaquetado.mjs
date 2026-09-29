@@ -284,11 +284,12 @@ seccion("El texto que la persona lee, dentro del asar");
 // arriba siguen curadas a mano, y este párrafo documenta el límite en vez de
 // esconderlo.
 
-// El renderer de escritorio son estas 9 fuentes (entry-electron monta App;
-// App monta las cuatro pantallas y el shell; Shell usa primitives; Equipo
-// importa core/bridge, que lleva los tooltips de homologación). El inventario
-// tiene que cubrir TODO lo que el bundle puede renderizar: si una frase nueva
-// aparece en cualquiera de estas pantallas, el asar viejo tiene que fallar.
+// El renderer de escritorio son estas 10 fuentes (entry-electron monta App;
+// App monta las cinco pantallas y el shell; Shell usa primitives; Equipo
+// importa core/bridge, que lleva los tooltips de homologación y la cobertura de
+// las comprobaciones de entrega). El inventario tiene que cubrir TODO lo que el
+// bundle puede renderizar: si una frase nueva aparece en cualquiera de estas
+// pantallas, el asar viejo tiene que fallar.
 const FUENTES_DE_UI = [
   join(RAIZ, "packages", "app", "src", "entry-electron.tsx"),
   join(RAIZ, "packages", "app", "src", "App.tsx"),
@@ -296,6 +297,7 @@ const FUENTES_DE_UI = [
   join(RAIZ, "packages", "app", "src", "components", "primitives.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "EquipoScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "DiagnosticoScreen.tsx"),
+  join(RAIZ, "packages", "app", "src", "screens", "EntregaScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "InformeScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "LicenciaScreen.tsx"),
   join(RAIZ, "packages", "core", "src", "bridge.ts"),

@@ -20,8 +20,9 @@ comercial, y cuando hay más de una plausible **no elige por el técnico**.
 |---|---|
 | Catálogo de variantes | **763 variantes**, 48,908 alias de número de modelo |
 | Escalera de identidad L0–L6 | implementada y probada |
-| Diagnóstico por sonda | **17 sondas** de solo lectura, con el comando visible |
-| Procedimientos seguros | cadena de verificación por variante (11,043 puertas) |
+| Diagnóstico por sonda | **16 sondas** de solo lectura, con el comando visible |
+| Comprobaciones de entrega | **11,487 puertas**, 13 a 16 por variante. Las muestra la app con su texto; **solo 3 o 4 tienen sonda asociada** y el resto las hace el técnico a mano |
+| Lista de verificación en el informe | las 11,487 puertas, como lista. No dice cuáles se hicieron: eso no es evidencia |
 | Licencias Ed25519 offline | emitir, verificar, atar a equipo |
 | App de escritorio (Windows) | **`.exe` compilado y ejecutado** |
 | Demo web | mismo código de UI, puente simulado |
@@ -123,7 +124,7 @@ La unidad de medida del proyecto es `npm test`:
 
 ```bash
 npm test
-#   63  pruebas de catálogo    (ambigüedad, artefacto y la copia de la escalera)
+#   72  pruebas de catálogo    (ambigüedad, artefacto, las puertas y la escalera)
 #  155  pruebas de IFT         (alias de marca, homologación, el cruce)
 #  104  pruebas de licencia    (casi todas, ataques: firma, emisión, activación)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)

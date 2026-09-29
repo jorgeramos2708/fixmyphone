@@ -971,13 +971,34 @@ interface ProbeDef {
   ms: number;
 }
 
+/**
+ * Las sondas simuladas usan los MISMOS ids que `apps/desktop/src/main/probes.ts`.
+ *
+ * Antes esta lista usaba ids en inglés que no existen en la app real
+ * (`boot_completed`, `battery_health`…), y la diferencia no se notaba porque
+ * cada pantalla miraba su propia lista. Con la pantalla de Entrega ya no: el
+ * panel de cobertura cruza puerta contra sonda POR ID, y con los ids
+ * desalineados la demostración iba a decir "no ejecutada" para sondas que en
+ * ese momento se estaban ejecutando. Una demo que enseña mal se parece mucho a
+ * una app que enseña mal.
+ *
+ * Y hay un segundo motivo, que es el que más importa: el texto de dos de estas
+ * sondas afirmaba más de lo que su comando devuelve. Decían "los dos slots están
+ * sanos" y "la capacidad de diseño está muy por debajo del 100%", y ninguno de
+ * los dos comandos lee eso. Con el panel de cobertura a la vista, un texto así
+ * se lee como si la comprobacion de entrega ya estuviera resuelta.
+ *
+ * Las tres sondas que aquí no existen en la app (`cuenta-google`,
+ * `desgaste-almacenamiento`, `registro-red`) llevan un id que no colisiona con
+ * ninguna: son de la demostración y el código real no las corre.
+ */
 function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
   const p = d.props;
   const ab = v?.capabilities.includes("a_b_slots") ?? false;
 
   return [
     {
-      id: "boot_completed",
+      id: "arranque",
       command: "adb shell getprop sys.boot_completed",
       explanation:
         "Confirma que Android terminó de arrancar. Si devuelve 0, el equipo se quedó en el logo o en un bucle: el problema es de arranque, no de software.",
@@ -986,7 +1007,7 @@ function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
       ms: 180,
     },
     {
-      id: "verified_boot_state",
+      id: "verificacion-inicial",
       command: "adb shell getprop ro.boot.verifiedbootstate",
       explanation:
         "Verde significa que la cadena de arranque verificó el firmware sin modificarlo. Naranja o rojo indica imagen no firmada: es el estado normal de un equipo con bootloader desbloqueado, y no es un defecto.",
@@ -995,7 +1016,7 @@ function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
       ms: 160,
     },
     {
-      id: "bootloader_locked",
+      id: "bloqueo-flash",
       command: "adb shell getprop ro.boot.flash.locked",
       explanation:
         "1 = bootloader bloqueado. Mientras siga bloqueado, cualquier firmware que no sea el de fábrica lo rechazará, y un factory reset es la única opción que conserva la garantía.",
@@ -1004,7 +1025,7 @@ function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
       ms: 150,
     },
     {
-      id: "frp_account",
+      id: "cuenta-google",
       command: "adb shell pm list accounts | grep -c com.google",
       explanation:
         "Detecta si el restablecimiento de fábrica va a pedir la cuenta de Google anterior. Si la pide, hay que avisarle al cliente ANTES de borrar, no después.",
@@ -1013,10 +1034,10 @@ function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
       ms: 120,
     },
     {
-      id: "battery_health",
+      id: "bateria",
       command: "adb shell dumpsys battery",
       explanation:
-        "Lee el estado de la celda. Una capacidad de diseño muy por debajo del 100% con carga presente es desgaste real, no restricción de software.",
+        "Lee lo que declara Android: carga, temperatura y estado de salud. NO lee la capacidad de diseño, así que de aquí no se puede sacar si la celda está gastada; para eso hay que comparar contra la capacidad de fábrica.",
       outcome: "pass",
       raw: [
         "Current Battery Service state:",
@@ -1033,7 +1054,7 @@ function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
       ms: 420,
     },
     {
-      id: "storage_smart",
+      id: "desgaste-almacenamiento",
       command: "adb shell dumpsys diskstats | grep -i wear",
       explanation:
         "Porcentaje de desgaste de la memoria. Arriba de 80% la parte lenta del equipo (apps, cámara) empieza a fallar y el cliente lo reporta como 'se Lagging'.",
@@ -1042,17 +1063,17 @@ function buildProbes(d: ConnectedDevice, v: DeviceVariant | null): ProbeDef[] {
       ms: 380,
     },
     {
-      id: "slot_health",
+      id: "particiones",
       command: "adb shell getprop ro.boot.slot_suffix",
       explanation: ab
-        ? "Los dos slots de arranque están sanos. Con A/B, un flasheo fallido no deja el equipo sin arranque: se cambia de ranura y sigue viva."
+        ? "A/B: hay dos ranuras de arranque y esta es la que está activa. Esto dice cuáles existen, NO que la otra esté sana: comprobar eso es arrancar desde ella."
         : "Solo hay una partición de arranque. No hay red de seguridad: si el flasheo se interrumpe, el equipo no vuelve a encender.",
       outcome: ab ? "pass" : "skip",
       raw: ab ? "_a" : "sin ranura B declarada",
       ms: 140,
     },
     {
-      id: "network_register",
+      id: "registro-red",
       command: "adb shell dumpsys telephony.registry | grep mServiceState",
       explanation:
         "Verifica registro en la red. Un equipo importado de Estados Unidos puede quedarse sin señal si la banda no coincide con las redes mexicanas: n28 (700 MHz APT) es la clave.",

@@ -20,6 +20,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname, basename } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const DB = join(RAIZ, "packages", "device-db", "data", "out", "fixmyphone_device_db.sqlite");
@@ -552,6 +553,38 @@ if (!existsSync(DEMO_CAT)) {
   }
 }
 
+// --- Los conteos que la app y los README citan -----------------------------
+//
+// Se calculan aquí, antes que los usen dos secciones distintas, porque salen de
+// dos fuentes distintas y citarlos en los dos sitios era justo el error que
+// estas pruebas existen para atrapar:
+//
+//   - Las PUERTAS salen de la base (`verification_gates`), y el README raíz las
+//     citaba como 11,043 cuando son 11,487. Esa cifra venía de un conteo viejo
+//     y llevaba meses sin revisarse: cambiaron las variantes del lote de
+//     realme/tecno y el número se quedó.
+//   - Las SONDAS salen del código (`probes.ts`), y el README las citaba como 17
+//     cuando son 16. Esa sí es de las que no se ven: un `id:` más arriba o más
+//     abajo y el documento sigue leyéndose igual de bien.
+//
+// Ninguno de los dos fallos rompía nada. Por eso los números se comprueban.
+const idsPuerta = new Set();
+let totalPuertas = 0;
+for (const { verification_gates: g } of db
+  .prepare("SELECT verification_gates FROM variant")
+  .all()) {
+  if (!g) continue;
+  for (const it of JSON.parse(g)) {
+    idsPuerta.add(it.id);
+    totalPuertas++;
+  }
+}
+
+const fuenteProbes = readFileSync(join(RAIZ, "apps", "desktop", "src", "main", "probes.ts"), "utf8");
+const idsSonda = new Set(
+  [...fuenteProbes.matchAll(/^\s{4}id:\s*"([^"]+)"/gm)].map((m) => m[1]),
+);
+
 // --- Los README no afirman números que la base no tiene -------------------
 //
 // Mismo motivo que la cabecera del recorte, pero en un documento que se escribe
@@ -617,6 +650,23 @@ if (hayReadmes) {
   for (const [que, real, queDice] of [
     [/\*\*([\d,]+) variantes\*\*/, totalBase, "variantes"],
     [/([\d,]+) alias de n[uú]mero de modelo/, totalAlias, "alias de numero de modelo"],
+  ]) {
+    const m = que.exec(README_RAIZ);
+    const dicho = m ? Number(m[1].replace(/,/g, "")) : null;
+    check(
+      `el README raíz dice ${real} ${queDice}, y son ${real}`,
+      dicho === real,
+      m === null ? `no se encontró ${queDice} en el README raíz` : `dice ${dicho} y son ${real}`,
+    );
+  }
+
+  // Y las otras dos cifras de la misma tabla, que no salen de la base: salen
+  // del código. El README decía 17 sondas (son 16) y 11,043 puertas (son
+  // 11,487). Ninguna de las dos rompía nada al estar mal; las dos se corrigieron
+  // el 2026-09-29 y estas pruebas son para que no vuelvan.
+  for (const [que, real, queDice] of [
+    [/\*\*(\d+) sondas\*\*/, idsSonda.size, "sondas"],
+    [/([\d,]+) puertas/, totalPuertas, "puertas"],
   ]) {
     const m = que.exec(README_RAIZ);
     const dicho = m ? Number(m[1].replace(/,/g, "")) : null;
@@ -721,9 +771,9 @@ if (hayReadmes) {
 // (costó seis comprobaciones en silencio), asi que el total se cuenta.
 const corridas = ok + fallos - CORRIDAS_ANTES;
 check(
-  "la sección de los README corrió sus 24 comprobaciones",
-  corridas === 24,
-  `corrieron ${corridas} de 24: algo se dejó de ejecutar, y una sección que no se ` +
+  "la sección de los README corrió sus 26 comprobaciones",
+  corridas === 26,
+  `corrieron ${corridas} de 26: algo se dejó de ejecutar, y una sección que no se ` +
     "ejecuta no falla, solo desaparece. Si acabas de agregar o quitar una " +
     "comprobación en esta sección, corrige este número: es a propósito",
 );
@@ -756,6 +806,92 @@ check(
   `Los ${declarados.size} kind declarados cubren la base`,
   huerfanos.length === 0,
   `sin declarar: ${huerfanos.join(", ")}`,
+);
+
+// ---------------------------------------------------------------------------
+// Las puertas de verificacion y la tabla de cobertura
+// ---------------------------------------------------------------------------
+// `GATE_COBERTURA` dice, por puerta, que parte cubre una sonda del diagnostico y
+// que falta. La pantalla de Entrega la usa para no dejar que un verde de sonda
+// se lea como un verde de puerta.
+//
+// Estas pruebas existen porque el error aqui NO se ve. Escribir `slots_healthy`
+// donde la base tiene `slot_health` no rompe una sola linea: la fila cae en el
+// `null` de `coberturaGate`, aparece el texto generico y la pantalla miente con
+// toda normalidad. committed el 2026-09-28, justamente eso habia pasado con dos
+// ids. Por eso la comparacion va en los DOS sentidos: las claves que la base no
+// tiene, y las puertas de la base que nadie explico.
+console.log("");
+console.log("Cobertura de las comprobaciones de entrega");
+
+const { GATE_COBERTURA } = await import(
+  pathToFileURL(join(RAIZ, "packages", "core", "src", "bridge.ts")).href
+);
+
+const clavesCobertura = Object.keys(GATE_COBERTURA);
+const sinExplicar = [...idsPuerta].filter((id) => !(id in GATE_COBERTURA));
+check(
+  `Las ${idsPuerta.size} comprobaciones de la base tienen su texto en GATE_COBERTURA`,
+  sinExplicar.length === 0,
+  `la pantalla les caeria el texto generico: ${sinExplicar.join(", ")}`,
+);
+
+const inventadas = clavesCobertura.filter((id) => !idsPuerta.has(id));
+check(
+  `Ninguna de las ${clavesCobertura.length} claves de GATE_COBERTURA es inventada`,
+  inventadas.length === 0,
+  `no existe ninguna puerta con esos id en la base: ${inventadas.join(", ")}`,
+);
+
+// Una entrada con sonda tiene que decir QUE cubre y QUE FALTA. Sin la segunda
+// parte, la pantalla muestra un verde al lado de la puerta y el tecnico lo lee
+// como "esta comprobada": es el error que la tabla existe para evitar, y la
+// unica forma de que se cuele es dejar `falta` vacio.
+const sinFalta = clavesCobertura.filter((id) => {
+  const c = GATE_COBERTURA[id];
+  return !c.falta || !c.falta.trim();
+});
+check("Ninguna entrada se queda sin decir que falta", sinFalta.length === 0, `vacias: ${sinFalta.join(", ")}`);
+
+const sondaSinCubre = clavesCobertura.filter(
+  (id) => GATE_COBERTURA[id].sonda !== null && !GATE_COBERTURA[id].cubre,
+);
+check(
+  "Ninguna entrada con sonda se queda sin decir que cubre",
+  sondaSinCubre.length === 0,
+  `sin texto de cobertura: ${sondaSinCubre.join(", ")}`,
+);
+
+// La sonda tiene que EXISTIR en el diagnostico. Referenciar `bateriaaa` no
+// rompe nada: la pantalla mostraria "no ejecutada" para siempre, que se lee
+// como que el diagnostico no corrio.
+const sondaInventada = clavesCobertura.filter((id) => {
+  const s = GATE_COBERTURA[id].sonda;
+  return s !== null && !idsSonda.has(s);
+});
+check(
+  `Toda sonda referida existe en probes.ts (${idsSonda.size} sondas)`,
+  sondaInventada.length === 0,
+  `no existen: ${sondaInventada.map((id) => `${id}->${GATE_COBERTURA[id].sonda}`).join(", ")}`,
+);
+
+// Y el dato que sostiene la honestidad de la pantalla: la MAYORIA de las
+// puertas no tiene sonda. El numero exacto varia por variante (`slot_health`
+// solo aparece en 291 de 763 y `verified_boot_state` en 590), asi que el copy de
+// la pantalla lo calcula en vez de escribirlo. Aqui se comprueba la PROPIEDAD,
+// que es lo que no puede cambiar sin que la pantalla mienta: si las sondas
+// resolvieran la mitad o mas de las comprobaciones, el panel de cobertura
+// dejaria de ser una excepcion y pasaria a ser la vista principal.
+const conSonda = clavesCobertura.filter((id) => GATE_COBERTURA[id].sonda !== null);
+check(
+  `Solo ${conSonda.length} de ${idsPuerta.size} puertas tienen sonda, y el resto las hace el tecnico`,
+  conSonda.length < idsPuerta.size / 2,
+  `el copy de la pantalla dice el numero; si subio a ${conSonda.length}, hay que corregirlo`,
+);
+check(
+  `La cuenta de puertas de la base cuadra con lo que se importa (${totalPuertas} en total)`,
+  totalPuertas === 11487,
+  `hay ${totalPuertas}; si cambio, es una varianza real de la fuente y hay que documentarla`,
 );
 
 // `release` es texto, no numero. Si alguien lo cambia a number, esto falla.

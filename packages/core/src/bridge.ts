@@ -109,8 +109,8 @@ export interface VerificationGate {
   /** En español llano: "El equipo enciende y no reinicia en 3 min". */
   name: string;
   /**
-   * Qué clase de comprobación es. Los nueve valores salen de la base real, no
-   * de una lista inventada: se contaron 11,043 puertas y estos son todos los
+   * Qué clase de comprobación es. Los diez valores salen de la base real, no de
+   * una lista inventada: se contaron 11,487 puertas y estos son todos los
    * `kind` que aparecen. Un tipo cerrado aquí documenta qué significa cada
    * palabra; ampliarlo obliga a decidir qué hacer con el valor nuevo.
    */
@@ -128,6 +128,29 @@ export interface VerificationGate {
   /** Si es bloqueante, el trabajo no se puede dar por terminado. */
   blocking: boolean;
 }
+
+/**
+ * Lo que el técnico declaró sobre una comprobación.
+ *
+ * `null` (la ausencia en el mapa) es "pendiente" y NO es un valor más: es el
+ * estado en el que arranca todo, y la diferencia entre "nadie la ha hecho" y
+ * "alguien la marcó como que no aplica" es la diferencia entre un trabajo sin
+ * terminar y un trabajo terminado con una comprobación que no se pudo hacer.
+ *
+ * `no_aplica` existe por eso. Sin él, un técnico que no puede comprobar el
+ * registro en la red porque la SIM del cliente es de otra región tendría que
+ * dejar la puerta en `pendiente` para siempre, y una lista que nunca puede
+ * cerrarse es una lista que nadie usa.
+ *
+ * NINGUNO DE ESTOS ESTADOS ES UNA MEDICIÓN. Es lo que el técnico dice que hizo,
+ * y por eso vive en la sesión y no en el informe firmado: un informe que
+ * afirmara "el taller comprobó 14 de 16" sería una afirmación sin evidencia,
+ * firmada por el taller, sobre un archivo que el cliente no puede auditar.
+ */
+export type GateEstado = "hecha" | "fallo" | "no_aplica";
+
+/** Comprobaciones marcadas, por id de puerta. Lo no presente está pendiente. */
+export type GateChecks = Record<string, GateEstado | undefined>;
 
 /**
  * Unidad atómica del catálogo: la VARIANTE, no el modelo.
@@ -166,6 +189,111 @@ export const TOOLTIP_HOMOLOGACION: Record<HomologadoIft, string> = {
   no_soportado:
     "Marcado como no soportado por confirmación manual. Este equipo está fuera del alcance de la herramienta.",
 };
+
+/**
+ * Qué parte de una comprobación cubre una sonda del diagnóstico, y qué NO.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUÉ ESTA TABLA EXISTE Y POR QUÉ DICE "NO CUFRE"
+ * ---------------------------------------------------------------------------
+ * El catálogo trae 16 comprobaciones por variante (11,487 en total) y el
+ * diagnóstico trae 16 sondas. El número parecido invita a cablear una como si
+ * fuera la otra, y esa es justo la mentira que este producto no puede contar:
+ *
+ *   - La sonda `bateria` lee `dumpsys battery`: nivel, temperatura y salud que
+ *     declara Android. La comprobación `battery_report` pide saber si la
+ *     capacidad REAL es mayor al 60% de la de diseño. Para eso hay que leer la
+ *     ruta de capacidad de diseño, y nadie lo hace.
+ *   - La sonda `verificacion-inicial` lee `ro.boot.verifiedbootstate`. La
+ *     comprobación `boot_state_verified` pide que el estado de arranque esté
+ *     "sin alteraciones", y eso solo significa algo comparado contra una lectura
+ *     ANTERIOR. El diagnóstico toma una foto de un instante: no tiene con qué
+ *     comparar, así que no puede afirmar que nada cambió.
+ *
+ * Por eso cada entrada dice qué cubre y qué no, y por eso el resultado de la
+ * sonda NO marca la comprobación: se muestra al lado, como pista. Una casilla
+ * que se rellena sola es una afirmación que la herramienta no puede respaldar, y
+ * esta herramienta no hace eso.
+ *
+ * Lo que NO está en esta tabla también es una respuesta, y es la que más pesa:
+ * solo 3 o 4 de las 16 comprobaciones tienen sonda, y son las que un técnico
+ * tiene que hacer a mano con el equipo en la mesa. La pantalla lo dice con todas
+ * las letras en vez de dejar que un listado verde insinúe que todo está
+ * comprobado. El número exacto depende de la variante (`slot_health` solo
+ * aparece en 291 de las 763), así que se calcula y no se escribe.
+ *
+ * Las claves de esta tabla se cruzan contra los `id` reales de la base en
+ * `tools/probar-catalogo.mjs`. Inventar un `id` (escribir `slots_healthy` donde
+ * la base tiene `slot_health`) no rompe nada visible: la fila cae en el `null`,
+ * el texto genérico aparece y la pantalla miente sin que nada falle. Por eso
+ * hay una prueba que compara las dos listas en los dos sentidos.
+ */
+export interface GateCoverage {
+  /** Sonda relacionada del diagnóstico, o `null` si ninguna la cubre. */
+  sonda: string | null;
+  /** Qué parte de la comprobación resuelve esa sonda, en una línea. */
+  cubre: string | null;
+  /** Qué falta para dar la comprobación por buena. */
+  falta: string;
+}
+
+export const GATE_COBERTURA: Record<string, GateCoverage> = {
+  power_on: {
+    sonda: "arranque",
+    cubre: "Que Android terminó de montar datos y reportar el arranque completo.",
+    falta:
+      "Que aguante 3 minutos sin reiniciarse. Un arranque completo es el instante en que el sistema se levanta; el reinicio en bucle del kernel o de la partición de datos puede llegar un minuto después, y un valor de 1 al momento de leer no lo descarta.",
+  },
+  battery_report: {
+    sonda: "bateria",
+    cubre: "Nivel, temperatura y el estado de salud que declara el propio Android.",
+    falta:
+      "La capacidad real comparada contra la de diseño. `dumpsys battery` no trae la capacidad de diseño, así que aquí no se puede distinguir una celda nueva de una que ya tiene el 55% de su vida útil.",
+  },
+  verified_boot_state: {
+    sonda: "verificacion-inicial",
+    cubre: "El color que reporta la cadena de arranque: verde, amarillo, rojo, naranja.",
+    falta:
+      "Que no haya CAMBIADO respecto a antes de intervenir. El diagnóstico toma una lectura de un momento y no guarda la anterior, así que 'sin alteraciones' no es una conclusión que esta herramienta pueda escribir.",
+  },
+  slot_health: {
+    sonda: "particiones",
+    cubre: "Si el equipo tiene particiones dinámicas y cuál es la ranura activa.",
+    falta:
+      "Que la otra ranura esté sana. Saber que existen dos no dice que la inactiva arranque, y esa es exactamente la ranura de la que depende que el equipo vuelva solo tras un fallo.",
+  },
+  charging: {
+    sonda: null,
+    cubre: null,
+    falta:
+      "Ningún dato del sistema dice cuánto sube el porcentaje con el cargador conectado. Se mide con el cargador puesto y esperando.",
+  },
+  touch_grid: { sonda: null, cubre: null, falta: "Ninguna sonda dibuja una rejilla ni lee el digitalizador. Es a ojo, con la pantalla a un dedo." },
+  display_pwm: { sonda: null, cubre: null, falta: "Ninguna sonda mide el parpadeo. Es a ojo, con la pantalla en brillo bajo." },
+  audio_path: { sonda: null, cubre: null, falta: "Ninguna sonda mide sonido. Es a oído: altavoz, auricular y micrófono." },
+  cameras: { sonda: null, cubre: null, falta: "Ninguna sonda abre la cámara. Es a ojo, una por una, incluida la frontal." },
+  sensors: { sonda: null, cubre: null, falta: "Ninguna sonda lee sensores. Es a mano: proximidade, huella y giroscopio." },
+  network_register: { sonda: null, cubre: null, falta: "La sonda del módem lee la versión de banda base, no si la SIM quedó registrada en la red. Hace falta poner la SIM y ver la señal." },
+  data_browse: { sonda: null, cubre: null, falta: "Ninguna sonda abre una página ni resuelve un nombre. Se prueba con un video, no con el ícono de internet." },
+  call_voicemail: { sonda: null, cubre: null, falta: "Ninguna sonda marca. Hay que hacer una llamada de verdad." },
+  gms: { sonda: null, cubre: null, falta: "Ninguna sonda abre Play Servicios. Si el equipo nunca tuvo cuenta, esto se comprueba después de agregarla." },
+  ota: { sonda: null, cubre: null, falta: "Ninguna sonda dispara una actualización. Se revisa en Ajustes con el equipo en red." },
+  radio_ident: {
+    sonda: null,
+    cubre: null,
+    falta:
+      "El IMEI y el ESN no se leen en ninguna sonda, y no se van a añadir: compararlos exige un valor anterior guardado, y una herramienta de taller que guarda el IMEI de cada equipo que pasa por la mesa es un problema de datos, no una función. Se anota en la orden de trabajo, a mano.",
+  },
+};
+
+/**
+ * Cobertura de una comprobación. Una puerta que no esté en la tabla devuelve
+ * `null`, no una entrada inventada: la base puede crecer y la vista tiene que
+ * decir "de esto no sé" en vez de inventar un texto que nadie revisó.
+ */
+export function coberturaGate(id: string): GateCoverage | null {
+  return GATE_COBERTURA[id] ?? null;
+}
 
 export interface DeviceVariant {
   /** `codename#variante`, o el codename solo si no hay variante. */

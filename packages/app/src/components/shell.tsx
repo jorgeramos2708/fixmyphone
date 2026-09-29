@@ -17,6 +17,7 @@ import { useEffect, type ReactNode } from "react";
 import {
   Usb,
   Stethoscope,
+  ClipboardCheck,
   FileText,
   KeyRound,
   History,
@@ -26,7 +27,17 @@ import {
 import type { ConnectedDevice, LicenseState, TransportKind } from "@fixmyphone/core";
 import { Badge } from "./primitives";
 
-export type RouteId = "equipo" | "diagnostico" | "informe" | "licencia";
+/**
+ * El orden es el del trabajo: identificar, leer, comprobar, entregar. `Entrega`
+ * va entre `Diagnóstico` e `Informe` y no al final a propósito, porque es el
+ * orden en que el técnico pasa por las cuatro cuando cierra un trabajo, y con
+ * el informe al final se la salta.
+ *
+ * Los atajos se recorrieron en vez de dejar el informe en el 3 y agregar un 4
+ * suelto: un atajo que significa una cosa en una versión y otra en la
+ * siguiente es un atajo que algún día se aprieta mal creyendo que es otro.
+ */
+export type RouteId = "equipo" | "diagnostico" | "entrega" | "informe" | "licencia";
 
 interface NavItem {
   id: RouteId;
@@ -44,7 +55,13 @@ const NAV: NavItem[] = [
     icon: <Stethoscope size={16} strokeWidth={1.75} />,
     shortcut: "2",
   },
-  { id: "informe", label: "Informe", icon: <FileText size={16} strokeWidth={1.75} />, shortcut: "3" },
+  {
+    id: "entrega",
+    label: "Entrega",
+    icon: <ClipboardCheck size={16} strokeWidth={1.75} />,
+    shortcut: "3",
+  },
+  { id: "informe", label: "Informe", icon: <FileText size={16} strokeWidth={1.75} />, shortcut: "4" },
 ];
 
 // ---------------------------------------------------------------------------
