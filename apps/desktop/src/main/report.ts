@@ -35,7 +35,17 @@ import type {
   RawDeviceProps,
   Resolution,
 } from "@fixmyphone/core";
-import { has, partitionScheme, TOOLTIP_HOMOLOGACION } from "@fixmyphone/core";
+import {
+  avisoFirmaDescarga,
+  has,
+  ORDEN_RECETA,
+  PARTICION_RECOVERY,
+  partitionScheme,
+  preRequisito,
+  recetaPresente,
+  riesgosDe,
+  TOOLTIP_HOMOLOGACION,
+} from "@fixmyphone/core";
 import { licenseId } from "@fixmyphone/licensing";
 
 export interface ReportInput {
@@ -80,6 +90,61 @@ function linea(clave: string, valor: string): string {
 
 function regla(titulo: string): string {
   return `\n${titulo}\n${"-".repeat(Math.max(titulo.length, 26))}`;
+}
+
+/**
+ * Parte un párrafo en renglones de ancho fijo, con sangría.
+ *
+ * -----------------------------------------------------------------------
+ * POR QUÉ EXISTE Y POR QUÉ NO ESTÁ EN `core`
+ * -----------------------------------------------------------------------
+ * Porque los textos de `core` son párrafos para pantalla, donde el ancho lo
+ * decide el navegador, y el informe es un `.txt` de ancho fijo. Meter el ajuste
+ * de línea en `core` obligaría a la pantalla a deshacerlo, y lo que se deshace
+ * mal es peor que lo que no se ajusta: aquí la línea se come media pantalla.
+ *
+ * Lo que llega de la fuente (los textos de botones, las descripciones del modo
+ * de descarga) NO pasa por aquí a propósito: son literales, y partir un literal
+ * que el técnico va a leer en voz alta para copiarlo cambia lo que la fuente
+ * escribió. Se parten solo los párrafos explicativos, que son los únicos que no
+ * se copian.
+ *
+ * -----------------------------------------------------------------------
+ * POR QUÉ PALABRA COMPLETA Y NO CARÁCTER
+ * -----------------------------------------------------------------------
+ * Por lo mismo: partir a media palabra produce un renglón que no se puede
+ * copiar ni dictar sin volverlo a armar. A 68 columnas con sangría de 6, la
+ * palabra más larga del español cabe de sobra.
+ */
+const ANCHO = 68;
+const SANGRA = "      ";
+
+/**
+ * Parte un párrafo en renglones de ancho fijo.
+ *
+ * `primero` y `resto` son las sangrías del primer renglón y de los siguientes.
+ * Son distintos cuando lo que se imprime es una viñeta: el `  - ` va una sola
+ * vez y los renglones que le siguen se alinean con el texto de la viñeta, no con
+ * el guion.
+ */
+function parrafo(texto: string, primero = SANGRA, resto = SANGRA): string[] {
+  const salida: string[] = [];
+  const sangriaDe = (i: number) => (i === 0 ? primero : resto);
+  const agregar = (renglon: string) =>
+    salida.push(sangriaDe(salida.length) + renglon);
+  let renglon = "";
+  for (const palabra of texto.split(/\s+/).filter(Boolean)) {
+    // La sangría cuenta para el ancho: el tope es del renglón completo, que es
+    // lo que se ve en la pantalla del cliente.
+    const ocupa = sangriaDe(salida.length).length + renglon.length + (renglon ? 1 : 0) + palabra.length;
+    if (renglon && ocupa > ANCHO) {
+      agregar(renglon);
+      renglon = "";
+    }
+    renglon = renglon ? `${renglon} ${palabra}` : palabra;
+  }
+  if (renglon) agregar(renglon);
+  return salida;
 }
 
 /** Marca de tiempo local, en el formato que se lee en voz alta. */
@@ -156,7 +221,7 @@ export function buildReport(input: ReportInput): string {
       partes.push(linea("Fuente del folio", v.iftUrl || "sin URL"));
     }
     partes.push("");
-    partes.push(`  ${TOOLTIP_HOMOLOGACION[v.homologadoIft]}`);
+    partes.push(...parrafo(TOOLTIP_HOMOLOGACION[v.homologadoIft], "  ", "  "));
   } else {
     partes.push(linea("Resultado", "NO RESUELTO"));
     if (resolution.unresolvedReason) {
@@ -213,12 +278,135 @@ export function buildReport(input: ReportInput): string {
   // --- Riesgos ------------------------------------------------------------
   if (v && v.riskFlags.length) {
     partes.push(regla("RIESGOS QUE EL CATALOGO ADVIERTE"));
-    for (const f of v.riskFlags) partes.push(`  - ${f}`);
+    // -------------------------------------------------------------------
+    // Por qué no se imprime `f` tal cual
+    // -------------------------------------------------------------------
+    // Las banderas de la base tienen la forma `base` o `base:valor`, y se
+    // imprimían enteras. El informe firmado que recibe el cliente llegaba con
+    // líneas como
+    //
+    //     - pre_install_required:needs_specific_android_fw
+    //     - recovery_flash_target_is:vendor_boot
+    //
+    // o sea, el identificador interno de la base, sin traducir, en el único
+    // documento que el producto le entrega a alguien. La pantalla de Equipo sí
+    // tenía su propia tabla de textos, así que el técnico leía la misma
+    // advertencia en español y el cliente leía el código: dos verdades para un
+    // dato, y la menos legible en el papel que importa.
+    //
+    // Ahora las dos salen de `riesgo()`, y el valor va traducido con la
+    // receta. Cuando el valor no tiene traducción se dice explícitamente que la
+    // fuente no lo explica, en vez de imprimir el código como si fuera una
+    // explicación.
+    for (const r of riesgosDe(v)) {
+      partes.push(...parrafo(r.texto, "  - "));
+      if (r.valor) {
+        // El rotulo y el separador los pone este consumidor. Los textos de `core`
+        // no nombran la particion ni el firmware, porque el que los usa ya lo
+        // tiene a la vista y lo pone en su propia tipografia; y no traen
+        // comillas invertidas porque estas cadenas llegan al cliente tal cual.
+        partes.push(
+          `      ${r.valorRotulo ?? "Valor"}: ${r.valor}` +
+            (r.valorTexto ? " —" : " (la fuente no explica este valor)"),
+        );
+        if (r.valorTexto) partes.push(...parrafo(r.valorTexto, SANGRA + "  "));
+      }
+    }
     partes.push("");
     partes.push(
       "  Estos avisos son para que el tecnico decida con su propia",
       "  responsabilidad. FixMyPhone no ejecuta ninguno de estos",
       "  procedimientos por el: los describe.",
+    );
+  }
+
+  // --- Receta -------------------------------------------------------------
+  //
+  // -----------------------------------------------------------------------
+  // Por qué la receta va en el informe firmado y no en la pantalla de entrega
+  // -----------------------------------------------------------------------
+  // Porque es el mismo tipo de dato que la sección de riesgos: viene del
+  // catálogo, con su procedencia, y no depende de que el técnico marque nada.
+  // El informe no dice "el técnico hizo esto", dice "esto es lo que el catálogo
+  // sabe de esta placa". La receta es exactamente eso, y su ausencia era el
+  // hueco más grande del documento: un cliente que pedía la reparación leía un
+  // informe con el diagnóstico y sin una sola línea de lo que se iba a hacer.
+  //
+  // Lo que NO entra es nada que el técnico escriba. Si algún día la orden de
+  // trabajo existe, lo que él declare irá marcado como declaración, porque una
+  // declaración no es evidencia y este informe está firmado.
+  if (v) {
+    partes.push(regla("QUE HAY QUE HACER CON ESTA PLACA (LO DICE EL CATALOGO)"));
+    const r = v.receta;
+    if (r.descargaExigeMaterialFirmado === true) {
+      // El aviso dice "el modo de descarga", no "la reparacion", y la razon
+      // esta escrita en el campo de `core`: de las 691 variantes con este dato
+      // en 1, 595 son metodos fastboot, y el flasheado por fastboot no
+      // necesita la firma. Decir "esta reparacion no se puede hacer" seria
+      // falso en la mayor parte del catalogo, y este archivo se lo entrega al
+      // cliente.
+      //
+      // Los dos parrafos salen de `avisoFirmaDescarga()`, la misma funcion que
+      // usa la pantalla: duplicados, el dia que uno se corrige el otro se
+      // queda diciendo lo viejo, y el viejo es el que llega al cliente.
+      const [p1, p2] = avisoFirmaDescarga(r);
+      partes.push("  EL MODO DE DESCARGA DE ESTA PLACA EXIGE MATERIAL FIRMADO");
+      partes.push(...parrafo(p1));
+      partes.push(...parrafo(p2));
+    } else if (r.descargaExigeMaterialFirmado === false) {
+      partes.push(
+        `  El modo de descarga (${r.modoDescarga ?? "sin descripcion"}) no exige` +
+          " material firmado.",
+      );
+    }
+    if (r.requisitoPrevio) {
+      const explicacion = preRequisito(r.requisitoPrevio);
+      partes.push(
+        `  Antes de flashear: ${r.requisitoPrevio}` +
+          (r.versionRequisito ? ` (Android ${r.versionRequisito})` : ""),
+      );
+      if (explicacion) {
+        partes.push(
+          ...parrafo(
+            `Antes hay que instalar ${explicacion}. Si se salta ese paso, el` +
+              " recovery que se flashea despues puede no arrancar.",
+          ),
+        );
+      } else {
+        partes.push("      La fuente da este nombre pero no explica que hay que instalar.");
+      }
+    }
+    if (r.particionRecovery) {
+      partes.push(`  Particion donde va la imagen de recovery: ${r.particionRecovery}`);
+      partes.push(...parrafo(PARTICION_RECOVERY[r.particionRecovery]));
+    }
+    if (r.desbloqueo) {
+      partes.push("  Comando de desbloqueo propio de este equipo:");
+      for (const l of r.desbloqueo.split("\n")) partes.push(`      ${l}`);
+    }
+    if (r.metodo) partes.push(`  Metodo de instalacion declarado: ${r.metodo}`);
+    if (r.modoDescarga) partes.push(`  Modo de descarga: ${r.modoDescarga}`);
+    if (r.comboRecovery) partes.push(`  Como entrar a recovery: ${r.comboRecovery}`);
+    if (r.comboDescarga) partes.push(`  Como entrar al modo de descarga: ${r.comboDescarga}`);
+    if (r.comboRecovery || r.comboDescarga) {
+      partes.push(
+        "      (texto de la fuente, en su idioma; la app no lo traduce ni lo",
+        "       ejecuta, y no comprueba que siga siendo correcto para esta placa)",
+      );
+    }
+    const conDato = recetaPresente(r).length;
+    if (conDato === 0) {
+      partes.push("  La fuente no declara receta para esta variante.");
+    } else {
+      partes.push(
+        `  (${conDato} de ${ORDEN_RECETA.length} campos con dato en la fuente;`,
+        `   los que faltan, la fuente no los declara)`,
+      );
+    }
+    partes.push("");
+    partes.push(
+      "  FixMyPhone NO ejecuta ninguno de estos pasos. Los describe, para que el",
+      "  tecnico decida. Ejecutarlos es responsabilidad de quien los ejecuta.",
     );
   }
 

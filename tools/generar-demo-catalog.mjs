@@ -41,10 +41,17 @@ const LIMITE = 48;
 
 const db = new DatabaseSync(DB, { readOnly: true });
 
+// Las nueve columnas de receta van también aquí. La demo web es el mismo
+// producto con otro bridge, y si el generador se quedara sin ellas el catálogo
+// de la demo compilaría con `receta` sin definir y enseñaría una pantalla de
+// reparación vacía en lugar de la que enseña el `.exe`.
 const COLS = `codename, variant, marketing_name, vendor, vendor_nombre, soc_raw, soc_vendor,
   platform, model_numbers, android_version, release, capabilities,
   risk_flags, verification_gates, sources,
-  homologado_ift, ift_certificado, ift_url`;
+  homologado_ift, ift_certificado, ift_url,
+  install_method, custom_unlock_cmd, recovery_partition_name,
+  recovery_boot, download_boot, download_mode, signed_material_required,
+  pre_install_instructions, pre_install_version`;
 
 const todas = db.prepare(`SELECT ${COLS} FROM variant`).all();
 
@@ -151,6 +158,37 @@ function aVariante(r) {
     homologadoIft: comoHomologadoIft(r.homologado_ift),
     iftCertificado: String(r.ift_certificado ?? ""),
     iftUrl: String(r.ift_url ?? ""),
+    receta: toReceta(r),
+  };
+}
+
+/**
+ * La receta, con la misma degradación que el proceso principal.
+ *
+ * Se repite aquí y no se importa de `catalog.ts` por lo mismo que
+ * `comoHomologadoIft`: este archivo corre en Node pelado, sin el paquete de
+ * escritorio. La degradación tiene que estar en los dos lados, porque el error
+ * que produce es del tipo que no se ve —una partición mal leída se ve, un
+ * `signed_material_required` leído como `true` por accidente pone un aviso de
+ * "no se puede" en 700 equipos que sí se pueden.
+ */
+const PARTICIONES = new Set(["recovery", "boot", "vendor_boot"]);
+
+function toReceta(r) {
+  const t = (v) => (v == null || v === "" ? null : String(v).trim() || null);
+  const part = t(r.recovery_partition_name);
+  const material = t(r.signed_material_required);
+  return {
+    metodo: t(r.install_method),
+    desbloqueo: t(r.custom_unlock_cmd),
+    particionRecovery:
+      part && PARTICIONES.has(part.toLowerCase()) ? part.toLowerCase() : null,
+    comboRecovery: t(r.recovery_boot),
+    comboDescarga: t(r.download_boot),
+    modoDescarga: t(r.download_mode),
+    descargaExigeMaterialFirmado: material === null ? null : material === "1",
+    requisitoPrevio: t(r.pre_install_instructions),
+    versionRequisito: t(r.pre_install_version),
   };
 }
 

@@ -922,6 +922,186 @@ const conFecha = db
   .get();
 check("727 de 763 variantes con fecha de lanzamiento", Number(conFecha.n) === 727, `hay ${conFecha.n}`);
 
+// ---------------------------------------------------------------------------
+console.log("\nLa receta que la app lee y la base tiene");
+// ---------------------------------------------------------------------------
+// Antes de esto la app no leía ninguna de las nueve columnas de receta: el
+// `SELECT` de `catalog.ts` no las pedía, `DeviceVariant` no las tenía y la
+// pantalla no existía. El dato llevaba años en la base, con su procedencia,
+// sin llegar a ninguna parte.
+//
+// Esta sección comprueba que lo que la app afirma de la receta sea lo que la
+// base dice. El riesgo concreto es la tabla cerrada: si `recovery_partition_name`
+// trae un valor que `PARTICION_RECOVERY` no conoce, `comoParticionRecovery`
+// devuelve `null` y la pantalla dice "la fuente no lo dice" sobre una variante
+// que sí lo tiene. Eso no rompe nada y por eso nadie lo vería.
+
+const { PARTICION_RECOVERY, PRE_REQUISITO, FLAG_RIESGO, ORDEN_RECETA } = await import(
+  pathToFileURL(join(RAIZ, "packages", "core", "src", "bridge.ts")).href
+);
+
+const COLS_RECETA = [
+  "install_method",
+  "custom_unlock_cmd",
+  "recovery_partition_name",
+  "recovery_boot",
+  "download_boot",
+  "download_mode",
+  "signed_material_required",
+  "pre_install_instructions",
+  "pre_install_version",
+];
+
+const faltanCols = COLS_RECETA.filter(
+  (c) => !db.prepare(`SELECT ${c} FROM variant LIMIT 1`).get(),
+);
+check(
+  `La tabla variant trae las ${COLS_RECETA.length} columnas de receta`,
+  faltanCols.length === 0,
+  `no existen: ${faltanCols.join(", ")}`,
+);
+
+const sinHTML = db
+  .prepare(
+    `SELECT COUNT(*) AS n FROM variant WHERE ${COLS_RECETA.map(
+      (c) => `${c} LIKE '%<%' OR ${c} LIKE '%>%'`,
+    ).join(" OR ")}`,
+  )
+  .get();
+check(
+  "Ninguna columna de receta trae marcado de la fuente",
+  Number(sinHTML.n) === 0,
+  `${sinHTML.n} variantes con etiquetas dentro: se imprimirían en el informe como "<kbd>"; ` +
+    "db:verify también lo comprueba, en la base y no solo en el pipeline",
+);
+
+// El conjunto cerrado de particiones, contra lo que hay de verdad.
+const partesDistintas = db
+  .prepare(
+    "SELECT DISTINCT recovery_partition_name v FROM variant WHERE recovery_partition_name != ''",
+  )
+  .all()
+  .map((r) => r.v);
+const partesDesconocidas = partesDistintas.filter((v) => !(v in PARTICION_RECOVERY));
+check(
+  `Las ${partesDistintas.length} particiones de la base están en PARTICION_RECOVERY`,
+  partesDesconocidas.length === 0,
+  `la app las degradaría a "la fuente no lo dice": ${partesDesconocidas.join(", ")}`,
+);
+const partesHuerfanas = Object.keys(PARTICION_RECOVERY).filter(
+  (v) => !partesDistintas.includes(v),
+);
+check(
+  "Ninguna partición de PARTICION_RECOVERY está inventada",
+  partesHuerfanas.length === 0,
+  `ninguna variante de la base usa: ${partesHuerfanas.join(", ")}`,
+);
+
+// Los requisitos previos: la mayoría NO se pueden explicar, y está bien. Lo que
+// no está bien es que la app no diga cuáles son.
+const reqLineas = new Set();
+for (const r of db
+  .prepare(
+    "SELECT pre_install_instructions s FROM variant WHERE pre_install_instructions IS NOT NULL AND TRIM(pre_install_instructions) != ''",
+  )
+  .all()) {
+  for (const p of r.s.split("\n")) {
+    const t = p.trim();
+    if (t) reqLineas.add(t);
+  }
+}
+const reqSinTexto = [...reqLineas].filter((r) => !(r in PRE_REQUISITO));
+const reqHuerfanos = Object.keys(PRE_REQUISITO).filter((r) => !reqLineas.has(r));
+check(
+  "Ninguna clave de PRE_REQUISITO está inventada",
+  reqHuerfanos.length === 0,
+  `la base no trae: ${reqHuerfanos.join(", ")}`,
+);
+// Este NO es un fallo de la app: es la medida de lo que la app admite no saber.
+// Está fija porque cambia cuando alguien escribe un texto nuevo, y ese cambio
+// tiene que salir en la revisión, no aparecer de pronto en una pantalla.
+check(
+  `De los ${reqLineas.size} requisitos previos de la fuente, ${reqSinTexto.length} no tienen texto y la pantalla lo dice`,
+  reqSinTexto.length === 15,
+  `son ${reqSinTexto.length} sin texto: si baja, alguien escribió un texto nuevo y hay ` +
+    "que revisar que no diga más de lo que la fuente dice",
+);
+
+// Las banderas de riesgo: toda base nueva necesita su texto, o el informe
+// firmado le entrega al cliente "Riesgo registrado por el catálogo" en vez de
+// una explicación.
+const basesRiesgo = new Set();
+for (const r of db.prepare("SELECT risk_flags f FROM variant").all()) {
+  for (const flag of JSON.parse(r.f || "[]")) {
+    const i = flag.indexOf(":");
+    basesRiesgo.add(i === -1 ? flag : flag.slice(0, i));
+  }
+}
+const banderaSinTexto = [...basesRiesgo].filter((b) => !(b in FLAG_RIESGO));
+check(
+  `Las ${basesRiesgo.size} banderas de riesgo de la base tienen su texto en FLAG_RIESGO`,
+  banderaSinTexto.length === 0,
+  `caerían en el texto genérico, en un informe firmado: ${banderaSinTexto.join(", ")}`,
+);
+const banderaInventada = Object.keys(FLAG_RIESGO).filter((b) => !basesRiesgo.has(b));
+check(
+  "Ninguna bandera de FLAG_RIESGO está inventada",
+  banderaInventada.length === 0,
+  `la base nunca emite: ${banderaInventada.join(", ")}`,
+);
+
+// La bandera de partición y el campo de receta son el mismo dato escrito dos
+// veces. Si se separan, la pantalla de reparación y la de equipo cuentan cosas
+// distintas sobre la misma placa, y el sitio donde se ve es una prueba y no el
+// informe de un taller.
+let coinciden = 0;
+const discrepan = [];
+for (const r of db
+  .prepare("SELECT codename, recovery_partition_name rp, risk_flags f FROM variant")
+  .all()) {
+  for (const flag of JSON.parse(r.f || "[]")) {
+    if (!flag.startsWith("recovery_flash_target_is:")) continue;
+    const v = flag.slice("recovery_flash_target_is:".length);
+    if (r.rp === v) coinciden++;
+    else discrepan.push(`${r.codename}: bandera dice ${v}, receta dice ${r.rp || "(nada)"}`);
+  }
+}
+check(
+  `Las ${coinciden} banderas de partición coinciden con la receta de su variante`,
+  discrepan.length === 0,
+  `discrepan: ${discrepan.slice(0, 3).join("; ")}`,
+);
+
+// Lo que la pantalla de reparación enseña son ocho campos, no nueve, y
+// `versionRequisito` no es una fila propia. Si alguien lo agrega a ORDEN_RECETA
+// aparece una fila vacía y el conteo de "datos de receta" deja de cuadrar.
+check(
+  "ORDEN_RECETA tiene los 8 campos que tienen fila en pantalla",
+  ORDEN_RECETA.length === 8 && !ORDEN_RECETA.includes("versionRequisito"),
+  `son ${ORDEN_RECETA.length} y no incluyen versionRequisito: ` +
+    `${!ORDEN_RECETA.includes("versionRequisito")}`,
+);
+
+// El demo es el mismo producto con otro bridge. Si el generador se quedara sin
+// una columna de receta, el catálogo de la demo compilaría sin ella y la
+// pantalla de reparación de la web enseñaría una receta vacía.
+const rutasDemo = [
+  join(RAIZ, "apps", "desktop", "src", "main", "catalog.ts"),
+  join(RAIZ, "tools", "generar-demo-catalog.mjs"),
+];
+const sinLeer = [];
+for (const ruta of rutasDemo) {
+  const src = readFileSync(ruta, "utf8");
+  for (const c of COLS_RECETA) {
+    if (!src.includes(c)) sinLeer.push(`${ruta.split(/[\\/]/).pop()}:${c}`);
+  }
+}
+check(
+  "Los dos lectores del catálogo piden las 9 columnas de receta",
+  sinLeer.length === 0,
+  `no las leen: ${sinLeer.join(", ")}`,
+);
+
 db.close();
 
 // ---------------------------------------------------------------------------

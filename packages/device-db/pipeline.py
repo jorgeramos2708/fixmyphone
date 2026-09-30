@@ -190,6 +190,30 @@ def cmd_verify(update_baseline: bool = False) -> int:
     checks.append(("sin claves foraneas huerfanas en provenance",
                    q("SELECT COUNT(*) FROM provenance p WHERE NOT EXISTS"
                      "(SELECT 1 FROM variant v WHERE v.id=p.variant_id)") == 0))
+    # El texto que va a terminar impreso en un informe firmado no puede traer
+    # marcado. El wiki de LineageOS escribe los botones como HTML dentro del
+    # YAML porque en su pagina se ven resaltados, y ese texto se copiaba tal
+    # cual: 1,376 campos de 763 variantes con "<kbd>Power</kbd>" dentro, que es
+    # decir, 1,376 veces que el informe le habria mostrado "<kbd>" al cliente.
+    #
+    # Se comprueba en la base y no solo en el pipeline porque el pipeline se
+    # puede re-ejecutar sobre una base vieja, y porque el informe se arma desde
+    # la base: si la base trae marcado, el informe trae marcado.
+    checks.append((
+        "el texto de los combos de teclas no trae HTML de la fuente",
+        q("SELECT COUNT(*) FROM variant WHERE"
+          " (recovery_boot LIKE '%<%' OR recovery_boot LIKE '%>%'"
+          "  OR download_boot LIKE '%<%' OR download_boot LIKE '%>%')") == 0,
+    ))
+    # Lo mismo, pero para el resto del texto que la app imprime crudo. Hoy solo
+    # las dos columnas de arriba traen marcado; esta comprobacion es la que
+    # avisa si mañana se empieza a copiar otro campo del wiki sin normalizarlo.
+    checks.append((
+        "ningun campo de texto que la app imprima trae HTML de la fuente",
+        q("SELECT COUNT(*) FROM variant WHERE"
+          " (install_method LIKE '%<%' OR custom_unlock_cmd LIKE '%<%'"
+          "  OR pre_install_instructions LIKE '%<%' OR download_mode LIKE '%<%')") == 0,
+    ))
 
     # Known-gap metrics: these are curation work items, not bugs. A regression
     # (the number getting worse) is a failure; the number itself is not.

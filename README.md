@@ -21,6 +21,8 @@ comercial, y cuando hay más de una plausible **no elige por el técnico**.
 | Catálogo de variantes | **763 variantes**, 48,908 alias de número de modelo |
 | Escalera de identidad L0–L6 | implementada y probada |
 | Diagnóstico por sonda | **16 sondas** de solo lectura, con el comando visible |
+| Receta por variante | **8 filas** (firma en el modo de descarga, requisito previo, partición de destino, desbloqueo, método, modo de descarga, y las dos combinaciones de botones). Las 763 variantes traen al menos un dato; 49 traen los 8. La pantalla **Reparación** los describe; no ejecuta ninguno |
+| Riesgos por variante | **10 banderas**, las 10 con texto propio, en la pantalla y en el informe firmado. El valor va traducido cuando se sabe (`vendor_boot` → qué partición es); cuando no, se muestra el código y se dice que la fuente no lo explica |
 | Comprobaciones de entrega | **11,487 puertas**, 13 a 16 por variante. Las muestra la app con su texto; **solo 3 o 4 tienen sonda asociada** y el resto las hace el técnico a mano |
 | Lista de verificación en el informe | las 11,487 puertas, como lista. No dice cuáles se hicieron: eso no es evidencia |
 | Licencias Ed25519 offline | emitir, verificar, atar a equipo |
@@ -124,11 +126,11 @@ La unidad de medida del proyecto es `npm test`:
 
 ```bash
 npm test
-#   72  pruebas de catálogo    (ambigüedad, artefacto, las puertas y la escalera)
+#   83  pruebas de catálogo    (ambigüedad, artefacto, las puertas, la receta y la escalera)
 #  155  pruebas de IFT         (alias de marca, homologación, el cruce)
 #  104  pruebas de licencia    (casi todas, ataques: firma, emisión, activación)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
-#   42  pruebas de empaquetado (lo que se entrega de verdad)
+#   49  pruebas de empaquetado (lo que se entrega de verdad, informe firmado incluido)
 #   44  pruebas de resolutor   (el resolutor real de platform.ts contra la base real, y la clave de firma)
 ```
 
@@ -162,6 +164,14 @@ hueco y se ve en pantalla como "no registrado", que es lo que es.
 - **Fechas de lanzamiento: 727 de 763.** Las 36 restantes no tienen fecha
   porque la fuente no la trae. Rellenarlas con una fecha inventada sería
   peor que admitir que no se sabe.
+- **No hay orden de trabajo ni motivo de entrada.** No existe registro de quién
+  abrió el equipo, por qué entró el cliente, ni qué se hizo. La pantalla
+  Reparación dice en pantalla que no es eso. Es la brecha más grande que
+  queda, y la que impide que el informe firmado sea auditable y no solo legible.
+- **15 de los 16 requisitos previos no se pueden explicar.** La fuente da un
+  código de firmware (`shinano`, `g2-common`, `h870`…) y no dice a qué modelo
+  corresponde. La app muestra el código y declara que no sabe traducirlo,
+  en vez de inventar la instrucción.
 - **IMEI/ESN: no se escriben.** Esta herramienta lee, identifica y documenta.
   No modifica identificadores de red, y no se va a añadir.
 

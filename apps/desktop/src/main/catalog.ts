@@ -16,7 +16,13 @@
 import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import type { DeviceVariant, HomologadoIft, VerificationGate } from "@fixmyphone/core";
+import type {
+  DeviceVariant,
+  HomologadoIft,
+  Receta,
+  VerificationGate,
+} from "@fixmyphone/core";
+import { comoParticionRecovery } from "@fixmyphone/core";
 
 const require = createRequire(import.meta.url);
 
@@ -101,6 +107,57 @@ function toVariant(row: Record<string, unknown>): DeviceVariant {
     homologadoIft: comoHomologadoIft(row.homologado_ift),
     iftCertificado: String(row.ift_certificado ?? ""),
     iftUrl: String(row.ift_url ?? ""),
+    receta: toReceta(row),
+  };
+}
+
+/**
+ * Las nueve columnas de receta, tal como las guarda la base.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ NO SE COPIAN LAS COLUMNAS A `DeviceVariant` UNO POR UNO
+ * ------------------------------------------------------------------
+ * Porque así es como llevaba desde el principio y por eso ninguna se leía: un
+ * campo que hay que recordar en tres sitios (el `SELECT`, el objeto y el tipo
+ * compartido) es un campo que en algún momento se queda a medio caminho, y a
+ * medio camino no se nota hasta que alguien lo busca en la pantalla. Al estar
+ * las nueve en un objeto, el compilador dice qué falta si mañana la base le
+ * añade una décima.
+ *
+ * `signed_material_required` es un entero `0`/`1` en la base y un booleano
+ * acá. El `0` NO se convierte en `false` por descarte de un `Boolean("0")`:
+ * se compara con la cadena, porque `Boolean("0")` es `true` en JavaScript y
+ * eso habría puesto "exige material firmado" a 707 variantes que no lo exigen.
+ *
+ * El campo se llama `descargaExigeMaterialFirmado` y no como la columna porque
+ * la columna no dice de qué habla. Ver el comentario del campo en
+ * `packages/core/src/bridge.ts`, que tiene el cruce que lo demuestra.
+ */
+function toReceta(row: Record<string, unknown>): Receta {
+  const texto = (c: string): string | null => {
+    const v = row[c];
+    if (v == null) return null;
+    const s = String(v).trim();
+    return s === "" ? null : s;
+  };
+  const material = row.signed_material_required;
+  return {
+    metodo: texto("install_method"),
+    desbloqueo: texto("custom_unlock_cmd"),
+    particionRecovery: comoParticionRecovery(
+      row.recovery_partition_name == null
+        ? null
+        : String(row.recovery_partition_name),
+    ),
+    comboRecovery: texto("recovery_boot"),
+    comboDescarga: texto("download_boot"),
+    modoDescarga: texto("download_mode"),
+    descargaExigeMaterialFirmado:
+      material == null || String(material).trim() === ""
+        ? null
+        : String(material).trim() === "1",
+    requisitoPrevio: texto("pre_install_instructions"),
+    versionRequisito: texto("pre_install_version"),
   };
 }
 
@@ -121,10 +178,19 @@ function comoHomologadoIft(bruto: unknown): HomologadoIft {
 // Catálogo
 // ---------------------------------------------------------------------------
 
+// Las nueve columnas de receta (`install_method`…`pre_install_version`) se
+// leían de la base desde que la base las tenía, y ninguna estaba en este
+// `SELECT`: la receta entera era código muerto en TypeScript. Están aquí porque
+// la pantalla de reparación las necesita, y `toReceta()` las lee todas.
+const COLS_RECETA = `install_method, custom_unlock_cmd, recovery_partition_name,
+  recovery_boot, download_boot, download_mode, signed_material_required,
+  pre_install_instructions, pre_install_version`;
+
 const COLS = `codename, variant, marketing_name, vendor, vendor_nombre, soc_raw, soc_vendor,
   platform, model_numbers, android_version, release, capabilities,
   risk_flags, verification_gates, sources,
-  homologado_ift, ift_certificado, ift_url`;
+  homologado_ift, ift_certificado, ift_url,
+  ${COLS_RECETA}`;
 
 export class Catalog {
   private db: InstanceType<SqliteModule["DatabaseSync"]> | null = null;
@@ -162,7 +228,7 @@ export class Catalog {
     this.qByCodename = this.db.prepare(
       `SELECT ${COLS} FROM variant WHERE codename = ?`,
     );
-    this.qAll = this.db.prepare(`SELECT ${COLS} FROM variant`);
+    this.qAll = this.db.prepare(`SELECT codename, model_numbers FROM variant`);
     this.qStats = this.db.prepare(`SELECT COUNT(*) AS n FROM variant`);
 
     // Una sola pasada completa para el índice. 763 filas: instantáneo, y evita
@@ -172,6 +238,12 @@ export class Catalog {
     // codename con varias variantes debe aparecer UNA vez por número de modelo.
     // Si se guardara la variante, `SM-A546B` en dos placas produciría una lista
     // con el mismo codename dos veces y el conteo de alternativas mentiría.
+    //
+    // El escaneo pide solo `codename` y `model_numbers`. Antes pedía todas las
+    // columnas y construía una `DeviceVariant` por fila para leer dos campos;
+    // con la receta eso significaba además leer y normalizar nueve columnas de
+    // texto para 763 filas que se van a descartar. El índice se arma igual de
+    // bien y deja de depender de cuánto pese `DeviceVariant`.
     for (const row of this.qAll.all()) {
       const v = toVariant(row);
       for (const m of v.modelNumbers) {

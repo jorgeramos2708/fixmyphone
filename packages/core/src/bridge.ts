@@ -295,6 +295,407 @@ export function coberturaGate(id: string): GateCoverage | null {
   return GATE_COBERTURA[id] ?? null;
 }
 
+// ---------------------------------------------------------------------------
+// La receta
+// ---------------------------------------------------------------------------
+
+/**
+ * En qué partición va la imagen de recovery en ESTA variante.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUÉ ES UN TIPO CERRADO DE TRES VALORES Y NO UNA CADENA
+ * ---------------------------------------------------------------------------
+ * La columna `recovery_partition_name` de la base tiene 734 filas y cuatro
+ * valores: `recovery`, `boot`, `vendor_boot` y vacío. Es la columna que más
+ * daño hace cuando está mal, porque el técnico ve "flashear" en la pantalla y
+ * el nombre de la partición es un detalle que se pasa por alto.
+ *
+ * `vendor_boot` es además una partición que no existía antes de Android 10: un
+ * archivo de recovery de otra versión, flushed a `vendor_boot`, no arranca. Por
+ * eso el valor viaja como tipo y no como texto, y por eso hay una tabla de
+ * texto asociada: un `switch` sobre tres casos se revisa, un `String` que se
+ * muestra crudo no.
+ *
+ * Si la base llega a traer un cuarto valor, `comoParticionRecovery` degrada a
+ * `null` (que significa "la fuente no lo dice") en vez de inventar un texto.
+ */
+export type ParticionRecovery = "recovery" | "boot" | "vendor_boot";
+
+/**
+ * Lo que significa cada partición.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ ESTOS TEXTOS TIENEN QUE SOBREVIVIR EN DOS PANTALLAS
+ * ------------------------------------------------------------------
+ * Porque el mismo texto se lee debajo de la fila "Partición de destino" de la
+ * pantalla de reparación, debajo de la bandera `recovery_flash_target_is` de la
+ * lista de riesgos, y en el informe firmado. Duplicado, los dos se turnan para
+ * repetir lo mismo; y pegado a la frase del riesgo, se convertía en un segundo
+ * párrafo que decía lo que el primero acababa de decir.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUÉ SON FRASES SUELTAS Y NO EMPIEZAN POR EL NOMBRE DE LA PARTICIÓN
+ * ---------------------------------------------------------------------------
+ * Porque el nombre ya lo pone el que las usa, a su lado, en monoespaciada: la
+ * fila de la receta lo muestra como valor, la lista de riesgos lo muestra
+ * después del rótulo, y el informe lo escribe en la línea de arriba. Repetirlo
+ * aquí produce "vendor_boot" tres veces en la misma pantalla.
+ *
+ * Y sin comillas invertidas: estas cadenas llegan a la pantalla tal cual, sin
+ * un intérprete de markdown delante, así que un backtick se vería literal. Las
+ * comillas invertidas viven en los comentarios de este archivo, que sí las lee
+ * alguien; en el texto que ve el técnico, el nombre va en otra tipografía.
+ */
+export const PARTICION_RECOVERY: Record<ParticionRecovery, string> = {
+  recovery:
+    "La partición que existe con ese nombre, y el caso corriente: el recovery se escribe donde su nombre dice.",
+  boot:
+    "Una partición a la que este equipo NO llama recovery. Flashear ahí no hace nada y, según cómo se haga, deja el equipo sin arrancar.",
+  vendor_boot:
+    "Una partición que existe desde Android 10. Un recovery de otra versión flasheado aquí no arranca, porque no es la partición que espera.",
+};
+
+/**
+ * La partición de la base, ya verificada contra el conjunto cerrado.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ NO ES UN CAST
+ * ------------------------------------------------------------------
+ * `recovery_partition_name` es un `TEXT` libre: la base no lo valida y el
+ * pipeline lo copia de un wiki. Si mañana aparece `vendor_boot ` con un
+ * espacio al final, o `boot_a`, un cast lo devolvería como si fuera válido y
+ * `PARTICION_RECOVERY[valor]` daría `undefined` en pantalla, que es un texto
+ * que se renderiza como `undefined` en el informe firmado del taller.
+ *
+ * Con esta función, un valor nuevo cae en el mismo hueco que un valor ausente:
+ * "la fuente no lo dice". Es la diferencia entre una base que creció y una app
+ * que se rompió.
+ */
+export function comoParticionRecovery(bruto: string | null): ParticionRecovery | null {
+  if (!bruto) return null;
+  const limpio = bruto.trim().toLowerCase();
+  return limpio in PARTICION_RECOVERY ? (limpio as ParticionRecovery) : null;
+}
+
+/**
+ * La receta de una variante: qué hay que hacer, y qué hay que saber antes de
+ * tocar nada.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUÉ ESTO EXISTE Y POR QUÉ NO ESTÁ DENTRO DE `capabilities`
+ * ---------------------------------------------------------------------------
+ * La base traía nueve columnas de receta desde el principio, con su
+ * procedencia, y la app no leía ninguna: eran código muerto del lado de
+ * TypeScript. `capabilities` es un `string[]` de nombres de capacidad
+ * (`unlock_official`, `official_rom_flash`…), que responde "qué se puede
+ * hacer", no "cómo se hace en esta placa". Son preguntas distintas y meterlas
+ * en el mismo campo habría hecho que la respuesta a una no llegara nunca.
+ *
+ * TODOS LOS CAMPOS SON NULABLES A PROPÓSITO. Cada `null` significa "la fuente
+ * no lo dice" y se muestra como tal. Rellenar un hueco con un valor plausible
+ * sería la forma más fácil de convertir esta pantalla en un manual de
+ * reparación equivocado, y un manual equivocado en un taller mata placas.
+ */
+export interface Receta {
+  /**
+   * Identificador del método de instalación, tal cual lo escribe la fuente
+   * (`fastboot_xiaomi`, `samloader_rs`, `dd`, `edl_custom`…).
+   *
+   * Se muestra como lo que es: el identificador de la fuente. No hay texto en
+   * español para los 50 métodos que aparecen, y escribirlos sería inventar 50
+   * descripciones que nadie verificó contra un manual. `modoDescarga` es el
+   * campo que sí trae descripción en prosa.
+   */
+  metodo: string | null;
+
+  /**
+   * Comando de desbloqueo literal, cuando el fabricante no usa el estándar.
+   *
+   * Aparece en 97 de 763 variantes y es el comando de verdad, con sus
+   * comillas y su saltos de línea. No se ejecuta y no se "corrige": la app no
+   * desbloquea nada, y un comando reescrito es un comando que ya no es el que
+   * probó el fabricante.
+   */
+  desbloqueo: string | null;
+
+  /** A qué partición va la imagen de recovery. `null` si la fuente no lo dice. */
+  particionRecovery: ParticionRecovery | null;
+
+  /**
+   * Cómo entrar a recovery, como lo describe la fuente, en el idioma de la
+   * fuente (el wiki de LineageOS está en inglés).
+   *
+   * No se traduce. Traducir 400 combinaciones de botones sería escribir 400
+   * veces una instrucción que no se comprobó contra el manual de la marca, y
+   * el texto se muestra declarando de dónde sale.
+   */
+  comboRecovery: string | null;
+
+  /** Cómo entrar al modo de descarga, en el mismo idioma y con el mismo trato. */
+  comboDescarga: string | null;
+
+  /**
+   * Descripción en prosa del modo de descarga, con los identificadores USB
+   * (`EDL 900E / 9008 (Sahara + Firehose XML)`).
+   *
+   * Son solo seis valores distintos en 707 variantes, y es el campo que sí
+   * explica de qué modo se trata. Sale de la ficha de la variante y, cuando
+   * esta no lo trae, de la ficha de la familia (`seed` en la procedencia).
+   */
+  modoDescarga: string | null;
+
+  /**
+   * El MODO DE DESCARGA de esta variante exige material firmado.
+   *
+   * ------------------------------------------------------------------
+   * POR QUÉ EL NOMBRE DIGE "DESCARGA" Y NO EL NOMBRE DE LA COLUMNA
+   * ------------------------------------------------------------------
+   * Porque la columna se llama `signed_material_required` y no dice de qué
+   * habla, y leerla como "esta reparación exige firma" es un error que esta app
+   * estuvo a punto de cometer.
+   *
+   * El dato es de `download_mode`, y el cruce con la base lo deja claro: de las
+   * 691 variantes con `signed_material_required = 1`, 595 son métodos
+   * `fastboot_*` y llevan además la bandera `edl_requires_signed_programmer`.
+   * O sea: por EDL hace falta la firma del fabricante, pero el método de
+   * instalación que declara el catálogo es fastboot, que no la necesita.
+   *
+   * Con el otro nombre, 691 de 763 variantes dirían "esto no se puede reparar" y
+   * la mayor parte estaría mintiendo. Con este, dicen lo cierto: "por este
+   * camino no".
+   */
+  descargaExigeMaterialFirmado: boolean | null;
+
+  /**
+   * Etiqueta del requisito previo, tal cual la escribe la fuente.
+   *
+   * La base trae 16 valores distintos y 371 de las 403 variantes que lo tienen
+   * usan el mismo (`needs_specific_android_fw`). Los otros 15 son códigos de
+   * firmware concretos (`shinano`, `g2-common`, `h870`…) que la fuente no
+   * explica. Esos NO se traducen: se muestran con la advertencia de que la
+   * fuente no dice qué hacer con ellos. Ver `PRE_REQUISITO`.
+   */
+  requisitoPrevio: string | null;
+
+  /** Versión de Android que declara ese requisito. `"13/15"`, `"7.1"`, … */
+  versionRequisito: string | null;
+}
+
+/**
+ * El único requisito previo que sí se puede explicar.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUÉ HAY UNA TABLA DE UNA SOLA ENTRADA
+ * ---------------------------------------------------------------------------
+ * Porque las otras quince no se pueden. `needs_specific_android_fw` significa
+ * algo comprobable ("hay que instalar un firmware de Android concreto antes"),
+ * y los demás son nombres de paquete de firmware cuya correspondencia con un
+ * modelo concreto no está en la base.
+ *
+ * La tentación sería poner los dieciséis con un texto plausible cada uno, y
+ * ese es exactamente el invento que este producto no hace: una instrucción de
+ * flasheado equivocada no se nota hasta que el equipo no arranca. `preRequisito()`
+ * devuelve `null` para lo que no sabe, y la pantalla lo dice.
+ *
+ * ---------------------------------------------------------------------------
+ * POR QUÉ EL VALOR ES UN SUSTANTIVO Y NO UNA FRASE CON VERBO
+ * ---------------------------------------------------------------------------
+ * Porque se imprime en tres sitios, y cada uno pone delante un verbo distinto:
+ * "Firmware previo: …" en la lista de riesgos, "Antes hay que instalar …" en
+ * la fila de la receta, y "Antes de flashear: …" en el informe firmado. Un
+ * texto que ya trae verbo se lee mal en los otros dos, o se lee como si el
+ * que lo acompaña fuera el sujeto.
+ *
+ * Que sea un sintagma nominal es lo que permite que los tres digan lo mismo con
+ * una sola redacción, y que no puedan desincronizarse.
+ */
+export const PRE_REQUISITO: Record<string, string> = {
+  needs_specific_android_fw:
+    "un firmware de Android concreto, el de la página de esta variante",
+};
+
+/**
+ * Qué significa un requisito previo, o `null` si la fuente no lo explica.
+ *
+ * El mismo criterio que `coberturaGate()`: lo que no se sabe, se declara. Un
+ * `Record` cerrado obliga a que añadir un valor a la base sea una decisión
+ * consciente en el código, no una etiqueta nueva que aparece sola en pantalla.
+ */
+export function preRequisito(etiqueta: string | null): string | null {
+  if (!etiqueta) return null;
+  return PRE_REQUISITO[etiqueta] ?? null;
+}
+
+/**
+ * Los dos párrafos del aviso de firma, en el orden en que se leen.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ VIVEN EN `core` Y NO EN LA PANTALLA
+ * ------------------------------------------------------------------
+ * Porque la pantalla de reparación los pone y el informe firmado también los
+ * necesita, y son la misma advertencia sobre el mismo dato. Duplicados, el día
+ * que uno se corrige el otro se queda diciendo lo viejo, y el que se queda
+ * viejo es el que se le entrega al cliente.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ EL SEGUNDO PÁRRAFO TIENE DOS VERSIONES
+ * ------------------------------------------------------------------
+ * Porque depende de si la fuente declara método de instalación, y las dos
+ * respuestas son distintas y las dos se dan. Con método declarado, el técnico
+ * tiene un segundo camino a la vista. Sin él, no: afirmar que "hay otro camino"
+ * cuando la fuente no lo dice sería inventar la salida, y esa es la frase
+ * exacta que evita que un técnico deje de cobrar un trabajo. Samsung es el
+ * caso grande: 21 de sus 136 variantes declaran método y las otras 115 no.
+ */
+export function avisoFirmaDescarga(r: Receta): [string, string] {
+  const modo = r.modoDescarga ?? "el modo que declara la fuente";
+  return [
+    `Por ${modo} hace falta un paquete firmado con la clave del fabricante, y esa clave no se consigue por este programa. Entrar a ese modo sin la firma no sirve para nada.`,
+    r.metodo
+      ? `Esto no dice que la placa no se pueda reparar. El método de instalación que declara el catálogo para esta variante es ${r.metodo}, que es un camino aparte y no necesita la firma. Conviene confirmar cuál de los dos se va a usar antes de abrir el equipo: si el que se elige es el modo de descarga, ese trabajo no se puede hacer desde aquí.`
+      : `Esto no dice que la placa no se pueda reparar, pero la fuente no declara método de instalación para esta variante, así que desde aquí no se puede afirmar que exista un camino sin firma. Eso hay que confirmarlo en la página de la variante, antes de abrir el equipo.`,
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Banderas de riesgo
+// ---------------------------------------------------------------------------
+
+/**
+ * Una bandera de riesgo del catálogo, partida y con su valor ya traducido.
+ *
+ * La columna `risk_flags` guarda cadenas con la forma `base` o `base:valor`.
+ * El valor no es decorativo: `recovery_flash_target_is:vendor_boot` dice en qué
+ * partición hay que escribir, y `pre_install_required:shinano` dice qué
+ * firmware hay que poner antes. Sin partir la bandera, el valor se pierde.
+ */
+export interface Riesgo {
+  /** La bandera tal como la guarda la base, para auditoría. */
+  id: string;
+  /** La parte izquierda, que nombra el riesgo. */
+  base: string;
+  /** La parte derecha, tal cual. `null` si la bandera no lleva valor. */
+  valor: string | null;
+  /**
+   * Cómo se llama el valor, para poder ponerlo en su propia línea.
+   *
+   * Existe porque el texto del riesgo y el del valor hablan del mismo hecho:
+   * `pre_install_required:needs_specific_android_fw` produce "hay que devolver
+   * el equipo a un firmware específico antes de flashear" seguido de, si se
+   * pega el valor a la frase, un segundo párrafo que dice lo mismo. Con rótulo
+   * cada uno hace su trabajo: la frase dice POR QUÉ importa y el valor dice
+   * CUÁL.
+   */
+  valorRotulo: string | null;
+  /**
+   * El valor traducido a algo que se lee, o `null` si la fuente no lo explica.
+   *
+   * `null` es un caso real y no una falta: 15 de los 16 valores de
+   * `pre_install_required` son códigos de firmware que nadie decodificó. La
+   * pantalla tiene que poder decir "esto está aquí y no sé qué es" sin que
+   * eso se confunda con "no hay nada".
+   */
+  valorTexto: string | null;
+  /** Qué significa el riesgo. */
+  texto: string;
+}
+
+/** Cómo se nombra el valor de cada bandera que lo lleva. */
+const ROTULO_VALOR: Record<string, string> = {
+  recovery_flash_target_is: "Partición de destino",
+  pre_install_required: "Firmware previo",
+};
+
+/**
+ * Las diez banderas de riesgo que la base emite y la app sabe explicar.
+ *
+ * La tabla está completa contra la base y hay una prueba que lo comprueba, así
+ * que si mañana la base emite una undécima bandera, la prueba falla y obliga a
+ * escribir el texto en vez de dejar que caiga el genérico en un informe que se
+ * le entrega a un cliente.
+ */
+export const FLAG_RIESGO: Record<string, string> = {
+  edl_requires_signed_programmer:
+    "Programar en EDL exige un paquete de programmers firmado. Sin las claves del fabricante, entrar a EDL no sirve para nada.",
+  pre_install_required:
+    "Hay que devolver el equipo a un firmware específico ANTES de flashear. Flashear directo desde aquí deja el equipo sin arranque.",
+  recovery_flash_target_is:
+    "La partición de recovery en este equipo tiene otro nombre. Escribir en la partición equivocada no flashea nada y puede pisar datos.",
+  samsung_knox_eFuse_risk_on_unlock:
+    "El contador Knox se funde con eFuse al desbloquear el bootloader. Es irreversible y el cliente lo pierde aunque el equipo funcione.",
+  odin_requires_signed_secure_package:
+    "Odin solo acepta paquetes firmados con la clave del operador. Un firmware sin firma no se puede enviar por este método.",
+  no_edl_on_tensor_oem_key_signed:
+    "Tensor con firma de fabricante: no hay modo EDL. El método de programación que se usaba con los Pixel antiguos ya no existe.",
+  brom_requires_da_agent:
+    "El modo BROM de MediaTek exige el agente DA. Sin él no hay comunicación con el equipo.",
+  hisilicon_download_unsupported_on_new_soc:
+    "El método de descarga de HiSilicon ya no funciona en los SoC nuevos. Se necesita otro método.",
+  a_only_layout_full_scatter_required:
+    "La repartición de este equipo es de dispersión completa (A/B con superpartición). Reflashear todas las particiones con esa repartición borra los datos del usuario: no es una operación que se pueda deshacer.",
+  fdl_secure_download_may_be_blocked:
+    "En este SoC la descarga segura por FDL puede estar bloqueada. Es la misma pared que exige la firma del fabricante, pero aquí depende del bloqueo que el fabricante tenga activo sobre el equipo, no solo de la firma.",
+};
+
+/**
+ * Parte una bandera y traduce su valor con la receta de la variante.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ EL VALOR SE TOMA DE LA BANDERA Y NO DE LA RECETA
+ * ------------------------------------------------------------------
+ * Porque el sufijo de la bandera y el campo de la receta son el mismo dato
+ * escrito dos veces por la base: `recovery_flash_target_is:vendor_boot` y
+ * `receta.particionRecovery === "vendor_boot"`. Se traduce el de la bandera
+ * porque es el que va pegado a la frase del riesgo, y se comparte la tabla
+ * (`PARTICION_RECOVERY`, `PRE_REQUISITO`) para que los dos digan lo mismo.
+ *
+ * Que los dos coincidan no se da por hecho: hay una prueba en
+ * `tools/probar-catalogo.mjs` que recorre las 763 variantes y falla si alguna
+ * tiene la bandera apuntando a una partición distinta de la de su receta. Si
+ * la base empieza a discrepar, el sitio donde se ve es esa prueba, no el
+ * informe de un taller.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ NO SE PASA COMO ARGUMENTO `base`, `texto`
+ * ------------------------------------------------------------------
+ * La tabla de textos tiene que vivir junto a los datos de la variante y no
+ * repartirse entre la pantalla y el informe. Antes de esto el texto de
+ * `pre_install_required` estaba escrito en `EquipoScreen` y el informe
+ * firmado imprimía la bandera en crudo, así que el mismo dato salía en
+ * español en la pantalla y como `pre_install_required:shinano` en el `.txt`
+ * que se le entrega al cliente. Dos verdades para un dato.
+ */
+export function riesgo(flag: string): Riesgo {
+  const i = flag.indexOf(":");
+  const base = i === -1 ? flag : flag.slice(0, i);
+  const valor = i === -1 ? null : flag.slice(i + 1);
+
+  let valorTexto: string | null = null;
+  if (valor !== null) {
+    if (base === "recovery_flash_target_is") {
+      valorTexto = PARTICION_RECOVERY[valor as ParticionRecovery] ?? null;
+    } else if (base === "pre_install_required") {
+      valorTexto = preRequisito(valor);
+    }
+  }
+
+  return {
+    id: flag,
+    base,
+    valor,
+    valorRotulo: valor === null ? null : (ROTULO_VALOR[base] ?? null),
+    valorTexto,
+    texto:
+      FLAG_RIESGO[base] ??
+      "Riesgo registrado por el catálogo. Revísalo antes de proceder.",
+  };
+}
+
+/** Todos los riesgos de una variante, ya partidos y traducidos. */
+export function riesgosDe(v: DeviceVariant): Riesgo[] {
+  return v.riskFlags.map(riesgo);
+}
+
 export interface DeviceVariant {
   /** `codename#variante`, o el codename solo si no hay variante. */
   key: string;
@@ -377,8 +778,77 @@ export interface DeviceVariant {
   riskFlags: string[];
   verificationGates: VerificationGate[];
 
+  /**
+   * La receta: qué hay que hacer con esta variante, y qué hay que saber antes.
+   *
+   * Es un objeto y no nueve campos sueltos porque la pregunta que se le hace a
+   * la pantalla es "de esto, qué sé y qué no", y eso se lee sobre el conjunto.
+   * Todos los campos existen siempre: los que la fuente no dice vienen en
+   * `null`, nunca ausentes, para que `null` signifique exactamente una cosa.
+   */
+  receta: Receta;
+
   /** Columns `sources`: qué fuente aportó cada bloque de datos. */
   sources: string[];
+}
+
+/**
+ * Campos de la receta que esta variante sí trae, en el orden en que se leen.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ ES UNA FUNCIÓN Y NO UN `.filter()` EN LA PANTALLA
+ * ------------------------------------------------------------------
+ * Porque el orden importa para el técnico: lo que se puede hacer primero, lo
+ * que puede impedirlo, y lo que solo importa si se llega hasta el final. Y
+ * porque "qué falta" tiene que salir de la misma cuenta que "qué hay", o las
+ * dos listas divergen con el tiempo. El texto de cada campo lo pone la
+ * pantalla; aquí solo se decide qué se enseña y en qué orden.
+ */
+export type ClaveReceta = keyof Receta;
+
+export const ORDEN_RECETA = [
+  "descargaExigeMaterialFirmado",
+  "requisitoPrevio",
+  "particionRecovery",
+  "desbloqueo",
+  "metodo",
+  "modoDescarga",
+  "comboRecovery",
+  "comboDescarga",
+] as const satisfies readonly ClaveReceta[];
+
+/**
+ * Los ocho campos que tienen fila propia en pantalla.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ SON OCHO Y LA RECETA TIENE NUEVE
+ * ------------------------------------------------------------------
+ * `versionRequisito` no es una fila: es la versión de Android que acompaña al
+ * requisito previo, y separarla en su propia línea hacía que se leyera como un
+ * dato independiente cuando no lo es. Se muestra dentro de la fila del
+ * requisito, al lado de su etiqueta.
+ *
+ * El tipo sale de `ORDEN_RECETA` y no al revés, para que agregar un campo a la
+ * receta no obliga a decidir si tiene fila propia: obliga a decidir si entra a
+ * la lista, que es la decisión que de verdad importa.
+ */
+export type CampoReceta = (typeof ORDEN_RECETA)[number];
+
+/** Los campos de la receta que la fuente sí rellenó para esta variante. */
+export function recetaPresente(r: Receta): CampoReceta[] {
+  return ORDEN_RECETA.filter((k) => !recetaVacia(r, k));
+}
+
+/**
+ * Un campo de la receta está vacío cuando la fuente no lo dice.
+ *
+ * `false` y `0` no cuentan como vacíos: `exigeMaterialFirmado: false` es un
+ * dato, y es el dato que hace falta para poder decir que esta variante no
+ * exige material firmado.
+ */
+export function recetaVacia(r: Receta, campo: ClaveReceta): boolean {
+  const v = r[campo];
+  return v === null || v === "";
 }
 
 const CAP_SETS = new WeakMap<DeviceVariant, Set<string>>();

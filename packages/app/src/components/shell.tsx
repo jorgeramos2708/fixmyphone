@@ -23,21 +23,32 @@ import {
   History,
   Settings,
   Circle,
+  Wrench,
 } from "lucide-react";
 import type { ConnectedDevice, LicenseState, TransportKind } from "@fixmyphone/core";
 import { Badge } from "./primitives";
 
 /**
- * El orden es el del trabajo: identificar, leer, comprobar, entregar. `Entrega`
- * va entre `Diagnóstico` e `Informe` y no al final a propósito, porque es el
- * orden en que el técnico pasa por las cuatro cuando cierra un trabajo, y con
- * el informe al final se la salta.
+ * El orden es el del trabajo: identificar, leer, reparar, comprobar, entregar.
+ * `Reparación` va entre `Diagnóstico` e `Entrega` porque es donde cae en la
+ * secuencia real —se lee lo que hay, se decide qué se hace, se hace, se
+ * comprueba— y `Entrega` sigue antes de `Informe` porque es el orden en que el
+ * técnico pasa por las cinco cuando cierra un trabajo, y con el informe al
+ * final se la salta.
  *
  * Los atajos se recorrieron en vez de dejar el informe en el 3 y agregar un 4
  * suelto: un atajo que significa una cosa en una versión y otra en la
- * siguiente es un atajo que algún día se aprieta mal creyendo que es otro.
+ * siguiente es un atajo que algún día se aprieta mal creyendo que es otro. Por
+ * eso `Entrega` pasó a 4 e `Informe` a 5 cuando entró `Reparación`, y no al
+ * revés.
  */
-export type RouteId = "equipo" | "diagnostico" | "entrega" | "informe" | "licencia";
+export type RouteId =
+  | "equipo"
+  | "diagnostico"
+  | "reparacion"
+  | "entrega"
+  | "informe"
+  | "licencia";
 
 interface NavItem {
   id: RouteId;
@@ -56,12 +67,18 @@ const NAV: NavItem[] = [
     shortcut: "2",
   },
   {
+    id: "reparacion",
+    label: "Reparación",
+    icon: <Wrench size={16} strokeWidth={1.75} />,
+    shortcut: "3",
+  },
+  {
     id: "entrega",
     label: "Entrega",
     icon: <ClipboardCheck size={16} strokeWidth={1.75} />,
-    shortcut: "3",
+    shortcut: "4",
   },
-  { id: "informe", label: "Informe", icon: <FileText size={16} strokeWidth={1.75} />, shortcut: "4" },
+  { id: "informe", label: "Informe", icon: <FileText size={16} strokeWidth={1.75} />, shortcut: "5" },
 ];
 
 // ---------------------------------------------------------------------------

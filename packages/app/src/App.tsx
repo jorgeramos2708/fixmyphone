@@ -26,6 +26,7 @@ import { AppShell, type RouteId } from "./components/shell";
 import { EquipoScreen } from "./screens/EquipoScreen";
 import { DiagnosticoScreen } from "./screens/DiagnosticoScreen";
 import { EntregaScreen } from "./screens/EntregaScreen";
+import { ReparacionScreen } from "./screens/ReparacionScreen";
 import { InformeScreen } from "./screens/InformeScreen";
 import { LicenciaScreen } from "./screens/LicenciaScreen";
 
@@ -253,6 +254,10 @@ export function App({ bridge }: { bridge: FmpBridge }) {
           onRun={runProbes}
           onStop={stopProbes}
         />
+      ) : null}
+
+      {route === "reparacion" ? (
+        <ReparacionScreen device={active} resolution={resolution} />
       ) : null}
 
       {route === "entrega" ? (

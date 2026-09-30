@@ -27,8 +27,13 @@ import {
   ShieldCheck,
   Cpu,
 } from "lucide-react";
-import { partitionScheme, has, TOOLTIP_HOMOLOGACION } from "@fixmyphone/core";
-import type { ConnectedDevice, DeviceVariant, HomologadoIft, Resolution } from "@fixmyphone/core";
+import { partitionScheme, has, riesgo, TOOLTIP_HOMOLOGACION } from "@fixmyphone/core";
+import type {
+  ConnectedDevice,
+  DeviceVariant,
+  HomologadoIft,
+  Resolution,
+} from "@fixmyphone/core";
 import { Button, Badge, Panel, DataRow, EmptyState, useCopiar } from "../components/primitives";
 
 /**
@@ -588,38 +593,21 @@ function Ladder({ resolution }: { resolution: Resolution }) {
 // Riesgo
 // ---------------------------------------------------------------------------
 
-const FLAG_COPY: Record<string, string> = {
-  edl_requires_signed_programmer:
-    "Programar en EDL exige un paquete de programmers firmado. Sin las claves del fabricante, entrar a EDL no sirve para nada.",
-  pre_install_required:
-    "Hay que devolver el equipo a un firmware específico ANTES de flashear. Flashear directo desde aquí deja el equipo sin arranque.",
-  recovery_flash_target_is:
-    "La partición de recovery en este equipo tiene otro nombre. Escribir en la partición equivocada no flashea nada y puede pisar datos.",
-  samsung_knox_eFuse_risk_on_unlock:
-    "El contador Knox se funde con eFuse al desbloquear el bootloader. Es irreversible y el cliente lo pierde aunque el equipo funcione.",
-  odin_requires_signed_secure_package:
-    "Odin solo acepta paquetes firmados con la clave del operador. Un firmware sin firma no se puede enviar por este método.",
-  no_edl_on_tensor_oem_key_signed:
-    "Tensor con firma de fabricante: no hay modo EDL. El método de programación que se usaba con los Pixel antiguos ya no existe.",
-  brom_requires_da_agent:
-    "El modo BROM de MediaTek exige el agente DA. Sin él no hay comunicación con el equipo.",
-  hisilicon_download_unsupported_on_new_soc:
-    "El método de descarga de HiSilicon ya no funciona en los SoC nuevos. Se necesita otro método.",
-};
-
 /**
- * Divide una bandera con sufijo. `pre_install_required:shinano` es una sola
- * bandera: la parte izquierda explica el riesgo, la derecha dice de qué
- * equipo se trata. Mostrarlas juntas sin separarlas pierde el dato útil.
+ * Las banderas de riesgo, con su valor ya traducido.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ ESTE BLOQUE NO TIENE SU PROPIA TABLA DE TEXTOS
+ * ------------------------------------------------------------------
+ * Porque la tenía, y por eso estas banderas aparecían con el valor en crudo:
+ * `pre_install_required` se traducía a una frase y luego se colgaba el código
+ * de firmware detrás entre paréntesis, sin decir qué era. Al mismo tiempo, el
+ * informe firmado imprimía la bandera entera sin traducir, así que el técnico
+ * leía en español lo mismo que el cliente leía como código.
+ *
+ * `riesgo()` vive en `core` y lo usan esta pantalla, la de reparación y el
+ * informe: un solo texto por partición y un solo texto por requisito previo.
  */
-function splitFlag(flag: string): { base: string; suffix: string | null } {
-  const i = flag.indexOf(":");
-  return i === -1
-    ? { base: flag, suffix: null }
-    : { base: flag.slice(0, i), suffix: flag.slice(i + 1) };
-}
-
-
 function RiskFlags({ flags }: { flags: string[] }) {
   return (
     <div className="panel border-warning/30 bg-warning-subtle/40">
@@ -630,23 +618,38 @@ function RiskFlags({ flags }: { flags: string[] }) {
       </div>
       <ul className="space-y-2.5 p-4">
         {flags.map((f) => {
-          const { base, suffix } = splitFlag(f);
+          const r = riesgo(f);
           return (
             <li key={f} className="flex items-start gap-2.5">
               <span
                 className="tech mt-0.5 min-w-0 shrink truncate text-caption text-warning"
-                title={base}
+                title={r.base}
               >
-                {base}
+                {r.base}
               </span>
               <span className="text-small text-text-muted">
-                {FLAG_COPY[base] ??
-                  "Riesgo registrado por el catálogo. Revísalo antes de proceder."}
-                {suffix ? (
-                  <>
-                    {" "}
-                    <span className="tech text-caption text-warning">({suffix})</span>
-                  </>
+                {r.texto}
+                {r.valor ? (
+                  r.valorTexto ? (
+                    // El rótulo, el nombre y el separador los pone este
+                    // consumidor. El texto de `core` explica el valor sin nombrarlo,
+                    // porque el nombre ya está en la propia bandera, arriba.
+                    <>
+                      {" "}
+                      <strong className="font-medium text-text">
+                        {r.valorRotulo}:{" "}
+                        <span className="tech font-normal">{r.valor}</span> —{" "}
+                        {r.valorTexto}
+                      </strong>
+                    </>
+                  ) : (
+                    <>
+                      {" "}
+                      {r.valorRotulo ? `${r.valorRotulo}: ` : "Valor "}
+                      <span className="tech text-caption text-warning">({r.valor})</span>{" "}
+                      y la fuente no explica qué hay que hacer con él.
+                    </>
+                  )
                 ) : null}
               </span>
             </li>

@@ -195,7 +195,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_custom",
+      "desbloqueo": null,
+      "particionRecovery": "vendor_boot",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power. Keep holding both buttons until the text \"FastBoot Mode\" appears on the screen, then release.",
+      "modoDescarga": "BROM 0E8D:0000 / Preloader 0E8D:0001 (BROM + DA agent)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "Mi439",
@@ -342,7 +353,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_xiaomi",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power. When the screen lights up, release the buttons.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "10"
+    }
   },
   {
     "codename": "evert",
@@ -498,7 +520,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "9"
+    }
   },
   {
     "codename": "joan",
@@ -647,7 +680,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "dd",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power until the LG logo appears, then release Power for a second and hold it again until the recovery comes up.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "9.0"
+    }
   },
   {
     "codename": "judypn",
@@ -802,7 +846,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "dd",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power until the LG logo appears, then release Power for a second and hold it again until the recovery comes up.",
+      "comboDescarga": "With the device powered off, hold Volume Up, then connect a USB cable.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "10"
+    }
   },
   {
     "codename": "nash",
@@ -956,7 +1011,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "nash",
+      "versionRequisito": null
+    }
   },
   {
     "codename": "nash",
@@ -1111,7 +1177,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "nash",
+      "versionRequisito": null
+    }
   },
   {
     "codename": "payton",
@@ -1267,7 +1344,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "9"
+    }
   },
   {
     "codename": "a5y17lte",
@@ -1416,7 +1504,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Home + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Home + Power.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "8.0"
+    }
   },
   {
     "codename": "albus",
@@ -1564,7 +1663,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "cedric",
@@ -1712,7 +1822,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "8.1"
+    }
   },
   {
     "codename": "klte",
@@ -1863,7 +1984,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Home + Power. When the blue text appears, release the buttons.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Home + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "6.0.1"
+    }
   },
   {
     "codename": "montana",
@@ -2013,7 +2145,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "8.1"
+    }
   },
   {
     "codename": "victara",
@@ -2161,7 +2304,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down to scroll to Recovery and then press Volume Up to select.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "a7xelte",
@@ -2310,7 +2464,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Home + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Home + Power.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "harpia",
@@ -2458,7 +2623,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down to scroll to recovery and then press Power to select.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "7.1.1"
+    }
   },
   {
     "codename": "kiwi",
@@ -2612,7 +2788,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_huawei",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power. Keep holding buttons until the \"Honor\" logo appears, then release all buttons.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power. Keep holding buttons until the \"Honor\" logo appears, then release all buttons.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "osprey",
@@ -2760,7 +2947,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down to scroll to recovery and then press Power to select.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down and Volume Up to scroll and then press Power to select.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "6.0.1"
+    }
   },
   {
     "codename": "surnia",
@@ -2908,7 +3106,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down to scroll to recovery and then press Volume Up to select.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down to scroll and then press Volume Up to select.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "6.0"
+    }
   },
   {
     "codename": "pa1q",
@@ -3058,7 +3267,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": null,
+      "desbloqueo": null,
+      "particionRecovery": null,
+      "comboRecovery": null,
+      "comboDescarga": null,
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "pa3q",
@@ -3208,7 +3428,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": null,
+      "desbloqueo": null,
+      "particionRecovery": null,
+      "comboRecovery": null,
+      "comboDescarga": null,
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "e3q",
@@ -3357,7 +3588,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": null,
+      "desbloqueo": null,
+      "particionRecovery": null,
+      "comboRecovery": null,
+      "comboDescarga": null,
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "a21s",
@@ -3505,7 +3747,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "12"
+    }
   },
   {
     "codename": "fogos",
@@ -3658,7 +3911,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "14/15"
+    }
   },
   {
     "codename": "Mi439",
@@ -3804,7 +4068,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_xiaomi",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power. When the screen lights up, release the buttons.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "10"
+    }
   },
   {
     "codename": "m20lte",
@@ -3952,7 +4227,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Volume Up then connect USB cable to PC.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "10"
+    }
   },
   {
     "codename": "rq3q",
@@ -4104,7 +4390,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": null,
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": null,
+      "comboDescarga": null,
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "a52q",
@@ -4251,7 +4548,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "13/14"
+    }
   },
   {
     "codename": "a71",
@@ -4398,7 +4706,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "13"
+    }
   },
   {
     "codename": "a72q",
@@ -4545,7 +4864,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "13/14"
+    }
   },
   {
     "codename": "borneo",
@@ -4697,7 +5027,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "11"
+    }
   },
   {
     "codename": "dodge",
@@ -4850,7 +5191,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_nexus",
+      "desbloqueo": "fastboot flashing unlock",
+      "particionRecovery": "recovery",
+      "comboRecovery": null,
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15/16"
+    }
   },
   {
     "codename": "Mi439",
@@ -4995,7 +5347,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_xiaomi",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power. When the screen lights up, release the buttons.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "10"
+    }
   },
   {
     "codename": "a52sxq",
@@ -5141,7 +5504,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "13/14"
+    }
   },
   {
     "codename": "devon",
@@ -5293,7 +5667,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "homologado",
     "iftCertificado": "RTIMOXT22-3427",
-    "iftUrl": "https://www.motorola.com.mx/ift/"
+    "iftUrl": "https://www.motorola.com.mx/ift/",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "13"
+    }
   },
   {
     "codename": "lamu",
@@ -5444,7 +5829,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_custom",
+      "desbloqueo": null,
+      "particionRecovery": "vendor_boot",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power. Keep holding both buttons until the text \"FastBoot Mode\" appears on the screen, then release.",
+      "modoDescarga": "BROM 0E8D:0000 / Preloader 0E8D:0001 (BROM + DA agent)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "joan",
@@ -5588,7 +5984,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_lg",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power until the LG logo appears, then release Power for a second and hold it again until the recovery comes up.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "9.0"
+    }
   },
   {
     "codename": "e1s",
@@ -5732,7 +6139,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": null,
+      "desbloqueo": null,
+      "particionRecovery": null,
+      "comboRecovery": null,
+      "comboDescarga": null,
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "rq3a",
@@ -5882,7 +6300,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": null,
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": null,
+      "comboDescarga": null,
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
   },
   {
     "codename": "a73xq",
@@ -6027,7 +6456,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "13/14/15"
+    }
   },
   {
     "codename": "b0s",
@@ -6172,7 +6612,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "Reboot and immediately hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "dm1q",
@@ -6317,7 +6768,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "Reboot and immediately hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "fogos",
@@ -6468,7 +6930,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_motorola",
+      "desbloqueo": null,
+      "particionRecovery": "boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power, then select \"Recovery mode\" using Volume keys.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "14/15"
+    }
   },
   {
     "codename": "g0s",
@@ -6613,7 +7086,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "Reboot and immediately hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "lamu",
@@ -6763,7 +7247,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "sin_verificar",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_custom",
+      "desbloqueo": null,
+      "particionRecovery": "vendor_boot",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power. Keep holding both buttons until the text \"FastBoot Mode\" appears on the screen, then release.",
+      "modoDescarga": "BROM 0E8D:0000 / Preloader 0E8D:0001 (BROM + DA agent)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "r0s",
@@ -6908,7 +7403,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "samloader_rs",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "Reboot and immediately hold Volume Up + Power while the device is connected to a PC via USB cable.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Volume Down then connect USB cable to PC.",
+      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "15"
+    }
   },
   {
     "codename": "Mi439",
@@ -7050,7 +7556,18 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_xiaomi",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power. When the screen lights up, release the buttons.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "10"
+    }
   },
   {
     "codename": "joan",
@@ -7192,6 +7709,17 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     ],
     "homologadoIft": "desconocido",
     "iftCertificado": "",
-    "iftUrl": ""
+    "iftUrl": "",
+    "receta": {
+      "metodo": "dd",
+      "desbloqueo": null,
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power until the LG logo appears, then release Power for a second and hold it again until the recovery comes up.",
+      "comboDescarga": "With the device powered off, hold Volume Up + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "9.0"
+    }
   }
 ];

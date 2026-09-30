@@ -39,7 +39,7 @@
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve, dirname, isAbsolute } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
 let babelParse = null;
@@ -297,6 +297,7 @@ const FUENTES_DE_UI = [
   join(RAIZ, "packages", "app", "src", "components", "primitives.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "EquipoScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "DiagnosticoScreen.tsx"),
+  join(RAIZ, "packages", "app", "src", "screens", "ReparacionScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "EntregaScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "InformeScreen.tsx"),
   join(RAIZ, "packages", "app", "src", "screens", "LicenciaScreen.tsx"),
@@ -709,6 +710,176 @@ if (!existsSync(UNPACKED)) {
     typeof pkg.productName === "string" && /^[^@/\\]+$/.test(pkg.productName),
     String(pkg.productName),
   );
+}
+
+// ---------------------------------------------------------------------------
+console.log("");
+console.log("El informe que recibe el cliente");
+
+// -----------------------------------------------------------------------
+// POR QUÉ ESTA SECCIÓN ESTÁ AQUÍ Y NO EN SU PROPIA SUITE
+// -----------------------------------------------------------------------
+// Porque `probar-empaquetado.mjs` es la suite de "lo que se entrega de verdad",
+// y el `.txt` firmado es el entregable. Estaba sin probar: ninguna suite
+// construía un informe, así que un cambio en `report.ts` podía imprimir una
+// bandera en crudo, partir una instrucción o quitar el "no ejecuta", y la
+// única forma de enterarse era abrir el `.exe` y mirar un archivo.
+//
+// -----------------------------------------------------------------------
+// POR QUÉ SE USA UNA VARIANTE REAL DE LA BASE Y NO UN DATO DE EJEMPLO
+// -----------------------------------------------------------------------
+// Porque el defecto que se busca no está en `report.ts` sino en el cruce entre
+// lo que dice y lo que trae la variante. Un informe armado a mano con una
+// receta inventada pasa todas estas pruebas y no valen para nada.
+//
+// -----------------------------------------------------------------------
+// POR QUÉ LOS RENG LONGOS SE PERDONAN CUANDO SON LITERAL DE LA FUENTE
+// -----------------------------------------------------------------------
+// Porque partir el texto de botones de la fuente cambiaría lo que el
+// fabricante escribió, y ese texto se copia y se dicta. Un renglón largo que
+// viene de la fuente es correcto; uno largo de redacción propia es un defecto,
+// porque el archivo entero está partido a 68 columnas y el que no lo está se ve
+// como una línea que se salió de la caja.
+const { Catalog, locateCatalog } = await import(
+  pathToFileURL(join(DESKTOP, "src", "main", "catalog.ts")).href
+);
+const { buildReport } = await import(
+  pathToFileURL(join(DESKTOP, "src", "main", "report.ts")).href
+);
+
+const rutaCatalogo = locateCatalog(RAIZ);
+check(
+  "se encuentra el catálogo para construir un informe de verdad",
+  rutaCatalogo !== null,
+  "el informe no se puede probar sin la base: esta comprobación debería vivir arriba",
+);
+
+if (rutaCatalogo) {
+  const cat = new Catalog();
+  cat.open(rutaCatalogo);
+
+  // Se eligen las dos variantes que ejercitan las ramas caras: una con receta
+  // completa y firma en el modo de descarga (el aviso largo, el método
+  // declarado), y una con casi nada (el "la fuente no declara" y el
+  // "no se puede decir que exista un camino sin firma").
+  const props = {
+    "ro.product.device": "lamu",
+    "ro.product.manufacturer": "motorola",
+    "ro.product.model": "XT2521-2",
+    "ro.build.fingerprint":
+      "motorola/lamu/lamu:15/UBTQV8.26-171-5-4/0c1d2e3f4a5b:user/release-keys",
+  };
+  const r = cat.resolve(props);
+  const match = r.match ?? r.alternatives?.[0] ?? null;
+  check(
+    "la variante del informe de prueba se resuelve contra la base real",
+    match !== null,
+    "si la base dejo de tener esta variante, hay que elegir otra y revisar el copy",
+  );
+
+  if (match) {
+    const informe = buildReport({
+      device: {
+        id: "sim:informe",
+        transport: "sim",
+        serial: "SIM-INFORME-0001",
+        connectedAt: "2026-09-29T12:00:00.000Z",
+        props,
+        battery: { levelPct: 58, charging: false },
+      },
+      resolution: { ...r, match, ladder: [], unresolvedReason: null },
+      probes: [],
+      license: { state: "free", plan: "free" },
+      watermarked: true,
+    });
+
+    // Todo lo que viene de la fuente o del equipo y por eso puede ser largo. La
+    // lista se arma con los datos de ESTA variante, no con literales escritos a
+    // mano: si el generador de la demo cambia un texto, la lista se actualiza
+    // sola y la prueba no se queda comparando contra una copia vieja.
+    const literales = [
+      match.marketingName,
+      match.codename,
+      ...Object.values(props),
+      match.receta.modoDescarga ?? "",
+      match.receta.comboRecovery ?? "",
+      match.receta.comboDescarga ?? "",
+      match.receta.desbloqueo ?? "",
+      // Las puertas de verificación son texto de la base, alineado en columna
+      // con la clase entre paréntesis: partirlo rompería la alineación.
+      ...match.verificationGates.map((g) => g.name),
+    ]
+      .filter((s) => s.length > 0)
+      .map((s) => s.split("\n")[0]);
+
+    // El tope es 80 y no 68 a propósito: `parrafo()` mide el ancho del renglón
+    // completo y las sangrías que usa van de 2 a 8 columnas. Lo que esta prueba
+    // busca no es el ancho exacto, sino que un párrafo redactado por nosotros no
+    // salga como un renglón de 400 caracteres al lado de 70 líneas de 68.
+    const renglonesLargos = informe
+      .split("\n")
+      .filter((l) => l.length > 80)
+      .filter((l) => !literales.some((s) => l.includes(s)));
+
+    check(
+      `Ningún renglón del informe pasa de 80 columnas si no trae dato de la fuente (${renglonesLargos.length} lo hacen)`,
+      renglonesLargos.length === 0,
+      renglonesLargos.slice(0, 4).map((l) => `[${l.length}] ${l}`).join(" / "),
+    );
+
+    // Las banderas de la base nunca se imprimen enteras. Antes de la tabla de
+    // textos el informe llegaba con líneas como
+    //     - pre_install_required:needs_specific_android_fw
+    // que el técnico leía en español en la pantalla y el cliente leía en crudo.
+    const banderasDeLaBase = match.riskFlags.map((f) => f.split(":")[0]);
+    const crudas = banderasDeLaBase.filter((b) =>
+      new RegExp(`^\\s*-\\s*${b}(:|$)`, "m").test(informe),
+    );
+    check(
+      "Ninguna bandera de riesgo se imprime entera en el informe",
+      crudas.length === 0,
+      `salen en crudo: ${crudas.join(", ")}`,
+    );
+
+    // La sección de receta entra solo si hay receta, y el "no ejecuta" es lo
+    // último: es la línea que separa este archivo de una instrucción.
+    const conReceta = match.receta !== null && match.receta !== undefined;
+    check(
+      conReceta
+        ? 'El informe dice qué hay que hacer con la placa y que no lo ejecuta'
+        : 'La variante sin receta no inventa una sección de receta',
+      conReceta
+        ? informe.includes("QUE HAY QUE HACER CON ESTA PLACA") &&
+          informe.includes("NO ejecuta ninguno de estos pasos")
+        : !informe.includes("QUE HAY QUE HACER CON ESTA PLACA"),
+      "el archivo se le entrega al cliente: la sección y su límites van juntos",
+    );
+
+    // La frase que decide si el técnico cobra o no el trabajo. Con el campo mal
+    // leído, la app decía "esta reparación no se puede hacer desde aquí", y eso
+    // es falso en 691 de 763 variantes: de las que tienen el dato en 1, 595 son
+    // métodos fastboot, que no piden ninguna firma.
+    //
+    // La primera comprobación es una prohibición, no una comparación: busca la
+    // afirmación falsa tal cual. La segunda exige que sí se diga la matización.
+    // Con una sola de las dos la prueba pasa de más: se comprobó que una versión
+    // que decía "la reparación no se puede hacer" sin matizar dabaverde.
+    if (match.receta.descargaExigeMaterialFirmado === true) {
+      check(
+        "El informe nunca dice que la reparación no se pueda hacer",
+        !/(la|esta) reparaci[oó]n no se puede hacer/i.test(informe),
+        "el aviso habla del MODO DE DESCARGA. Si dice que la reparacion no se puede " +
+          "hacer, el técnico deja de cobrar trabajos que sí se pueden: es el error " +
+          "que esta comprobación existe para que no vuelva",
+      );
+      check(
+        "Y sí dice que el bloqueo es del modo de descarga, no de la placa entera",
+        /no dice que la placa no se pueda reparar/i.test(informe),
+        "sin esta matización el técnico no sabe que fastboot es un camino aparte",
+      );
+    }
+  }
+  cat.close();
 }
 
 // ---------------------------------------------------------------------------

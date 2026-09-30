@@ -199,6 +199,44 @@ class Variant:
 _ESPACIOS = re.compile(r"^\s*|\s*$")
 
 
+_ETIQUETA_HTML = re.compile(r"</?[a-zA-Z][^>]*>")
+_ESPACIOS_SOBRANTES = re.compile(r"[ \t]{2,}")
+_ESPACIOS_ANTES_PUNT = re.compile(r"\s+([.,;:])")
+
+
+def _sin_html(bruto) -> str:
+    """Quita las etiquetas que el wiki de LineageOS deja dentro del texto.
+
+    -----------------------------------------------------------------------
+    POR QUE ESTA FUNCION EXISTE
+    -----------------------------------------------------------------------
+    El wiki escribe los botones como HTML embebido en el YAML, porque en su
+    pagina esos botones se ven resaltados:
+
+        recovery_boot: 'With the device powered off, hold <kbd>Volume Up</kbd> + <kbd>Power</kbd>.'
+
+    Ese texto se copiaba tal cual a la base, y 1,376 campos de 763 variantes
+    viajaban con las etiquetas dentro. Un informe firmado que imprimiera eso
+    mostraria "<kbd>Power</kbd>" al cliente, que es la clase de basura que hace
+    que un buen informe deje de leerse.
+
+    Se quitan las etiquetas, NO se traduce el texto. El texto es ingles porque
+    la fuente es inglesa, y traducirlo inventaria palabras sobre como se entra a
+    recovery en cada modelo; la app lo muestra marcando que viene de la fuente.
+
+    El signo de mas sobrevive: `<kbd>Volume Up</kbd> + <kbd>Power</kbd>` se
+    convierte en "Volume Up + Power", que es exactamente como se escribe.
+    """
+    if not isinstance(bruto, str):
+        return ""
+    s = _ETIQUETA_HTML.sub("", bruto)
+    # La etiqueta ocupaba el lugar de un espacio, y al quitarla quedan dobles
+    # ("Power ." / "Volume Down +  Power").
+    s = _ESPACIOS_SOBRANTES.sub(" ", s)
+    s = _ESPACIOS_ANTES_PUNT.sub(r"\1", s)
+    return s.strip()
+
+
 def _normaliza_release(bruto) -> str:
     """Lleva `release` del wiki a `AAAA-MM` o `AAAA-MM-DD`, o a "" si no se puede.
 
@@ -393,8 +431,8 @@ def from_lineageos(doc: dict) -> Variant | None:
     v.recovery_partition_name = str(doc.get("recovery_partition_name") or "")
     if v.recovery_partition_name:
         v.add("recovery_partition_name", v.recovery_partition_name, src, "verified", url, ts)
-    v.recovery_boot = str(doc.get("recovery_boot") or "")
-    v.download_boot = str(doc.get("download_boot") or "")
+    v.recovery_boot = _sin_html(doc.get("recovery_boot") or "")
+    v.download_boot = _sin_html(doc.get("download_boot") or "")
     for name in ("recovery_boot", "download_boot"):
         val = getattr(v, name)
         if val:
