@@ -21,7 +21,7 @@ comercial, y cuando hay más de una plausible **no elige por el técnico**.
 | Catálogo de variantes | **763 variantes**, 48,908 alias de número de modelo |
 | Escalera de identidad L0–L6 | implementada y probada |
 | Diagnóstico por sonda | **16 sondas** de solo lectura, con el comando visible |
-| Receta por variante | **8 filas** (firma en el modo de descarga, requisito previo, partición de destino, desbloqueo, método, modo de descarga, y las dos combinaciones de botones). Las 763 variantes traen al menos un dato; 49 traen los 8. La pantalla **Reparación** los describe; no ejecuta ninguno |
+| Receta por variante | **8 filas** (firma en el modo de descarga, requisito previo, partición de destino, desbloqueo, método, modo de descarga, y las dos combinaciones de botones). Las 763 variantes traen al menos un dato; 49 traen los 8. La pantalla **Reparación** los describe; no ejecuta ninguno. Los dos valores que se teclean en una terminal (el comando de desbloqueo y el nombre de la partición) tienen botón de copiar |
 | Riesgos por variante | **10 banderas**, las 10 con texto propio, en la pantalla y en el informe firmado. El valor va traducido cuando se sabe (`vendor_boot` → qué partición es); cuando no, se muestra el código y se dice que la fuente no lo explica |
 | Comprobaciones de entrega | **11,487 puertas**, 13 a 16 por variante. Las muestra la app con su texto; **solo 3 o 4 tienen sonda asociada** y el resto las hace el técnico a mano |
 | Lista de verificación en el informe | las 11,487 puertas, como lista. No dice cuáles se hicieron: eso no es evidencia |
@@ -126,11 +126,11 @@ La unidad de medida del proyecto es `npm test`:
 
 ```bash
 npm test
-#   83  pruebas de catálogo    (ambigüedad, artefacto, las puertas, la receta y la escalera)
-#  155  pruebas de IFT         (alias de marca, homologación, el cruce)
+#   88  pruebas de catálogo    (ambigüedad, artefacto, las puertas, la receta y la escalera)
+#  157  pruebas de IFT         (alias de marca, homologación, el cruce)
 #  104  pruebas de licencia    (casi todas, ataques: firma, emisión, activación)
 #   15  pruebas de clon        (la CLI en un HOME vacío: lo que hace un recién bajado)
-#   49  pruebas de empaquetado (lo que se entrega de verdad, informe firmado incluido)
+#   53  pruebas de empaquetado (lo que se entrega de verdad, informe firmado incluido)
 #   44  pruebas de resolutor   (el resolutor real de platform.ts contra la base real, y la clave de firma)
 ```
 

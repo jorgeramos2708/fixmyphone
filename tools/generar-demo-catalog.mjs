@@ -31,6 +31,12 @@
 import { DatabaseSync } from "node:sqlite";
 import { writeFileSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+// Las dos reglas de degradacion de la receta viven en `core` y se importan en
+// vez de copiarse. Son los unicos imports de este archivo, y se pudieron hacer
+// porque `bridge.ts` no importa nada: la copia seria una segunda version que se
+// desincroniza en silencio, y un recorte de demo que dejara de traer el caso
+// interesante no diria por que.
+import { comoParticionRecovery, esDesbloqueoGenerico } from "../packages/core/src/bridge.ts";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const DB = join(RAIZ, "packages", "device-db", "data", "out", "fixmyphone_device_db.sqlite");
@@ -172,17 +178,19 @@ function aVariante(r) {
  * `signed_material_required` leído como `true` por accidente pone un aviso de
  * "no se puede" en 700 equipos que sí se pueden.
  */
-const PARTICIONES = new Set(["recovery", "boot", "vendor_boot"]);
+/** Texto presente o ausente, ya recortado. */
+const t = (v) => (v == null || v === "" ? null : String(v).trim() || null);
 
 function toReceta(r) {
-  const t = (v) => (v == null || v === "" ? null : String(v).trim() || null);
-  const part = t(r.recovery_partition_name);
   const material = t(r.signed_material_required);
   return {
     metodo: t(r.install_method),
     desbloqueo: t(r.custom_unlock_cmd),
-    particionRecovery:
-      part && PARTICIONES.has(part.toLowerCase()) ? part.toLowerCase() : null,
+    // La lista de particiones validas la decide `core` y no este archivo. La
+    // copia de la lista se quedaria con la vieja cuando la base trajera una
+    // particion nueva, y la degradaria a `null` sin avisar: la pantalla de
+    // reparacion ensenaria "la fuente no lo declara" para un dato que si esta.
+    particionRecovery: comoParticionRecovery(t(r.recovery_partition_name)),
     comboRecovery: t(r.recovery_boot),
     comboDescarga: t(r.download_boot),
     modoDescarga: t(r.download_mode),
@@ -358,25 +366,11 @@ for (const estado of ESTADOS_A_MOSTRAR) {
   else sinReservar.push(estado);
 }
 
-for (const { fila: entra } of faltantes) {
-  // La victima no puede ser una fila de un codename que aporta mas de una fila a
-  // la maqueta. Si lo fuera, el grupo se queda incompleto y la demo anunciaria
-  // menos placas de las que hay: "2 candidatas" donde la base tiene 4. Es el
-  // mismo error del estrato de ambiguedas al reves, y tampoco se ve: la pantalla
-  // sigue diciendo la verdad sobre lo que trae, pero trae menos de lo que hay.
-  //
-  // El conteo se rehace en cada vuelta porque cada intercambio cambia el grupo.
-  const fuera = elegidas
-    .map((r, i) => ({ r, i }))
-    .filter(({ r }) => {
-      const estado = String(r.homologado_ift);
-      if (elegidas.filter((o) => o.codename === r.codename).length > 1) return false;
-      return elegidas.filter((o) => String(o.homologado_ift) === estado).length > 1;
-    })
-    .sort((a, b) => puntua(a.r) - puntua(b.r))[0];
-  if (!fuera) break;
-  elegidas[fuera.i] = entra;
-}
+// El intercambio que haria falta con esta lista NO se hace aqui: se hace al
+// final del archivo, despues de la maqueta. Cuando estaba aqui, el paso de la
+// maqueta se llevaba la fila que este acababa de meter y la garantia valia hasta
+// la siguiente linea.
+
 // --- Los codenames que usa la maqueta no son negociables -------------------
 //
 // La maqueta web tiene equipos simulados con codename fijo, y son los ejemplos
@@ -462,6 +456,171 @@ if (metidosPorFuerza.length) {
     `  nota: ${metidosPorFuerza.length} codename(s) de la maqueta entraron a la ` +
       `fuerza -> ${metidosPorFuerza.join(", ")}`,
   );
+}
+
+// --- Las garantias de contenido van AL FINAL, y en este orden --------------
+//
+// El orden de los pasos importa y no es cosmetico. Los codenames de la maqueta
+// son la unica capa que no se puede negociar —son los ejemplos que alguien va a
+// mirar para decidir si el producto sirve— y las capas de abajo solo se pueden
+// cumplir SIN SACAR de ahi. Cuando los intercambios de contenido iban antes, el
+// paso de la maqueta se llevaba la fila que acababan de meter y la garantia
+// valia hasta la siguiente linea: la demo salia sin el caso y sin ningun aviso.
+//
+// Cada capa protege las de arriba. Si la ultima no cabe sin romper una
+// anterior, NO se mete: se anota por que. Un recorte con un caso menos y una
+// linea de explicacion es honesto; uno que rompe el caso que ya estaba para
+// traerse este no lo es.
+
+/**
+ * Elige a quien se le puede sacar una fila del recorte para meter otra.
+ *
+ * `protege` dice que filas NO se pueden perder, y se evalua contra el recorte
+ * TAL COMO ESTA en ese momento: si al meter una cosa se pierde otra, no se
+ * entra. Sin eso los intercambios se pisan entre ellos y la ultima capa borra en
+ * silencio la anterior, que es la forma de que estas garantias valgan lo que
+ * valen el dia que se escribieron.
+ *
+ * Se ordena por menor puntaje, porque la que sale es la que peor explica el
+ * producto y la que entra ya esta justificada por la regla que la pidio. Y una
+ * fila de un codename que aporta mas de una al recorte queda siempre fuera:
+ * sacar media de un grupo de ambiguedad fabricaria un caso que el producto no
+ * tiene, que es el error mas grave de los tres.
+ */
+function victima(protege) {
+  return elegidas
+    .map((r, i) => ({ r, i }))
+    .filter(({ r }) => {
+      if (elegidas.filter((o) => o.codename === r.codename).length > 1) return false;
+      // Un codename reservado por la maqueta no se toca. Esta condicion esta en
+      // la MISMA funcion y no en el paso que lo reservo, a proposito: si cada
+      // capa se protegiera solo lo suyo, las dos ultimas podrian pisarse sin
+      // que ninguna se enterara. Y es lo que hace que el orden importe.
+      if (codenamesDeLaMaqueta.includes(r.codename)) return false;
+      return !protege(r);
+    })
+    .sort((a, b) => puntua(a.r) - puntua(b.r))[0];
+}
+
+/** Si esta fila es la ultima que trae su estado de homologacion. */
+const protegeEstadoIft = (r) =>
+  elegidas.filter((o) => String(o.homologado_ift) === String(r.homologado_ift)).length <= 1;
+
+/** Cambia una fila por otra, y dice si se pudo. */
+function intercambia(entra, protege) {
+  // Si la fila que entra ya estaba, el intercambio no es un intercambio: es una
+  // copia. Y una fila repetida hace que el resolutor de la maqueta anuncie mas
+  // candidatas de las que hay, con dos "placas" identicas en la lista.
+  if (elegidas.includes(entra)) return false;
+  const fuera = victima(protege);
+  if (!fuera) return false;
+  elegidas[fuera.i] = entra;
+  return true;
+}
+
+for (const { estado, fila: entra } of faltantes) {
+  // La lista de faltantes se midio ANTES de la maqueta, y su respuesta ya no
+  // vale: el paso de la maqueta pudo traer este mismo estado. Sin esta segunda
+  // pregunta, el intercambio se negaba a hacer algo innecesario y el aviso
+  // reportaba "no cabe" cuando lo que pasaba es que ya estaba.
+  if (elegidas.some((r) => String(r.homologado_ift) === estado)) continue;
+  if (!intercambia(entra, protegeEstadoIft)) {
+    console.log(
+      `  aviso: el estado "${estado}" no cabe en el recorte sin romper otra regla`,
+    );
+  }
+}
+
+// --- Cada rama de la reparacion que la fuente tiene tiene que verse -------
+//
+// Sin esta regla la demo sale con 48 filas donde NINGUNA tiene
+// `custom_unlock_cmd` y NINGUNA tiene `signed_material_required = 0`, y eso no
+// es un recorte: es la pantalla de reparacion con dos de sus ramas muertas. La
+// del comando de desbloqueo (con su boton de copiar y su texto de "este comando
+// no es el generico") y la de "descarga sin firma", que es justo la que hace que
+// el producto NO le diga a 16 equipos reales que su reparacion no se puede
+// hacer.
+//
+// Un caso que no se ve no se puede evaluar, y esta demo es como se evalua el
+// producto sin tener un taller delante. La garantia tiene la misma forma que la
+// de los estados del IFT: por intercambio, sin pasar del tope, y con la misma
+// proteccion de los grupos de ambiguedad.
+const CASOS_RECETA = [
+  {
+    id: "desbloqueo no generico",
+    // 14 filas de 763. Todas de codename unico, y 6 son de nubia con el modelo
+    // del equipo escrito DENTRO del comando: `nubia_unlock NUBIA_NX563J` contra
+    // el codename `nx563j`. Es el mejor ejemplo posible, porque es un comando que
+    // se teclea y en el que una mayuscula de mas cambia lo que hace.
+    cumple: (r) => {
+      const c = t(r.custom_unlock_cmd);
+      return c !== null && !esDesbloqueoGenerico(c);
+    },
+  },
+  {
+    id: "descarga sin firma",
+    // 16 filas de 763, todas de Google. Sin ellas, la banda roja de "entrar al
+    // modo de descarga exige material firmado" es lo unico que la demo ensena de
+    // la pantalla, y el producto parece un producto que solo dice que no.
+    cumple: (r) => t(r.signed_material_required) === "0",
+  },
+];
+
+const sinCasoDeReceta = [];
+for (const caso of CASOS_RECETA) {
+  if (elegidas.some((r) => caso.cumple(r))) continue;
+
+  // La candidata tiene que ser de un codename SIN ambiguedad, por el mismo
+  // motivo que en el paso de los estados del IFT: meter una sola fila de un
+  // codename de tres placas presenta un acierto directo donde la base dice que
+  // hay tres, y esa pantalla muestra una seguridad que la base no respalda.
+  const candidatas = [...todas].filter((r) => caso.cumple(r) && !esAmbigua(r)).sort(orden);
+  if (!candidatas.length) {
+    sinCasoDeReceta.push(caso.id);
+    continue;
+  }
+
+  // Ademas de no romper los estados del IFT, no se puede sacar la ultima fila
+  // que cubre otro caso de receta. Por eso `protege` lleva las dos reglas y no
+  // solo una: si esta capa se ejecutara antes, dejaria un estado del IFT sin
+  // mostrar y nadie lo notaria.
+  const cubreOtroCaso = (r) =>
+    CASOS_RECETA.some(
+      (otro) =>
+        otro.id !== caso.id &&
+        otro.cumple(r) &&
+        elegidas.filter((o) => otro.cumple(o)).length === 1,
+    );
+  if (!intercambia(candidatas[0], (r) => protegeEstadoIft(r) || cubreOtroCaso(r))) {
+    sinCasoDeReceta.push(caso.id);
+  }
+}
+
+// --- El recorte no puede traer dos veces la misma fila ----------------------
+//
+// Esta comprobacion existe porque ya paso. Un intercambio metio una fila que ya
+// estaba en el recorte —la fila de un codename se empareja por identidad, y
+// despues de un intercambio la comparacion se hace contra un arreglo distinto
+// al que se uso cuando se eligio— y el archivo salio con `devon` dos veces
+// identico. El sintoma lo caza `probar-catalogo.mjs` ("los grupos que si llegan
+// estan completos": `devon: 2 de 1`), pero la causa es de aqui, y una demo con
+// la misma placa dos veces es un producto que promete una precision que no
+// tiene.
+//
+// No se avisa: se corta. Un recorte con una fila repetida esta mal y no hay
+// version de el que no lo este.
+const repetidas = [
+  ...elegidas
+    .reduce((m, r) => m.set(r, (m.get(r) ?? 0) + 1), new Map())
+    .entries(),
+].filter(([, n]) => n > 1);
+if (repetidas.length) {
+  console.log(
+    `  FALLA: ${repetidas.length} fila(s) repetidas en el recorte -> ` +
+      repetidas.map(([r]) => `${r.codename}#${r.variant ?? ""}`).join(", "),
+  );
+  db.close();
+  process.exit(1);
 }
 
 elegidas.sort(orden);
@@ -637,6 +796,22 @@ if (sinReservar.length) {
     `  aviso: ${sinReservar.join(", ")} no entra; las unicas filas de esos ` +
       `estados son de codenames con varias placas y meter una sola fabricaria ` +
       `un acierto que la base no tiene`,
+  );
+}
+
+// Las ramas de la pantalla de reparacion que se ven en la demo. Se imprime por
+// la misma razon que los estados de arriba: para que la regla sea auditable sin
+// abrir el archivo. Si un dia una fila sale del recorte y con ella un caso, esto
+// se nota en la salida del script y no en una queja de que la pantalla no
+// muestra lo que dice.
+const casosEnDemo = CASOS_RECETA.map((caso) => {
+  const n = elegidas.filter((r) => caso.cumple(r)).length;
+  return `${caso.id} ${n}${n ? "" : " <- NO ESTA"}`;
+});
+console.log(`  ramas de reparacion: ${casosEnDemo.join(" | ")}`);
+if (sinCasoDeReceta.length) {
+  console.log(
+    `  aviso: ramas de reparacion sin caso en la demo -> ${sinCasoDeReceta.join(", ")}`,
   );
 }
 

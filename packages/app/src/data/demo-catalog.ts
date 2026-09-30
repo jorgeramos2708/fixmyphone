@@ -2318,325 +2318,6 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     }
   },
   {
-    "codename": "a7xelte",
-    "variant": null,
-    "key": "a7xelte",
-    "marketingName": "Galaxy A7 (2016)",
-    "vendor": "samsung",
-    "vendorNombre": "Samsung",
-    "soc": "Samsung Exynos 7580",
-    "socVendor": "exynos",
-    "platform": "universal7580",
-    "modelNumbers": [
-      "SM-A710F",
-      "SM-A710F/DS",
-      "SM-A710M",
-      "SM-A710Y",
-      "SM-A710K",
-      "SM-A710L",
-      "SM-A710S"
-    ],
-    "androidVersion": 16,
-    "release": "2015-12",
-    "capabilities": [
-      "a_only",
-      "adb",
-      "battery_calibration",
-      "battery_health_read",
-      "display_pwm_test",
-      "dynamic_partitions",
-      "evidence_capture",
-      "fastboot",
-      "fastbootd",
-      "frp_owner_assisted",
-      "network_reset",
-      "odin_download",
-      "official_rom_flash",
-      "ota",
-      "recovery",
-      "sim_reset",
-      "storage_health_read",
-      "thermal_read",
-      "touch_grid_test",
-      "verified_boot"
-    ],
-    "riskFlags": [
-      "odin_requires_signed_secure_package",
-      "samsung_knox_eFuse_risk_on_unlock"
-    ],
-    "verificationGates": [
-      {
-        "id": "power_on",
-        "name": "El equipo enciende y no reinicia en 3 min",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "charging",
-        "name": "Detecta carga y aumenta el porcentaje",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "battery_report",
-        "name": "Bateria reporta capacidad real > 60% del diseño",
-        "kind": "hardware",
-        "blocking": false
-      },
-      {
-        "id": "touch_grid",
-        "name": "Rejilla de táctil sin zonas muertas",
-        "kind": "sensor",
-        "blocking": true
-      },
-      {
-        "id": "display_pwm",
-        "name": "Pantalla sin parpadeo anormal / lineas",
-        "kind": "display",
-        "blocking": true
-      },
-      {
-        "id": "audio_path",
-        "name": "Altavoz, auricular y microfonos responden",
-        "kind": "audio",
-        "blocking": true
-      },
-      {
-        "id": "cameras",
-        "name": "Todas las camaras abren imagen",
-        "kind": "camera",
-        "blocking": true
-      },
-      {
-        "id": "sensors",
-        "name": "Proximidad, huella y giroscopio responden",
-        "kind": "sensor",
-        "blocking": false
-      },
-      {
-        "id": "network_register",
-        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "data_browse",
-        "name": "Abre internet y resuelve DNS",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "call_voicemail",
-        "kind": "network",
-        "blocking": false,
-        "name": "Llamada / mensaje saliente"
-      },
-      {
-        "id": "gms",
-        "name": "Play Servicios y apps base abren",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "ota",
-        "name": "Acepta(actualizar) sin error",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "radio_ident",
-        "kind": "radio",
-        "blocking": true,
-        "name": "IMEI/ESN intactos y sin cambios"
-      },
-      {
-        "id": "verified_boot_state",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Estado de boot verificado sin alteraciones"
-      }
-    ],
-    "sources": [
-      "lineageos",
-      "seed",
-      "play",
-      "ift"
-    ],
-    "homologadoIft": "desconocido",
-    "iftCertificado": "",
-    "iftUrl": "",
-    "receta": {
-      "metodo": "samloader_rs",
-      "desbloqueo": null,
-      "particionRecovery": "recovery",
-      "comboRecovery": "With the device powered off, hold Volume Up + Home + Power.",
-      "comboDescarga": "With the device powered off, hold Volume Down + Home + Power.",
-      "modoDescarga": "Samsung Download mode 04E8:6600 / 685D (Odin-style protocol)",
-      "descargaExigeMaterialFirmado": true,
-      "requisitoPrevio": null,
-      "versionRequisito": null
-    }
-  },
-  {
-    "codename": "harpia",
-    "variant": null,
-    "key": "harpia",
-    "marketingName": "moto g4 play",
-    "vendor": "motorola",
-    "vendorNombre": "Motorola",
-    "soc": "Qualcomm MSM8916 Snapdragon 410",
-    "socVendor": "qualcomm",
-    "platform": "msm8916",
-    "modelNumbers": [
-      "XT1600",
-      "XT1601",
-      "XT1602",
-      "XT1603",
-      "XT1604",
-      "XT1607"
-    ],
-    "androidVersion": 16,
-    "release": "2016-05",
-    "capabilities": [
-      "a_only",
-      "adb",
-      "battery_calibration",
-      "battery_health_read",
-      "display_pwm_test",
-      "dynamic_partitions",
-      "edl",
-      "evidence_capture",
-      "fastboot",
-      "fastbootd",
-      "frp_owner_assisted",
-      "network_reset",
-      "official_rom_flash",
-      "ota",
-      "recovery",
-      "sim_reset",
-      "storage_health_read",
-      "thermal_read",
-      "touch_grid_test",
-      "verified_boot"
-    ],
-    "riskFlags": [
-      "edl_requires_signed_programmer",
-      "pre_install_required:needs_specific_android_fw"
-    ],
-    "verificationGates": [
-      {
-        "id": "power_on",
-        "name": "El equipo enciende y no reinicia en 3 min",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "charging",
-        "name": "Detecta carga y aumenta el porcentaje",
-        "kind": "hardware",
-        "blocking": true
-      },
-      {
-        "id": "battery_report",
-        "name": "Bateria reporta capacidad real > 60% del diseño",
-        "kind": "hardware",
-        "blocking": false
-      },
-      {
-        "id": "touch_grid",
-        "name": "Rejilla de táctil sin zonas muertas",
-        "kind": "sensor",
-        "blocking": true
-      },
-      {
-        "id": "display_pwm",
-        "name": "Pantalla sin parpadeo anormal / lineas",
-        "kind": "display",
-        "blocking": true
-      },
-      {
-        "id": "audio_path",
-        "name": "Altavoz, auricular y microfonos responden",
-        "kind": "audio",
-        "blocking": true
-      },
-      {
-        "id": "cameras",
-        "name": "Todas las camaras abren imagen",
-        "kind": "camera",
-        "blocking": true
-      },
-      {
-        "id": "sensors",
-        "name": "Proximidad, huella y giroscopio responden",
-        "kind": "sensor",
-        "blocking": false
-      },
-      {
-        "id": "network_register",
-        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "data_browse",
-        "name": "Abre internet y resuelve DNS",
-        "kind": "network",
-        "blocking": true
-      },
-      {
-        "id": "call_voicemail",
-        "kind": "network",
-        "blocking": false,
-        "name": "Llamada / mensaje saliente"
-      },
-      {
-        "id": "gms",
-        "name": "Play Servicios y apps base abren",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "ota",
-        "name": "Acepta(actualizar) sin error",
-        "kind": "software",
-        "blocking": false
-      },
-      {
-        "id": "radio_ident",
-        "kind": "radio",
-        "blocking": true,
-        "name": "IMEI/ESN intactos y sin cambios"
-      },
-      {
-        "id": "verified_boot_state",
-        "kind": "bootchain",
-        "blocking": false,
-        "name": "Estado de boot verificado sin alteraciones"
-      }
-    ],
-    "sources": [
-      "lineageos",
-      "seed",
-      "play",
-      "ift"
-    ],
-    "homologadoIft": "sin_verificar",
-    "iftCertificado": "",
-    "iftUrl": "",
-    "receta": {
-      "metodo": "fastboot_motorola",
-      "desbloqueo": null,
-      "particionRecovery": "recovery",
-      "comboRecovery": "With the device powered off, hold Volume Down + Power. On the next screen use Volume Down to scroll to recovery and then press Power to select.",
-      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
-      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
-      "descargaExigeMaterialFirmado": true,
-      "requisitoPrevio": "needs_specific_android_fw",
-      "versionRequisito": "7.1.1"
-    }
-  },
-  {
     "codename": "kiwi",
     "variant": null,
     "key": "kiwi",
@@ -5361,6 +5042,163 @@ export const DEMO_CATALOG: DeviceVariant[] = [
     }
   },
   {
+    "codename": "s2",
+    "variant": null,
+    "key": "s2",
+    "marketingName": "Le 2",
+    "vendor": "leeco",
+    "vendorNombre": "LeEco",
+    "soc": "Qualcomm MSM8976 Snapdragon 652",
+    "socVendor": "qualcomm",
+    "platform": "msm8976",
+    "modelNumbers": [
+      "X520",
+      "X522",
+      "X526",
+      "X527"
+    ],
+    "androidVersion": 16,
+    "release": "2016-04",
+    "capabilities": [
+      "a_only",
+      "adb",
+      "battery_calibration",
+      "battery_health_read",
+      "display_pwm_test",
+      "dynamic_partitions",
+      "edl",
+      "evidence_capture",
+      "fastboot",
+      "fastbootd",
+      "frp_owner_assisted",
+      "network_reset",
+      "official_rom_flash",
+      "ota",
+      "recovery",
+      "sim_reset",
+      "storage_health_read",
+      "thermal_read",
+      "touch_grid_test",
+      "unlock_official",
+      "verified_boot"
+    ],
+    "riskFlags": [
+      "edl_requires_signed_programmer"
+    ],
+    "verificationGates": [
+      {
+        "id": "power_on",
+        "name": "El equipo enciende y no reinicia en 3 min",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "charging",
+        "name": "Detecta carga y aumenta el porcentaje",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "battery_report",
+        "name": "Bateria reporta capacidad real > 60% del diseño",
+        "kind": "hardware",
+        "blocking": false
+      },
+      {
+        "id": "touch_grid",
+        "name": "Rejilla de táctil sin zonas muertas",
+        "kind": "sensor",
+        "blocking": true
+      },
+      {
+        "id": "display_pwm",
+        "name": "Pantalla sin parpadeo anormal / lineas",
+        "kind": "display",
+        "blocking": true
+      },
+      {
+        "id": "audio_path",
+        "name": "Altavoz, auricular y microfonos responden",
+        "kind": "audio",
+        "blocking": true
+      },
+      {
+        "id": "cameras",
+        "name": "Todas las camaras abren imagen",
+        "kind": "camera",
+        "blocking": true
+      },
+      {
+        "id": "sensors",
+        "name": "Proximidad, huella y giroscopio responden",
+        "kind": "sensor",
+        "blocking": false
+      },
+      {
+        "id": "network_register",
+        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "data_browse",
+        "name": "Abre internet y resuelve DNS",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "call_voicemail",
+        "kind": "network",
+        "blocking": false,
+        "name": "Llamada / mensaje saliente"
+      },
+      {
+        "id": "gms",
+        "name": "Play Servicios y apps base abren",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "ota",
+        "name": "Acepta(actualizar) sin error",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "radio_ident",
+        "kind": "radio",
+        "blocking": true,
+        "name": "IMEI/ESN intactos y sin cambios"
+      },
+      {
+        "id": "verified_boot_state",
+        "kind": "bootchain",
+        "blocking": false,
+        "name": "Estado de boot verificado sin alteraciones"
+      }
+    ],
+    "sources": [
+      "lineageos",
+      "seed",
+      "play",
+      "ift"
+    ],
+    "homologadoIft": "desconocido",
+    "iftCertificado": "",
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_nexus",
+      "desbloqueo": "fastboot oem unlock-go",
+      "particionRecovery": "recovery",
+      "comboRecovery": "With the device powered off, hold Volume Up + Power.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "EDL 900E / 9008 (Sahara + Firehose XML)",
+      "descargaExigeMaterialFirmado": true,
+      "requisitoPrevio": null,
+      "versionRequisito": null
+    }
+  },
+  {
     "codename": "a52sxq",
     "variant": null,
     "key": "a52sxq",
@@ -7720,6 +7558,160 @@ export const DEMO_CATALOG: DeviceVariant[] = [
       "descargaExigeMaterialFirmado": true,
       "requisitoPrevio": "needs_specific_android_fw",
       "versionRequisito": "9.0"
+    }
+  },
+  {
+    "codename": "akita",
+    "variant": null,
+    "key": "akita",
+    "marketingName": "Pixel 8a",
+    "vendor": "google",
+    "vendorNombre": "Google",
+    "soc": "Google Tensor G3",
+    "socVendor": "tensor",
+    "platform": "gs",
+    "modelNumbers": [],
+    "androidVersion": 22,
+    "release": "2024-05-07",
+    "capabilities": [
+      "a_b_slots",
+      "adb",
+      "battery_calibration",
+      "battery_health_read",
+      "display_pwm_test",
+      "dynamic_partitions",
+      "edl_none",
+      "evidence_capture",
+      "fastboot",
+      "fastbootd",
+      "frp_owner_assisted",
+      "network_reset",
+      "official_rom_flash",
+      "ota",
+      "recovery",
+      "sim_reset",
+      "storage_health_read",
+      "thermal_read",
+      "touch_grid_test",
+      "unlock_official",
+      "verified_boot"
+    ],
+    "riskFlags": [
+      "no_edl_on_tensor_oem_key_signed",
+      "pre_install_required:needs_specific_android_fw",
+      "recovery_flash_target_is:vendor_boot"
+    ],
+    "verificationGates": [
+      {
+        "id": "power_on",
+        "name": "El equipo enciende y no reinicia en 3 min",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "charging",
+        "name": "Detecta carga y aumenta el porcentaje",
+        "kind": "hardware",
+        "blocking": true
+      },
+      {
+        "id": "battery_report",
+        "name": "Bateria reporta capacidad real > 60% del diseño",
+        "kind": "hardware",
+        "blocking": false
+      },
+      {
+        "id": "touch_grid",
+        "name": "Rejilla de táctil sin zonas muertas",
+        "kind": "sensor",
+        "blocking": true
+      },
+      {
+        "id": "display_pwm",
+        "name": "Pantalla sin parpadeo anormal / lineas",
+        "kind": "display",
+        "blocking": true
+      },
+      {
+        "id": "audio_path",
+        "name": "Altavoz, auricular y microfonos responden",
+        "kind": "audio",
+        "blocking": true
+      },
+      {
+        "id": "cameras",
+        "name": "Todas las camaras abren imagen",
+        "kind": "camera",
+        "blocking": true
+      },
+      {
+        "id": "sensors",
+        "name": "Proximidad, huella y giroscopio responden",
+        "kind": "sensor",
+        "blocking": false
+      },
+      {
+        "id": "network_register",
+        "name": "Registra en la red destino (SIM Telcel/AT&T/Movistar)",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "data_browse",
+        "name": "Abre internet y resuelve DNS",
+        "kind": "network",
+        "blocking": true
+      },
+      {
+        "id": "call_voicemail",
+        "kind": "network",
+        "blocking": false,
+        "name": "Llamada / mensaje saliente"
+      },
+      {
+        "id": "gms",
+        "name": "Play Servicios y apps base abren",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "ota",
+        "name": "Acepta(actualizar) sin error",
+        "kind": "software",
+        "blocking": false
+      },
+      {
+        "id": "slot_health",
+        "kind": "bootchain",
+        "blocking": false,
+        "name": "Ambos slots sanables (A/B activo y no corrupto)"
+      },
+      {
+        "id": "verified_boot_state",
+        "kind": "bootchain",
+        "blocking": false,
+        "name": "Estado de boot verificado sin alteraciones"
+      }
+    ],
+    "sources": [
+      "lineageos",
+      "seed",
+      "play",
+      "ift"
+    ],
+    "homologadoIft": "desconocido",
+    "iftCertificado": "",
+    "iftUrl": "",
+    "receta": {
+      "metodo": "fastboot_nexus",
+      "desbloqueo": "fastboot flashing unlock",
+      "particionRecovery": "vendor_boot",
+      "comboRecovery": "With the device powered off, hold Volume Down + Power. Then use the menu to select *Recovery Mode*.",
+      "comboDescarga": "With the device powered off, hold Volume Down + Power.",
+      "modoDescarga": "None (bootloader only, OEM key signed, no Qualcomm-style EDL)",
+      "descargaExigeMaterialFirmado": false,
+      "requisitoPrevio": "needs_specific_android_fw",
+      "versionRequisito": "16"
     }
   }
 ];

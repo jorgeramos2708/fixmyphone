@@ -443,6 +443,64 @@ if (!existsSync(DEMO_CAT)) {
       `${gruposDemo.map(([cn, n]) => `${cn} x${n}`).join(", ") || "ninguno"})`,
   );
 
+  // --- Cada rama de la reparacion tiene que verse en la demo ---------------
+  //
+  // El generador se encarga de traer una fila de cada caso, pero un paso de
+  // seleccion es codigo y el codigo se rompe. Se comprueba aqui porque la
+  // consecuencia de que falle no se ve en la demo: se ve en la ausencia, que es
+  // justo lo que nadie va a notar.
+  //
+  // Las dos ramas son las que_costaron trabajo de verdad:
+  //   - el comando de desbloqueo NO generico, que es la fila con el boton de
+  //     copiar y con el texto que dice que el comando no es el de siempre;
+  //   - la descarga SIN material firmado, que es la que hace que el producto no
+  //     le diga a 16 equipos reales que su reparacion no se puede hacer.
+  const { esDesbloqueoGenerico } = await import(
+    pathToFileURL(join(RAIZ, "packages", "core", "src", "bridge.ts")).href
+  );
+  const { DEMO_CATALOG } = await import(
+    pathToFileURL(join(RAIZ, "packages", "app", "src", "data", "demo-catalog.ts")).href
+  );
+
+  const conDesbloqueoNoGenerico = DEMO_CATALOG.filter(
+    (v) => v.receta.desbloqueo && !esDesbloqueoGenerico(v.receta.desbloqueo),
+  );
+  check(
+    "La demo trae al menos un comando de desbloqueo que no sea el generico",
+    conDesbloqueoNoGenerico.length > 0,
+    "sin el, la pantalla de reparacion no muestra el boton de copiar ni el texto " +
+      "que distingue el comando propio del de siempre",
+  );
+
+  const conDescargaSinFirma = DEMO_CATALOG.filter(
+    (v) => v.receta.descargaExigeMaterialFirmado === false,
+  );
+  check(
+    "La demo trae al menos una variante cuya descarga no pide material firmado",
+    conDescargaSinFirma.length > 0,
+    "sin el, la demo solo enseña la banda roja y el producto parece uno que " +
+      "unicamente dice que no se puede",
+  );
+
+  // Y que las dos clases de comando se puedan distinguir, que es lo que la
+  // prohibicion del informe necesita para tener contra que compararse.
+  const clasesDesbloqueo = new Set(
+    DEMO_CATALOG.filter((v) => v.receta.desbloqueo).map((v) => esDesbloqueoGenerico(v.receta.desbloqueo)),
+  );
+  check(
+    "Y la demo trae las dos clases de comando, para que se puedan comparar",
+    clasesDesbloqueo.size === 2,
+    `en el recorte solo hay ${clasesDesbloqueo.size} clase(s). La comprobacion del ` +
+      "informe que prohíbe llamar 'propio' a un comando genérico necesita de las dos",
+  );
+
+  console.log(
+    `        (desbloqueo no generico: ` +
+      `${conDesbloqueoNoGenerico.map((v) => v.key).join(", ") || "ninguno"}; ` +
+      `descarga sin firma: ` +
+      `${conDescargaSinFirma.map((v) => v.key).join(", ") || "ninguna"})`,
+  );
+
   // --- La cabecera del archivo generado no afirma nada falso ---------------
   //
   // El archivo dice de si mismo cuantos trimmed tiene y de donde sale. Eso es
@@ -1048,6 +1106,48 @@ check(
   "Ninguna bandera de FLAG_RIESGO está inventada",
   banderaInventada.length === 0,
   `la base nunca emite: ${banderaInventada.join(", ")}`,
+);
+
+// ---------------------------------------------------------------------------
+// El comando de desbloqueo NO es "propio de este equipo" en la mayoría de los casos
+// ---------------------------------------------------------------------------
+// La columna se llama `custom_unlock_cmd` y el nombre hizo su trabajo durante
+// meses: el informe leía "Comando de desbloqueo propio de este equipo" y la
+// pantalla decía "comando propio de este equipo, cuando no sirve el estándar".
+// Las dos frases eran mentira: 75 de los 97 valores son `fastboot flashing
+// unlock`, que no es de ninguna placa en particular.
+//
+// El reparto se comprueba porque es el que sostiene el copy nuevo. Si la base
+// cambia, el texto de la pantalla y del informe tienen que cambiar con ella, y
+// esto avisa antes de que el texto quede viejo.
+const { esDesbloqueoGenerico } = await import(
+  pathToFileURL(join(RAIZ, "packages", "core", "src", "bridge.ts")).href
+);
+const comandosDesbloqueo = db
+  .prepare(
+    "SELECT custom_unlock_cmd c FROM variant WHERE custom_unlock_cmd IS NOT NULL AND TRIM(custom_unlock_cmd) <> ''",
+  )
+  .all();
+const genericos = comandosDesbloqueo.filter((r) => esDesbloqueoGenerico(r.c)).length;
+check(
+  `De los ${comandosDesbloqueo.length} comandos de desbloqueo, ${genericos} son el genérico de fastboot`,
+  comandosDesbloqueo.length === 97 && genericos === 75,
+  `hay ${comandosDesbloqueo.length} comandos y ${genericos} genericos. Si esto cambia, ` +
+    "el texto de la pantalla y el del informe que cuentan el reparto estan viejos: " +
+    "no los cambies a mano sin volver a medirlos",
+);
+
+// El caso al reves: que la regla no se haya comido un comando de verdad.
+// `fastboot oem nubia_unlock NUBIA_NX659J` no es el generico ni se parece, y si
+// la comparacion fuera por prefijo lo declararia generico.
+check(
+  "Y la regla no confunde un comando propio con el genérico",
+  esDesbloqueoGenerico("fastboot oem nubia_unlock NUBIA_NX659J") === false &&
+    esDesbloqueoGenerico("fastboot oem unlock-go") === false &&
+    esDesbloqueoGenerico("fastboot flashing unlock") === true,
+  "un comando con el modelo del equipo dentro no puede dar como generico: es el " +
+    "unico caso en que el boton de copiar y el texto 'no es el de siempre' " +
+    "importan de verdad",
 );
 
 // La bandera de partición y el campo de receta son el mismo dato escrito dos

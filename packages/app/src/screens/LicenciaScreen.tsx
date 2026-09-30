@@ -22,9 +22,9 @@
  */
 
 import { useState } from "react";
-import { KeyRound, Check, X, Copy, Terminal, AlertTriangle, PenLine } from "lucide-react";
+import { KeyRound, Check, X, Terminal, PenLine } from "lucide-react";
 import type { LicenseState, InstallKeyInfo } from "@fixmyphone/core";
-import { Button, Badge, Panel, DataRow, useCopiar } from "../components/primitives";
+import { Button, Badge, Panel, DataRow, BotonCopiar } from "../components/primitives";
 
 export function LicenciaScreen({
   license,
@@ -41,7 +41,6 @@ export function LicenciaScreen({
 }) {
   const [raw, setRaw] = useState("");
   const [busy, setBusy] = useState(false);
-  const [copia, copiar] = useCopiar();
 
   const premium = license.tier === "premium" && license.valid;
 
@@ -135,30 +134,12 @@ export function LicenciaScreen({
                   <span className="text-caption text-text-muted">
                     Id de este equipo
                   </span>
-                  <button
-                    onClick={() => copiar(license.machine!.id)}
-                    className="text-text-faint transition-colors hover:text-text"
-                    // Mismo criterio que los botones de copiar de abajo: la
-                    // etiqueta cambia al copiar para que el lector de pantalla
-                    // anuncie el resultado. El id de este equipo es lo que se
-                    // lee en voz alta al activar una licencia, así que el
-                    // técnico necesita saber si lo copió.
-                    aria-label={
-                      copia?.estado === "ok"
-                        ? "Id de equipo copiado"
-                        : copia?.estado === "error"
-                          ? "Id de equipo: no se pudo copiar"
-                          : "Copiar el id de equipo"
-                    }
-                  >
-                    {copia?.estado === "ok" ? (
-                      <Check size={12} strokeWidth={2.5} className="text-success" />
-                    ) : copia?.estado === "error" ? (
-                      <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
-                    ) : (
-                      <Copy size={12} strokeWidth={1.75} />
-                    )}
-                  </button>
+                  {/* Antes este botón y el de la huella compartían un solo
+                      `useCopiar` del padre, así que copiar cualquiera de los dos
+                      encendía la palomita en los dos. `BotonCopiar` lleva su
+                      propio estado, que es lo que hace falta cuando hay más de
+                      un texto en la misma pantalla. */}
+                  <BotonCopiar texto={license.machine.id} etiqueta="el id de equipo" />
                 </div>
 
                 <p className="tech mt-1.5 text-body text-text">
@@ -216,25 +197,7 @@ export function LicenciaScreen({
                   <span className="text-caption text-text-muted">
                     Huella de firma de este taller
                   </span>
-                  <button
-                    onClick={() => copiar(installKey.kid)}
-                    className="text-text-faint transition-colors hover:text-text"
-                    aria-label={
-                      copia?.estado === "ok"
-                        ? "Huella de firma copiada"
-                        : copia?.estado === "error"
-                          ? "Huella de firma: no se pudo copiar"
-                          : "Copiar la huella de firma"
-                    }
-                  >
-                    {copia?.estado === "ok" ? (
-                      <Check size={12} strokeWidth={2.5} className="text-success" />
-                    ) : copia?.estado === "error" ? (
-                      <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
-                    ) : (
-                      <Copy size={12} strokeWidth={1.75} />
-                    )}
-                  </button>
+                  <BotonCopiar texto={installKey.kid} etiqueta="la huella de firma" />
                 </div>
                 <p className="tech mt-1.5 text-body text-text">{installKey.kid}</p>
                 <p className="mt-3 text-caption text-text-faint">
@@ -369,43 +332,17 @@ export function LicenciaScreen({
 /**
  * Un bloque de comando con su botón de copiar.
  *
- * La copia la hace `useCopiar`, igual que el botón del id de equipo. Antes este
+ * La copia la hace `BotonCopiar`, igual que el botón del id de equipo. Antes este
  * componente recibía `onCopy` y `copied` por prop y los cuatro handlers del
  * padre eran `() => setCopied("lo-que-sea)`: cambiaban el estado y no escribían
  * nada en el portapapeles. El botón ponía la palomita y mentía.
  */
 function CodeBlock({ title, lines }: { title: string; lines: string[] }) {
-  const [copia, copiar] = useCopiar();
-
-  const etiqueta =
-    copia?.estado === "ok"
-      ? `${title}: copiado`
-      : copia?.estado === "error"
-        ? `${title}: no se pudo copiar`
-        : `Copiar ${title.toLowerCase()}`;
-
   return (
     <div className="mt-4 first:mt-0">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="text-caption text-text-muted">{title}</span>
-        <button
-          onClick={() => copiar(lines.join("\n"))}
-          className="text-text-faint transition-colors hover:text-text"
-          // El texto accesible cambia con el estado a propósito. Con un
-          // `aria-label` fijo, quien usa lector de pantalla aprieta "Copiar" y no
-          // se entera de si funcionó: el icono se vuelve palomita, y el icono no
-          // se anuncia. Estos comandos se copian para pegarlos en otro lado,
-          // así que no saber si se copiaron es no saber si puede seguir.
-          aria-label={etiqueta}
-        >
-          {copia?.estado === "ok" ? (
-            <Check size={12} strokeWidth={2.5} className="text-success" />
-          ) : copia?.estado === "error" ? (
-            <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
-          ) : (
-            <Copy size={12} strokeWidth={1.75} />
-          )}
-        </button>
+        <BotonCopiar texto={lines.join("\n")} etiqueta={title} />
       </div>
       <pre className="log-line overflow-x-auto rounded-md border border-border bg-bg p-2.5 text-caption text-text-muted">
         {lines.join("\n")}

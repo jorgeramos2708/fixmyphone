@@ -753,6 +753,73 @@ const SIMULADOS: Simulated[] = [
     battery: { levelPct: 55, charging: false },
   },
   {
+    // La rama de "descarga SIN firma", que antes no se podia ver en la maqueta.
+    //
+    // La banda roja de "entrar al modo de descarga exige material firmado" es lo
+    // unico que la pantalla de reparacion enseñaba, porque las 48 filas del
+    // recorte tenian todas `signed_material_required = 1`. Y sin esta fila la
+    // demo del producto parece la de un producto que solo dice que no se puede.
+    //
+    // El Pixel 8a es real y el dato tambien: es de las 16 variantes de 763 que
+    // la fuente marca SIN material firmado, y su `download_mode` lo explica solo
+    // ("bootloader only, OEM key signed, no Qualcomm-style EDL"). La conclusion
+    // de que por eso no hace falta firma la saca `core`, no este archivo.
+    //
+    // Tambien trae `custom_unlock_cmd`, y es el caso GENERICO: asi que con el Le
+    // 2 de abajo se ven las dos clases de comando, que es lo que necesita la
+    // prueba del informe que prohibe llamar "propio" a `fastboot flashing
+    // unlock`.
+    id: "pixel-8a",
+    label: "Pixel 8a (Tensor G3)",
+    props: {
+      "ro.product.device": "akita",
+      "ro.product.model": "Pixel 8a",
+      "ro.product.manufacturer": "google",
+      "ro.product.brand": "google",
+      "ro.build.version.release": "14",
+      "ro.build.version.security_patch": "2024-05-01",
+      "ro.build.id": "AP1A.240505.005",
+      "ro.build.fingerprint": "google/akita/akita:14/AP1A.240505.005/11076251:user/release-keys",
+      "ro.boot.hardware": "gs",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "9a1b2c3d4e5f",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 71, charging: false },
+  },
+  {
+    // La rama del comando de desbloqueo que NO es el generico.
+    //
+    // Con el Pixel de arriba se ve `fastboot flashing unlock`, que es el comando
+    // de siempre. Con este se ve `fastboot oem unlock-go`, y la pantalla dice
+    // explicitamente que no es el generico, con el boton de copiar al lado. Sin
+    // una fila asi, el texto nuevo no lo puede leer nadie: el recorte entero
+    // caia en la clase generica.
+    //
+    // Las cuatro placas del Le 2 (X520, X522, X526, X527) estan en la MISMA fila
+    // de la base, asi que la escalera resuelve con el codename y no con el
+    // numero de modelo. El X522 es una de ellas, no una combinacion inventada.
+    id: "leeco-le2",
+    label: "LeEco Le 2 (X522)",
+    props: {
+      "ro.product.device": "s2",
+      "ro.product.model": "X522",
+      "ro.product.manufacturer": "LeEco",
+      "ro.product.brand": "leeco",
+      "ro.build.version.release": "7",
+      "ro.build.version.security_patch": "2017-01-01",
+      "ro.build.id": "N2G48H",
+      "ro.build.fingerprint": "LeEco/s2/s2:7/N2G48H/1a2b3c4d5e6f:user/release-keys",
+      "ro.boot.hardware": "msm8976",
+      "ro.boot.flash.locked": "1",
+      "ro.boot.verifiedbootstate": "green",
+      "ro.serialno": "8f7e6d5c4b3a",
+      "sys.boot_completed": "1",
+    },
+    battery: { levelPct: 44, charging: false },
+  },
+  {
     // El unico equipo simulado que NO esta en el catalogo, a proposito: el caso
     // honesto de "no se que es esto". Antes era el Galaxy S25, pero ese ya
     // entro al catalogo (`pa1q`, ver arriba), asi que el hueco se corrio al

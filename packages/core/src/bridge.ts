@@ -409,12 +409,15 @@ export interface Receta {
   metodo: string | null;
 
   /**
-   * Comando de desbloqueo literal, cuando el fabricante no usa el estándar.
+   * Comando de desbloqueo literal, con sus saltos de línea y sus comillas.
    *
-   * Aparece en 97 de 763 variantes y es el comando de verdad, con sus
-   * comillas y su saltos de línea. No se ejecuta y no se "corrige": la app no
-   * desbloquea nada, y un comando reescrito es un comando que ya no es el que
-   * probó el fabricante.
+   * Aparece en 97 de 763 variantes, y solo 22 son un comando que no es el
+   * genérico de fastboot. Que la columna de la fuente se llame `custom` no
+   * quiere decir que el valor sea propio de la variante: use
+   * `esDesbloqueoGenerico` para saberlo antes de describirlo.
+   *
+   * No se ejecuta y no se "corrige": la app no desbloquea nada, y un comando
+   * reescrito es un comando que ya no es el que probó el fabricante.
    */
   desbloqueo: string | null;
 
@@ -555,6 +558,53 @@ export function avisoFirmaDescarga(r: Receta): [string, string] {
       ? `Esto no dice que la placa no se pueda reparar. El método de instalación que declara el catálogo para esta variante es ${r.metodo}, que es un camino aparte y no necesita la firma. Conviene confirmar cuál de los dos se va a usar antes de abrir el equipo: si el que se elige es el modo de descarga, ese trabajo no se puede hacer desde aquí.`
       : `Esto no dice que la placa no se pueda reparar, pero la fuente no declara método de instalación para esta variante, así que desde aquí no se puede afirmar que exista un camino sin firma. Eso hay que confirmarlo en la página de la variante, antes de abrir el equipo.`,
   ];
+}
+
+// ---------------------------------------------------------------------------
+// Comando de desbloqueo
+// ---------------------------------------------------------------------------
+
+/**
+ * El comando genérico de fastboot, que es el que trae la mayoría de las filas.
+ *
+ * Se compara sin distinguir mayúsculas y sin espacios de sobra, porque el dato
+ * viene de una columna de texto de un wiki y no de un archivo de configuración.
+ */
+const DESBLOQUEO_GENERICO = "fastboot flashing unlock";
+
+/**
+ * Si el comando de desbloqueo de la variante dice algo propio de la placa, o es
+ * el que sirve para cualquier equipo con bootloader desbloqueable.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ HAY QUE PREGUNTAR Y POR QUÉ NO SE PREGUNTA POR EL NOMBRE DE LA COLUMNA
+ * ------------------------------------------------------------------
+ * Porque la columna se llama `custom_unlock_cmd` y 75 de sus 97 valores no
+ * tienen nada de custom: son `fastboot flashing unlock`, el comando que funciona
+ * en cualquier Pixel y en cualquier OnePlus. La columna describe lo que el wiki
+ * guardó, no lo que la variante necesita.
+ *
+ * Y es un error que se paga caro, porque "este equipo necesita un comando
+ * especial" hace que el técnico busque un procedimiento raro en lugar de
+ * escribir la línea de siempre, y porque la misma frase iba en el informe
+ * firmado: el cliente se llevaba la idea de que su equipo era el difícil.
+ *
+ * ------------------------------------------------------------------
+ * POR QUÉ SOLO HAY DOS CLASES Y NO UNA LISTA DE COMANDOS CONOCIDOS
+ * ------------------------------------------------------------------
+ * Porque los otros 22 valores no se pueden clasificar sin inventar. Hay siete
+ * `fastboot oem unlock-go`, que es un comando de marca y no de placa; hay diez
+ * `fastboot oem nubia_unlock NUBIA_NX659J` y uno de Yandex, que sí llevan el
+ * modelo dentro; y hay dos de tres líneas que cambian el firmware antes de
+ * desbloquear. Decirle a cada uno de esos "es propio de este equipo" sería
+ * afirmar algo sobre el wiki que nadie verificó.
+ *
+ * Lo que sí se puede decir sin arriesgarse es lo que esta función dice: o es el
+ * genérico, o es un valor que la fuente da para esta variante. Las dos
+ * afirmaciones se pueden comprobar con el texto delante.
+ */
+export function esDesbloqueoGenerico(comando: string): boolean {
+  return comando.trim().toLowerCase() === DESBLOQUEO_GENERICO;
 }
 
 // ---------------------------------------------------------------------------

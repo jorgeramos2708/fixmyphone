@@ -60,6 +60,7 @@ import type {
 } from "@fixmyphone/core";
 import {
   avisoFirmaDescarga,
+  esDesbloqueoGenerico,
   ORDEN_RECETA,
   PARTICION_RECOVERY,
   preRequisito,
@@ -67,7 +68,7 @@ import {
   recetaVacia,
   riesgo,
 } from "@fixmyphone/core";
-import { Badge, Panel, EmptyState } from "../components/primitives";
+import { Badge, BotonCopiar, Panel, EmptyState } from "../components/primitives";
 
 // ---------------------------------------------------------------------------
 // Textos de cada campo
@@ -85,6 +86,18 @@ import { Badge, Panel, EmptyState } from "../components/primitives";
  * Los comandos y los identificadores de la fuente van así a propósito: en
  * proportional, `fastboot oem setenv lock 10100000;saveenv;save` se lee como
  * una frase y se ejecuta como otra cosa.
+ *
+ * `copia` marca los dos únicos valores que llevan botón de copiar, y son
+ * los dos que el técnico teclea dentro de una terminal: el comando de
+ * desbloqueo, y el nombre de la partición, que va dentro de
+ * `fastboot flash recovery <particion>`. Un nombre mal tecleado en un comando
+ * destructivo no da error visible hasta que el equipo no arranca, y el técnico
+ * no tiene dónde comparar: escribe lo que leyó.
+ *
+ * Los otros seis campos no se copian, y es una decisión y no un olvido: son
+ * frases que se leen, no comandos que se ejecutan, y un botón de copiar encima
+ * de una frase solo ocupa espacio. Las combinaciones de botones se aprietan con
+ * el dedo mientras se sostiene el equipo, así que copiarlas no sirve de nada.
  */
 const CAMPOS: Record<
   CampoReceta,
@@ -96,6 +109,8 @@ const CAMPOS: Record<
     codigo?: boolean;
     /** El valor viene de la fuente en otro idioma y no se traduce. */
     ajeno?: boolean;
+    /** Cómo se anuncia el botón de copiar: el nombre de lo que se copia. */
+    copia?: string;
   }
 > = {
   descargaExigeMaterialFirmado: {
@@ -114,12 +129,14 @@ const CAMPOS: Record<
     titulo: "Partición de destino",
     pista: "en qué partición va la imagen de recovery",
     icono: HardDrive,
+    copia: "el nombre de la partición",
   },
   desbloqueo: {
     titulo: "Desbloqueo",
-    pista: "comando propio de este equipo, cuando no sirve el estándar",
+    pista: "el comando que da la fuente para desbloquear el bootloader",
     icono: KeyRound,
     codigo: true,
+    copia: "el comando de desbloqueo",
   },
   metodo: {
     titulo: "Método de instalación",
@@ -328,6 +345,10 @@ function FilaReceta({
             <Languages size={11} strokeWidth={1.75} aria-hidden />
             texto de la fuente, sin traducir
           </span>
+        ) : c.copia ? (
+          <div className="ml-auto shrink-0">
+            <BotonCopiar texto={String(receta[clave])} etiqueta={c.copia} />
+          </div>
         ) : null}
       </div>
 
@@ -455,14 +476,25 @@ function Valor({
   }
 
   if (clave === "desbloqueo") {
+    const cmd = receta.desbloqueo as string;
+    const generico = esDesbloqueoGenerico(cmd);
     return (
       <>
         <pre className="tech overflow-x-auto whitespace-pre-wrap break-words rounded border border-border bg-surface-2 px-3 py-2 text-caption text-text">
-          {receta.desbloqueo}
+          {cmd}
         </pre>
+        {/* 75 de los 97 valores de esta columna son `fastboot flashing unlock`, y
+            la columna se llama `custom_unlock_cmd`. Decirle al técnico que es
+            "comando propio de este equipo" lo manda a buscar un procedimiento
+            que no existe; la fila decía eso y estaba mal. */}
         <p className="mt-1 text-caption text-text-faint">
-          Comando literal de la fuente. La app no lo ejecuta ni lo modifica: un
-          comando reescrito ya no es el que probó el fabricante.
+          {generico
+            ? "Es el comando genérico de fastboot, el mismo para cualquier placa con bootloader. La columna de la fuente lo llama «custom» porque así se llama la columna, no porque aquí haya nada propio del equipo."
+            : "No es el comando genérico de fastboot: la fuente da este otro para esta variante. No se traduce ni se reordena."}
+        </p>
+        <p className="mt-1 text-caption text-text-faint">
+          Comando literal. La app no lo ejecuta ni lo modifica: un comando
+          reescrito ya no es el que probó el fabricante.
         </p>
       </>
     );

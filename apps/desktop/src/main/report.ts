@@ -37,6 +37,7 @@ import type {
 } from "@fixmyphone/core";
 import {
   avisoFirmaDescarga,
+  esDesbloqueoGenerico,
   has,
   ORDEN_RECETA,
   PARTICION_RECOVERY,
@@ -381,8 +382,21 @@ export function buildReport(input: ReportInput): string {
       partes.push(...parrafo(PARTICION_RECOVERY[r.particionRecovery]));
     }
     if (r.desbloqueo) {
-      partes.push("  Comando de desbloqueo propio de este equipo:");
+      // 75 de los 97 valores de `custom_unlock_cmd` son `fastboot flashing
+      // unlock`. Llamarlo "propio de este equipo" en el informe que se entrega
+      // al cliente le hace creer que su telefono es el que necesita un
+      // procedimiento raro, y no lo necesita.
+      partes.push(
+        esDesbloqueoGenerico(r.desbloqueo)
+          ? "  Comando de desbloqueo que declara la fuente:"
+          : "  Comando de desbloqueo que declara la fuente para esta variante:",
+      );
       for (const l of r.desbloqueo.split("\n")) partes.push(`      ${l}`);
+      if (esDesbloqueoGenerico(r.desbloqueo)) {
+        partes.push(
+          "      (es el comando generico de fastboot, no uno propio de esta placa)",
+        );
+      }
     }
     if (r.metodo) partes.push(`  Metodo de instalacion declarado: ${r.metodo}`);
     if (r.modoDescarga) partes.push(`  Modo de descarga: ${r.modoDescarga}`);

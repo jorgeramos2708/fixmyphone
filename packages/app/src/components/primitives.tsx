@@ -13,6 +13,7 @@
 
 import type { ReactNode, ButtonHTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, Check, Copy } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // useCopiar
@@ -82,6 +83,65 @@ export function useCopiar(): [Copia | null, (texto: string, clave?: string) => v
   };
 
   return [copia, copiar];
+}
+
+// ---------------------------------------------------------------------------
+// BotonCopiar
+// ---------------------------------------------------------------------------
+
+/**
+ * El botón de copiar, con su estado y su texto accesible.
+ *
+ * Vive aquí y no dentro de cada pantalla porque hay cuatro cosas que se copian
+ * y cada copia del botón tenía su propia forma de callarse: el id del equipo,
+ * los bloques de la licencia, las claves de variante y los literales de la
+ * receta. Aquí hay una sola versión, y es la que no se inventa el resultado.
+ *
+ * `etiqueta` es el nombre de lo que se copia, con su artículo y su mayúscula
+ * ("el comando de desbloqueo"). El estado se le añade al final y el estado en
+ * reposo la baja a minúsculas detrás de "Copiar", que es como se lee bien.
+ */
+export function BotonCopiar({
+  texto,
+  etiqueta,
+  className = "",
+}: {
+  texto: string;
+  etiqueta: string;
+  className?: string;
+}) {
+  const [copia, copiar] = useCopiar();
+
+  const minuscula = etiqueta.charAt(0).toLowerCase() + etiqueta.slice(1);
+  const accesible =
+    copia?.estado === "ok"
+      ? `${etiqueta}: copiado`
+      : copia?.estado === "error"
+        ? `${etiqueta}: no se pudo copiar`
+        : `Copiar ${minuscula}`;
+
+  return (
+    <button
+      type="button"
+      onClick={() => copiar(texto)}
+      className={["text-text-faint transition-colors hover:text-text", className].join(" ")}
+      // El texto accesible cambia con el estado a propósito. Con un
+      // `aria-label` fijo, quien usa lector de pantalla aprieta "Copiar" y no se
+      // entera de si funcionó: el icono se vuelve palomita, y el icono no se
+      // anuncia. Estos textos se copian para pegarlos en una terminal, así que
+      // no saber si se copiaron es no saber si puede seguir.
+      aria-label={accesible}
+      title={accesible}
+    >
+      {copia?.estado === "ok" ? (
+        <Check size={12} strokeWidth={2.5} className="text-success" />
+      ) : copia?.estado === "error" ? (
+        <AlertTriangle size={12} strokeWidth={2.5} className="text-danger" />
+      ) : (
+        <Copy size={12} strokeWidth={1.75} />
+      )}
+    </button>
+  );
 }
 
 // ---------------------------------------------------------------------------

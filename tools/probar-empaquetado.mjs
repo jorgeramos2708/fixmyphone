@@ -878,6 +878,86 @@ if (rutaCatalogo) {
         "sin esta matización el técnico no sabe que fastboot es un camino aparte",
       );
     }
+
+    // -----------------------------------------------------------------------
+    // EL COMANDO DE DESBLOQUEO: LO QUE EL INFORME NO PUEDE AFIRMAR
+    // -----------------------------------------------------------------------
+    // La columna de la fuente se llama `custom_unlock_cmd` y el informe decía
+    // "Comando de desbloqueo propio de este equipo". Es falso en 75 de los 97
+    // valores: son `fastboot flashing unlock`, el comando genérico. El técnico
+    // que lo lee busca un procedimiento raro, y el cliente se lleva la idea de
+    // que su teléfono es el difícil.
+    //
+    // Se prueban LAS DOS CLASES, con filas reales del catálogo, porque la
+    // afirmación que hay que-chequear es la de "propio": si solo se probara la
+    // fila genérica, un cambio que le pusiera "propio" a la variante específica
+    // pasaría. Y si solo se probara la específica, el texto genérico podría
+    // seguir diciendo lo que se quiera.
+    //
+    // La primera comprobación es una prohibición sobre las dos, y es la que
+    // importa: el texto viejo es exactamente esa frase.
+    const { DEMO_CATALOG } = await import(
+      pathToFileURL(join(RAIZ, "packages", "app", "src", "data", "demo-catalog.ts")).href
+    );
+    const conDesbloqueo = DEMO_CATALOG.filter((v) => v.receta.desbloqueo);
+    const generico = conDesbloqueo.find(
+      (v) => v.receta.desbloqueo.trim().toLowerCase() === "fastboot flashing unlock",
+    );
+    const propio = conDesbloqueo.find(
+      (v) => v.receta.desbloqueo.trim().toLowerCase() !== "fastboot flashing unlock",
+    );
+    check(
+      "El catálogo de la demo trae las dos clases de comando de desbloqueo",
+      generico !== undefined && propio !== undefined,
+      `con comando: ${conDesbloqueo.length}, genericos: ` +
+        `${conDesbloqueo.filter((v) => v.receta.desbloqueo.trim().toLowerCase() === "fastboot flashing unlock").length}. ` +
+        "Sin las dos, la comprobacion de abajo solo esta mirando un caso",
+    );
+
+    if (generico && propio) {
+      const informeDe = (v) =>
+        buildReport({
+          device: {
+            id: `sim:${v.key}`,
+            transport: "sim",
+            serial: `SIM-${v.key}`,
+            connectedAt: "2026-09-29T12:00:00.000Z",
+            props: { "ro.product.device": v.codename },
+            battery: { levelPct: 58, charging: false },
+          },
+          resolution: {
+            match: v,
+            alternatives: [],
+            ladder: [],
+            unresolvedReason: null,
+          },
+          probes: [],
+          license: { state: "free", plan: "free" },
+          watermarked: true,
+        });
+
+      const delGenerico = informeDe(generico);
+      const delPropio = informeDe(propio);
+
+      check(
+        "El informe nunca llama 'propio de este equipo' a un comando de desbloqueo",
+        !/propio de este equipo/i.test(delGenerico) &&
+          !/propio de este equipo/i.test(delPropio),
+        "la columna de la fuente se llama 'custom', pero 75 de sus 97 valores son " +
+          "`fastboot flashing unlock`, que no es de ninguna placa en particular",
+      );
+      check(
+        "Y sí marca el comando genérico como genérico",
+        /es el comando generico de fastboot/i.test(delGenerico),
+        "sin esta línea el técnico no puede saber si la fuente le dio algo especial",
+      );
+      check(
+        "Y el que no es genérico se declara como de la variante, no del equipo",
+        !/es el comando generico de fastboot/i.test(delPropio) &&
+          /para esta variante/i.test(delPropio),
+        `el informe dice que el comando de ${propio.key} es generico o no lo declara`,
+      );
+    }
   }
   cat.close();
 }
